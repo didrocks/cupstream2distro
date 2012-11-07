@@ -1,0 +1,132 @@
+#!/usr/bin/python
+# -*- coding: UTF8 -*-
+# Copyright (C) 2012 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import os
+import sys
+
+from ps2distro import branchhandling, packagemanager, launchpadmanager
+
+#
+#
+#
+#
+#
+#
+#
+#
+#
+## TODO: project_name != package source name. issue latest step in particular when publishing… (only the .changes, no package equivalent)
+# example lp:unity/6.0 -> 6.0
+# One solution: le paramètre projectbranch est de la forme: "lp:unity/6.0 unity" avec source package name en second séparé d'un espace.
+
+if __name__ == '__main__':
+
+    project_branch = os.getenv("projectbranch")
+    serie = os.getenv("serie")
+    instance_info = "for project_branch: {}, serie: {}".format(project_branch, serie)
+
+    if not project_branch or not serie:
+        print("ERROR: missing compulsory environment for: {}".format(instance_info))
+        sys.exit(1)
+    project_dir = project_branch.split("/")[-1].replace("lp:", "")
+
+    # Grab project branch
+    print("Branching {}".format(project_branch))
+    try:
+        branchhandling.get_branch(project_branch)
+        os.chdir(project_dir)
+    except Exception as e:
+        print("ERROR while branching {}\n{}".format(instance_info, e))
+        sys.exit(1)
+
+    # Get changelog informations
+    print("Get changelog info")
+    try:
+        with open("debian/changelog") as changelog:
+            last_upstream_rev = packagemanager.get_latest_upstream_bzr_rev(changelog)
+        previous_packaging_version = packagemanager.get_packaging_version()
+        source_package = packagemanager.get_packaging_sourcename()
+    except Exception as e:
+        print("ERROR while parsing changelog {}\n{}".format(instance_info, e))
+        sys.exit(1)
+
+    # Check version in distro
+    print("Get version available in distro")
+    distro_version = packagemanager.get_current_version_for_serie(source_package, serie)
+    # FIXME: if previous_packaging_version is UNRELEASED and the released version is in distro?
+    if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
+        print("A manual upload to distro ({}) has been done for that component, compare to latest version in trunk ({}). "
+              "Ignoring that component for {}.".format(distro_version, previous_packaging_version, instance_info))
+        # TODO: open a merge proposal with the diff from distro and approve.
+        sys.exit(3)
+
+    # Check if new revision to publish
+    print("Check if new revision were published")
+    try:
+        tip_bzr_rev = branchhandling.get_tip_bzr_revision()
+        # +1 as there is at least an additional automatic commit for latest changelog content of last release.
+        if tip_bzr_rev <= last_upstream_rev + 1:
+            print("No new revision published since last daily push, no need to upload this component")
+            sys.exit(0)
+    except Exception as e:
+        print("Error while checking if new revisions were published {}\n{}".format(instance_info, e))
+        sys.exit(1)
+
+    # Prepare changelog
+    print("Prepare changelog content")
+    try:
+        authors_bugs = branchhandling.collect_author_bugs(last_upstream_rev + 1, source_package)
+        authors_bugs_with_title = launchpadmanager.get_bugs_titles(authors_bugs)
+        packagemanager.update_changelog("999999", serie, tip_bzr_rev, authors_bugs_with_title)
+    except Exception as e:
+        print("Error while preparing changelog content {}\n{}".format(instance_info, e))
+        sys.exit(1)
+
+    # Commit and opens bugs
+    print("Sync launchpad with current proposed work")
+
+
+
+    print("Build source package and upload")
+
+    
+    # 
+    # 
+    # 
+    
+    # 
+    # TODO: 
+    # open bugs for that source package in the bug upstream.
+    # compute next package version (taking into account two release a day)
+
+
+
+# 1. stop if an intermediate upload has been done to ubuntu but not backported in the packaging branch
+# 2. collect all bugs that have been fixed in upstream trunk, and sort them by name in the changelog. The matching is really permissive: wide variety of format either --fixes lp: or in the commit message
+# 3. Filters them with the eventual manual cherry-pick upload done in between (don't repeat if already fixed in distro)
+# 4. Opens the downstream task automatically
+# 
+# 8. propose for merging and accept automatically the changelog changes for the day.
+# 
+# The bug collect doesn't depend on when the changelog commit is merged
+
+
+
+# Metrics: number of bugs fixed per stack, per component, which ones…
