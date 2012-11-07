@@ -23,18 +23,6 @@ import sys
 
 from ps2distro import branchhandling, packagemanager, launchpadmanager
 
-#
-#
-#
-#
-#
-#
-#
-#
-#
-## TODO: project_name != package source name. issue latest step in particular when publishing… (only the .changes, no package equivalent)
-# example lp:unity/6.0 -> 6.0
-# One solution: le paramètre projectbranch est de la forme: "lp:unity/6.0 unity" avec source package name en second séparé d'un espace.
 
 if __name__ == '__main__':
 
@@ -43,21 +31,27 @@ if __name__ == '__main__':
     instance_info = "for project_branch: {}, serie: {}".format(project_branch, serie)
 
     if not project_branch or not serie:
-        print("ERROR: missing compulsory environment for: {}".format(instance_info))
+        print("ERROR: missing compulsory environment {}".format(instance_info))
         sys.exit(1)
-    project_dir = project_branch.split("/")[-1].replace("lp:", "")
+    if not " " in project_branch:
+        print("ERROR: projectbranch should be in the form: 'source_package lp:branch_path' {}".format(instance_info))
+        sys.exit(1)
+    (source_package, branch_path) = project_branch.split(" ")
 
     # Grab project branch
-    print("Branching {}".format(project_branch))
-    branchhandling.get_branch(project_branch)
-    os.chdir(project_dir)
+    print("Branching {} to {}".format(branch_path, source_package))
+    branchhandling.get_branch(branch_path, source_package)
+    os.chdir(source_package)
 
     # Get changelog informations
     print("Get changelog info")
     with open("debian/changelog") as changelog:
         last_upstream_rev = packagemanager.get_latest_upstream_bzr_rev(changelog)
     previous_packaging_version = packagemanager.get_packaging_version()
-    source_package = packagemanager.get_packaging_sourcename()
+
+    if (source_package != packagemanager.get_packaging_sourcename()):
+        print("ERROR: projectbranch doesn't specify the same source name than the packaging itself {}".format(instance_info))
+        sys.exit(1)
 
     # Check version in distro
     print("Get version available in distro")
