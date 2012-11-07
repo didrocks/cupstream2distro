@@ -1,3 +1,4 @@
+# -*- coding: UTF8 -*-
 # Copyright (C) 2012 Canonical
 #
 # Authors:
@@ -21,3 +22,4 @@ PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
 
 BOT_DEBFULLNAME = "Automatic PS uploader"
 BOT_DEBEMAIL = "didrocks@ubuntu.com"
+BOT_KEY = "E4AC208E"

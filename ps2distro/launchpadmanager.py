@@ -1,3 +1,4 @@
+# -*- coding: UTF8 -*-
 # Copyright (C) 2012 Canonical
 #
 # Authors:
@@ -19,6 +20,7 @@
 from __future__ import unicode_literals
 
 from launchpadlib.launchpad import Launchpad
+import lazr
 launchpad = None
 
 
@@ -27,7 +29,7 @@ def get_launchpad(use_staging=True):
     global launchpad
     if not launchpad:
         if use_staging:
-            server = 'qastaging'
+            server = 'staging'
         else:
             server = 'production'
         launchpad = Launchpad.login_with('ps2distro', server, allow_access_levels=["WRITE_PRIVATE"])
@@ -49,3 +51,23 @@ def get_bugs_titles(author_bugs):
         author_bugs_with_title[author] = bug_title_sets
 
     return author_bugs_with_title
+
+
+def open_bugs_for_source(bugs_list, source_name, serie_name):
+    lp = get_launchpad()
+    ubuntu = lp.distributions['ubuntu']
+
+    # don't nominate for current serie
+    if ubuntu.current_series.name == serie_name:
+        package = ubuntu.getSourcePackage(name=source_name)
+    else:
+        serie = ubuntu.getSeries(name_or_version=serie_name)
+        package = serie.getSourcePackage(name=source_name)
+
+    for bug_num in bugs_list:
+        try:
+            bug = lp.bugs[bug_num]
+            bug.addTask(target=package)
+            bug.lp_save()
+        except (KeyError, lazr.restfulclient.errors.BadRequest):
+            pass  # ignore non existing or available bugs

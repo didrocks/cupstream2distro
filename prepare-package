@@ -28,10 +28,11 @@ if __name__ == '__main__':
 
     project_branch = os.getenv("projectbranch")
     serie = os.getenv("serie")
+    ppa = os.getenv("ppa")
     instance_info = "for project_branch: {}, serie: {}".format(project_branch, serie)
 
-    if not project_branch or not serie:
-        print("ERROR: missing compulsory environment {}".format(instance_info))
+    if not project_branch or not serie or not ppa:
+        print("ERROR: missing compulsory environment variables (projectbranch, serie, ppa) {}".format(instance_info))
         sys.exit(1)
     if not " " in project_branch:
         print("ERROR: projectbranch should be in the form: 'source_package lp:branch_path' {}".format(instance_info))
@@ -73,34 +74,36 @@ if __name__ == '__main__':
 
     # Prepare changelog
     print("Prepare changelog content")
+    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version)
     authors_bugs = branchhandling.collect_author_bugs(last_upstream_rev + 1, source_package)
     authors_bugs_with_title = launchpadmanager.get_bugs_titles(authors_bugs)
-    packagemanager.update_changelog("999999", serie, tip_bzr_rev, authors_bugs_with_title)
+    packagemanager.update_changelog(packaging_version, serie, tip_bzr_rev, authors_bugs_with_title)
 
-    # Commit and opens bugs
+    # opens bugs
     print("Sync launchpad with current proposed work")
+    branchhandling.commit_release(packaging_version, tip_bzr_rev)
+    bugs_set = set()
+    for author in authors_bugs:
+        bugs_set = bugs_set.union(authors_bugs[author])
+    launchpadmanager.open_bugs_for_source(bugs_set, source_package, serie)
 
-
-
-    print("Build source package and upload")
-
-    
-    # 
-    # 
-    # 
-    
-    # 
-    # TODO: 
-    # open bugs for that source package in the bug upstream.
-    # compute next package version (taking into account two release a day)
-
+    print("Build source package and upload to the ppa")
+    packagemanager.build_package()
+    os.chdir('..')
+    packagemanager.upload_package(source_package, packaging_version, ppa)
 
 
 # 1. stop if an intermediate upload has been done to ubuntu but not backported in the packaging branch
 # 2. collect all bugs that have been fixed in upstream trunk, and sort them by name in the changelog. The matching is really permissive: wide variety of format either --fixes lp: or in the commit message
 # 3. Filters them with the eventual manual cherry-pick upload done in between (don't repeat if already fixed in distro)
-# 4. Opens the downstream task automatically
-# 
+# 4. Opens the downstream task automatically, nominate for a serie SRU if not the current one.
+# 5. Compute the version with <upstream_version>daily<version>
+#    Version would be <upstream_version>daily<yy.mm.dd(.minor)>-0ubuntu1
+#    if we already have something delivered today, it will be .minor, then, .minor+1…'
+#    this enables 7.0daily12.11.09-0ubuntu2, then the day after 7.0daily12.11.10-0ubuntu1
+#    multiple uploads the same day will then be 7.0daily12.11.10.1-0ubuntu1, 7.0daily12.11.10.2-0ubuntu1…
+#    if upstream go with 7.0.1, it's still handled thanks to 7.0daily and not 7.0.daily ;) (and so, will give 7.0.1daily12.11.11-0ubuntu1 for instance)
+#    Also, boostrapping or directly upload is handled, like 7.2-0ubuntu3, next daily upload will be 7.2daily12.11.15-0ubuntu1
 # 8. propose for merging and accept automatically the changelog changes for the day.
 # 
 # The bug collect doesn't depend on when the changelog commit is merged
@@ -108,3 +111,4 @@ if __name__ == '__main__':
 
 
 # Metrics: number of bugs fixed per stack, per component, which ones…
+# TODO: clean the ppa (remove all old unpublished packages)

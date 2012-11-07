@@ -1,3 +1,4 @@
+# -*- coding: UTF8 -*-
 # Copyright (C) 2012 Canonical
 #
 # Authors:
@@ -104,3 +105,7 @@ def _get_all_bugs_in_branch(starting_rev):
 
     return results
 
+
+def commit_release(new_package_version, tip_bzr_rev):
+    '''Commit latest release'''
+    subprocess.call(["bzr", "commit", "-m", "Releasing {}, based on r{}".format(new_package_version, tip_bzr_rev)])

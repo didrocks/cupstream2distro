@@ -1,3 +1,4 @@
+# -*- coding: UTF8 -*-
 # Copyright (C) 2012 Canonical
 #
 # Authors:
@@ -16,12 +17,13 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import datetime
 import os
 import re
 import subprocess
 
 from .launchpadmanager import get_launchpad
-from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL
+from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY
 
 
 def get_current_version_for_serie(source_package_name, serie_name):
@@ -67,6 +69,33 @@ def get_packaging_version():
             return packaging_version[0]
 
     raise Exception("Didn't find any Version in the package: {}".format(stdout))
+
+
+def create_new_packaging_version(previous_package_version):
+    '''Deliver a new packaging version, based on simple rules:
+
+    Version would be <upstream_version>daily<yy.mm.dd(.minor)>-0ubuntu1
+    if we already have something delivered today, it will be .minor, then, .minor+1…'''
+
+    today_version = datetime.date.today().strftime('%y.%m.%d')
+    # bootstrapping mode or direct upload or UNRELEASED for bumping to a new serie
+    if not "daily" in previous_package_version:
+        upstream_version = previous_package_version.split('-')[0]
+    else:
+        # extract the day of previous daily upload and bump if already uploaded today
+        regexp = re.compile("(.*)daily([\d\.]{8})([.\d]*)-.*")
+        previous_day = regexp.findall(previous_package_version)
+        if not previous_day:
+            raise Exception("Didn't find a correct versioning in the current package: {}".format(previous_package_version))
+        previous_day = previous_day[0]
+        upstream_version = previous_day[0]
+        if previous_day[1] == today_version:
+            minor = 1
+            if previous_day[2]:  # second upload of the day
+                minor = int(previous_day[2][1:]) + 1
+            today_version = "{}.{}".format(today_version, minor)
+
+    return "{}daily{}-0ubuntu1".format(upstream_version, today_version)
 
 
 def get_packaging_sourcename():
@@ -120,7 +149,19 @@ def update_changelog(new_package_version, serie, tip_bzr_rev, authors_bugs_with_
 
     dch_env["DEBFULLNAME"] = BOT_DEBFULLNAME
     dch_env["DEBEMAIL"] = BOT_DEBEMAIL
-    subprocess.Popen(["dch", "-v{}".format(new_package_version), "{}{}".format(REV_STRING_FORMAT, tip_bzr_rev)],
-                      env=dch_env).communicate()
+    instance = subprocess.Popen(["dch", "-v{}".format(new_package_version), "{}{}".format(REV_STRING_FORMAT, tip_bzr_rev)],
+                                stderr=subprocess.PIPE, env=dch_env)
+    (stdout, stderr) = instance.communicate()
+    if instance.returncode != 0:
+        raise Exception(stderr.decode("utf-8")[:-1])  # remove last \n
     subprocess.call(["dch", "-r", "--distribution", serie, ""], env=dch_env)
 
+
+def build_package():
+    '''Build the source package'''
+    subprocess.call(["bzr", "bd", "-S", "--", "-sa", "-k{}".format(BOT_KEY)])
+
+
+def upload_package(source, version, ppa):
+    '''Upload the new package to a ppa'''
+    subprocess.call(["dput", "ppa:{}".format(ppa), "{}_{}_source.changes".format(source, version)])
