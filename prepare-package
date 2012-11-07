@@ -49,23 +49,15 @@ if __name__ == '__main__':
 
     # Grab project branch
     print("Branching {}".format(project_branch))
-    try:
-        branchhandling.get_branch(project_branch)
-        os.chdir(project_dir)
-    except Exception as e:
-        print("ERROR while branching {}\n{}".format(instance_info, e))
-        sys.exit(1)
+    branchhandling.get_branch(project_branch)
+    os.chdir(project_dir)
 
     # Get changelog informations
     print("Get changelog info")
-    try:
-        with open("debian/changelog") as changelog:
-            last_upstream_rev = packagemanager.get_latest_upstream_bzr_rev(changelog)
-        previous_packaging_version = packagemanager.get_packaging_version()
-        source_package = packagemanager.get_packaging_sourcename()
-    except Exception as e:
-        print("ERROR while parsing changelog {}\n{}".format(instance_info, e))
-        sys.exit(1)
+    with open("debian/changelog") as changelog:
+        last_upstream_rev = packagemanager.get_latest_upstream_bzr_rev(changelog)
+    previous_packaging_version = packagemanager.get_packaging_version()
+    source_package = packagemanager.get_packaging_sourcename()
 
     # Check version in distro
     print("Get version available in distro")
@@ -79,25 +71,17 @@ if __name__ == '__main__':
 
     # Check if new revision to publish
     print("Check if new revision were published")
-    try:
-        tip_bzr_rev = branchhandling.get_tip_bzr_revision()
-        # +1 as there is at least an additional automatic commit for latest changelog content of last release.
-        if tip_bzr_rev <= last_upstream_rev + 1:
-            print("No new revision published since last daily push, no need to upload this component")
-            sys.exit(0)
-    except Exception as e:
-        print("Error while checking if new revisions were published {}\n{}".format(instance_info, e))
-        sys.exit(1)
+    tip_bzr_rev = branchhandling.get_tip_bzr_revision()
+    # +1 as there is at least an additional automatic commit for latest changelog content of last release.
+    if tip_bzr_rev <= last_upstream_rev + 1:
+        print("No new revision published since last daily push, no need to upload this component")
+        sys.exit(0)
 
     # Prepare changelog
     print("Prepare changelog content")
-    try:
-        authors_bugs = branchhandling.collect_author_bugs(last_upstream_rev + 1, source_package)
-        authors_bugs_with_title = launchpadmanager.get_bugs_titles(authors_bugs)
-        packagemanager.update_changelog("999999", serie, tip_bzr_rev, authors_bugs_with_title)
-    except Exception as e:
-        print("Error while preparing changelog content {}\n{}".format(instance_info, e))
-        sys.exit(1)
+    authors_bugs = branchhandling.collect_author_bugs(last_upstream_rev + 1, source_package)
+    authors_bugs_with_title = launchpadmanager.get_bugs_titles(authors_bugs)
+    packagemanager.update_changelog("999999", serie, tip_bzr_rev, authors_bugs_with_title)
 
     # Commit and opens bugs
     print("Sync launchpad with current proposed work")
