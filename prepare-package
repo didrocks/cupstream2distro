@@ -18,6 +18,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import argparse
 import os
 import sys
 
@@ -26,9 +27,23 @@ from ps2distro import branchhandling, packagemanager, launchpadmanager
 
 if __name__ == '__main__':
 
-    project_branch = os.getenv("projectbranch")
-    serie = os.getenv("serie")
-    ppa = os.getenv("ppa")
+    parser = argparse.ArgumentParser(description="Prepare package for a specific component to push to a ppa",
+                                     epilog="All options can be set by the corresponding long option name env variables as well")
+
+    parser.add_argument("-b", "--projectbranch", help="Source package and branch separated by a blank space in the form: 'unity lp:unity/6.0'")
+    parser.add_argument("-s", "--serie", help="Serie used to build the package")
+    parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
+    args = parser.parse_args()
+
+    project_branch = args.projectbranch
+    serie = args.serie
+    ppa = args.ppa
+    if not project_branch:
+        project_branch = os.getenv("projectbranch")
+    if not serie:
+        serie = os.getenv("serie")
+    if not ppa:
+        ppa = os.getenv("ppa")
     instance_info = "for project_branch: {}, serie: {}".format(project_branch, serie)
 
     if not project_branch or not serie or not ppa:
