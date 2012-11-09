@@ -17,18 +17,17 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from .settings import ARCH_FOR_ARCH_ALL
-
 
 class PackageInPPA():
 
     (BUILDING, FAILED, PUBLISHED) = range(3)
 
-    def __init__(self, source_name, version, ppa, serie, archs):
+    def __init__(self, source_name, version, ppa, serie, archs, arch_all_arch):
         self.source_name = source_name
         self.version = version
         self.serie = serie
         self.archs = archs
+        self.arch_all_arch = arch_all_arch
         self.ppa = ppa
         self.current_status = {}
 
@@ -42,7 +41,7 @@ class PackageInPPA():
         current_package_building = False
         current_package_failed = False
         for arch in self.current_status:
-            if only_arch_all and arch != ARCH_FOR_ARCH_ALL:
+            if only_arch_all and arch != self.arch_all_arch:
                 continue
             print("arch, status: " + arch + ", " + str(self.current_status[arch]))
             if self.current_status[arch] == PackageInPPA.BUILDING:
@@ -110,9 +109,9 @@ class PackageInPPA():
             at_least_one_published_binary = True
             # all binaries for an arch are published at the same time
             # launchpad is lying, it's telling that archs not in the ppa are built (for arch:all). Even for non supported arch!
-            # for instance, we can have the case of ARCH_FOR_ARCH_ALL (arch:all), built before the others and amd64 will be built for it
-            if binary.status == "Published" and (binary.distro_arch_series.architecture_tag == ARCH_FOR_ARCH_ALL or
-               (binary.distro_arch_series.architecture_tag != ARCH_FOR_ARCH_ALL and binary.architecture_specific)):
+            # for instance, we can have the case of self.arch_all_arch (arch:all), built before the others and amd64 will be built for it
+            if binary.status == "Published" and (binary.distro_arch_series.architecture_tag == self.arch_all_arch or
+               (binary.distro_arch_series.architecture_tag != self.arch_all_arch and binary.architecture_specific)):
                 status[binary.distro_arch_series.architecture_tag] = self.PUBLISHED
             if binary.architecture_specific:
                 only_arch_all_packages = False
@@ -140,16 +139,16 @@ class PackageInPPA():
                         status[build.arch_tag] = self.PUBLISHED
 
         # There is no way to know if there are some arch:all packages (and there are not in publishedBinaries for this arch until
-        # it's built on ARCH_FOR_ARCH_ALL). So mark all arch to BUILDING if ARCH_FOR_ARCH_ALL is building or FAILED if it failed.
-        if status[ARCH_FOR_ARCH_ALL] != self.PUBLISHED:
+        # it's built on arch_all_arch). So mark all arch to BUILDING if self.arch_all_arch is building or FAILED if it failed.
+        if status[self.arch_all_arch] != self.PUBLISHED:
             for arch in self.archs:
                 if status[arch] == self.PUBLISHED:
-                    status[arch] = status[ARCH_FOR_ARCH_ALL]
-                    if arch != ARCH_FOR_ARCH_ALL and status[arch] == self.FAILED:
-                        print("ERROR: {} marked as FAILED because {} build FAILED and we may miss arch:all packages".format(arch, ARCH_FOR_ARCH_ALL))
+                    status[arch] = status[self.arch_all_arch]
+                    if arch != self.arch_all_arch and status[arch] == self.FAILED:
+                        print("ERROR: {} marked as FAILED because {} build FAILED and we may miss arch:all packages".format(arch, self.arch_all_arch))
 
-        # If ARCH_FOR_ARCH_ALL is built and we only have arch:all packages, sync the published state
-        if status[ARCH_FOR_ARCH_ALL] == self.PUBLISHED and only_arch_all_packages and at_least_one_published_binary:
+        # If arch_all_arch is built and we only have arch:all packages, sync the published state
+        if status[self.arch_all_arch] == self.PUBLISHED and only_arch_all_packages and at_least_one_published_binary:
             for arch in self.archs:
                 status[arch] = self.PUBLISHED
 

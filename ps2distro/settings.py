@@ -25,7 +25,6 @@ BOT_DEBEMAIL = "didrocks@ubuntu.com"
 BOT_KEY = "E4AC208E"
 
 # selected arch for building arch:all packages
-ARCH_FOR_ARCH_ALL = "i386"
 VIRTUALIZED_PPA_ARCH = ["i386", "amd64"]
 
 TIME_BETWEEN_PPA_CHECKS = 60#15 * 60

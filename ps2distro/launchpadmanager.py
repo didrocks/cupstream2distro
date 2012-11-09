@@ -82,15 +82,19 @@ def open_bugs_for_source(bugs_list, source_name, serie_name):
             pass  # ignore non existing or available bugs
 
 
-def get_all_available_archs(serie, ppa=None):
+def get_all_available_archs_and_all_arch(serie, ppa=None):
     '''Return a set of available arch for a ppa eventually'''
     available_arch = set()
     if ppa and ppa.require_virtualized:
         available_arch = VIRTUALIZED_PPA_ARCH
+        arch_all_arch = VIRTUALIZED_PPA_ARCH[0]
     else:
         for arch in serie.architectures:
             available_arch.add(arch.architecture_tag)
-    return available_arch
+            if arch.is_nominated_arch_indep:
+                arch_all_arch = arch.architecture_tag
+
+    return (available_arch, arch_all_arch)
 
 
 def get_ppa(ppa_name):
