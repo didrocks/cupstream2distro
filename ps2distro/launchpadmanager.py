@@ -34,16 +34,26 @@ def get_launchpad(use_staging=False):
             server = 'staging'
         else:
             server = 'production'
-        launchpad = Launchpad.login_with('ps2distro', server, allow_access_levels=["WRITE_PRIVATE"])
+        launchpad = Launchpad.login_with('ps2distro', server, allow_access_levels=["WRITE_PRIVATE"],
+                                         version='devel')  # devel because copyPackage is only available there
 
     return launchpad
 
 
+def get_ubuntu():
+    '''Get the ubuntu distro'''
+    lp = get_launchpad()
+    return lp.distributions['ubuntu']
+
+
+def get_ubuntu_archive():
+    '''Get the ubuntu main archive'''
+    return get_ubuntu().main_archive
+
+
 def get_serie(serie_name):
     '''Return the launchpad object for the requested serie'''
-    lp = get_launchpad()
-    ubuntu = lp.distributions['ubuntu']
-    return ubuntu.getSeries(name_or_version=serie_name)
+    return get_ubuntu().getSeries(name_or_version=serie_name)
 
 
 def get_bugs_titles(author_bugs):
@@ -64,7 +74,7 @@ def get_bugs_titles(author_bugs):
 
 def open_bugs_for_source(bugs_list, source_name, serie_name):
     lp = get_launchpad()
-    ubuntu = lp.distributions['ubuntu']
+    ubuntu = get_ubuntu()
 
     # don't nominate for current serie
     if ubuntu.current_series.name == serie_name:

@@ -1,0 +1,63 @@
+#!/usr/bin/python
+# -*- coding: UTF8 -*-
+# Copyright (C) 2012 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import os
+
+from ps2distro import launchpadmanager, packageinppamanager
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Watch for published package in a ppa",
+                                     epilog="serie and ppa options can be set by the corresponding long option name env variables as well")
+
+    parser.add_argument("-s", "--serie", help="Serie used to build the package")
+    parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
+    parser.add_argument("-d", "--destppa", help="Consider this destppa instead of {serie}-proposed")
+
+    args = parser.parse_args()
+
+    serie = args.serie
+    ppa = args.ppa
+    if not serie:
+        serie = os.getenv("serie")
+    if not ppa:
+        ppa = os.getenv("ppa")
+
+    # getting the archives and series objects
+    if args.destppa:
+        dest_archive = launchpadmanager.get_ppa(args.destppa)
+        dest_pocket = 'Release'
+    else:
+        dest_archive = launchpadmanager.get_ubuntu_archive()
+        dest_pocket = 'Proposed'
+    src_ppa = launchpadmanager.get_ppa(ppa)
+    src_pocket = 'Release'
+
+    print("Copying from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for serie {serie}".format(
+          src_archive=src_ppa, src_pocket=src_pocket, dest_archive=dest_archive, dest_pocket=dest_pocket,
+          serie=serie))
+    for (source, version) in packageinppamanager.get_all_packages_uploaded():
+        print ("Copying {} ({})".format(source, version))
+        if args.destppa:   ### security for now: don't upload for real!
+            dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=serie,
+                                 include_binaries=True, to_pocket=dest_pocket, to_series=serie,
+                                 source_name=source, version=version)

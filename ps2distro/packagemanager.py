@@ -22,16 +22,15 @@ import os
 import re
 import subprocess
 
-from .launchpadmanager import get_launchpad
+from .launchpadmanager import get_serie, get_ubuntu_archive
 from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY
 
 
 def get_current_version_for_serie(source_package_name, serie_name):
     '''Get current version for a package name in that serie'''
-    ubuntu = get_launchpad().distributions['ubuntu']
-    serie = ubuntu.getSeries(name_or_version=serie_name)
+    serie = get_serie(serie_name)
     version = None
-    for source in ubuntu.main_archive.getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=serie):
+    for source in get_ubuntu_archive().getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=serie):
         if version:
             if is_version1_higher_than_version2(source.source_package_version, version):
                 version = source.source_package_version
