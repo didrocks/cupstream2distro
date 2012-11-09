@@ -23,3 +23,10 @@ PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
 BOT_DEBFULLNAME = "Automatic PS uploader"
 BOT_DEBEMAIL = "didrocks@ubuntu.com"
 BOT_KEY = "E4AC208E"
+
+# selected arch for building arch:all packages
+ARCH_FOR_ARCH_ALL = "i386"
+VIRTUALIZED_PPA_ARCH = ["i386", "amd64"]
+
+TIME_BETWEEN_PPA_CHECKS = 60#15 * 60
+TIME_BEFORE_STOP_LOOKING_FOR_SOURCE_PUBLISH = 120#30 * 60

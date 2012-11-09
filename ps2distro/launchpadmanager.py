@@ -23,8 +23,10 @@ from launchpadlib.launchpad import Launchpad
 import lazr
 launchpad = None
 
+from .settings import VIRTUALIZED_PPA_ARCH
 
-def get_launchpad(use_staging=True):
+
+def get_launchpad(use_staging=False):
     '''Get THE Launchpad'''
     global launchpad
     if not launchpad:
@@ -35,6 +37,13 @@ def get_launchpad(use_staging=True):
         launchpad = Launchpad.login_with('ps2distro', server, allow_access_levels=["WRITE_PRIVATE"])
 
     return launchpad
+
+
+def get_serie(serie_name):
+    '''Return the launchpad object for the requested serie'''
+    lp = get_launchpad()
+    ubuntu = lp.distributions['ubuntu']
+    return ubuntu.getSeries(name_or_version=serie_name)
 
 
 def get_bugs_titles(author_bugs):
@@ -61,7 +70,7 @@ def open_bugs_for_source(bugs_list, source_name, serie_name):
     if ubuntu.current_series.name == serie_name:
         package = ubuntu.getSourcePackage(name=source_name)
     else:
-        serie = ubuntu.getSeries(name_or_version=serie_name)
+        serie = get_serie(serie_name)
         package = serie.getSourcePackage(name=source_name)
 
     for bug_num in bugs_list:
@@ -71,3 +80,20 @@ def open_bugs_for_source(bugs_list, source_name, serie_name):
             bug.lp_save()
         except (KeyError, lazr.restfulclient.errors.BadRequest):
             pass  # ignore non existing or available bugs
+
+
+def get_all_available_archs(serie, ppa=None):
+    '''Return a set of available arch for a ppa eventually'''
+    available_arch = set()
+    if ppa and ppa.require_virtualized:
+        available_arch = VIRTUALIZED_PPA_ARCH
+    else:
+        for arch in serie.architectures:
+            available_arch.add(arch.architecture_tag)
+    return available_arch
+
+
+def get_ppa(ppa_name):
+    '''Return a launchpad ppa'''
+    ppa_dispatch = ppa_name.split("/")
+    return get_launchpad().people[ppa_dispatch[0]].getPPAByName(name=ppa_dispatch[1])

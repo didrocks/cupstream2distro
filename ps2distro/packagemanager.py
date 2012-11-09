@@ -56,6 +56,15 @@ def get_latest_upstream_bzr_rev(f):
     raise Exception("Didn't find any string in debian/changelog of the form: \"{}\". Bootstrapping issue?".format(regex.pattern))
 
 
+def list_packages_info_in_str(packages_set):
+    '''Return the packages info in a string'''
+
+    results = []
+    for package in packages_set:
+        results.append("{} ({})".format(package.source_name, package.version))
+    return " ".join(results)
+
+
 def get_packaging_version():
     '''Get current packaging rev'''
     instance = subprocess.Popen(["dpkg-parsechangelog"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)

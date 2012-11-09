@@ -1,0 +1,156 @@
+# -*- coding: UTF8 -*-
+# Copyright (C) 2012 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+from .settings import ARCH_FOR_ARCH_ALL
+
+
+class PackageInPPA():
+
+    (BUILDING, FAILED, PUBLISHED) = range(3)
+
+    def __init__(self, source_name, version, ppa, serie, archs):
+        self.source_name = source_name
+        self.version = version
+        self.serie = serie
+        self.archs = archs
+        self.ppa = ppa
+        self.current_status = {}
+
+    def get_status(self, only_arch_all):
+        '''Look at the package status in the ppa'''
+
+        self._refresh_status()
+        if not self.current_status:
+            return None
+
+        current_package_building = False
+        current_package_failed = False
+        for arch in self.current_status:
+            if only_arch_all and arch != ARCH_FOR_ARCH_ALL:
+                continue
+            print("arch, status: " + arch + ", " + str(self.current_status[arch]))
+            if self.current_status[arch] == PackageInPPA.BUILDING:
+                current_package_building = True
+            if self.current_status[arch] == PackageInPPA.FAILED:
+                current_package_failed = True
+
+        if current_package_building:
+            return self.BUILDING
+        # no more package is building, if one failed, time to signal it
+        if current_package_failed:
+            return self.FAILED
+        # if it's not None, not BUILDING, nor FAILED, it's PUBLISHED
+        return self.PUBLISHED
+
+    def _refresh_status(self):
+        '''Refresh status from the ppa'''
+
+        # first step, get the source published
+        if not self.current_status:
+            (self.current_status, self.source) = self._get_status_for_source_package_in_ppa()
+        # check the binary status
+        if self.current_status:
+            self.current_status = self._get_status_for_binary_packages_in_ppa()
+
+    def _get_status_for_source_package_in_ppa(self):
+        '''Return current_status for source package in ppa.
+
+        The status is dict (if not None) with {arch: status} and can be:
+            - None -> not visible yet
+            - BUILDING -> currently Building (or waiting to build)
+            - FAILED -> Build failed for this arch or has been canceled
+            - PUBLISHED -> All packages (including arch:all from other archs) published.
+
+            Only the 2 first status are returned by this call. See _get_status_for_binary_packages_in_ppa
+            for the others.'''
+
+        try:
+            source = self.ppa.getPublishedSources(exact_match=True, source_name=self.source_name, version=self.version, distro_series=self.serie)[0]
+            print ("source in ppa")
+            current_status = {}
+            for arch in self.archs:
+                current_status[arch] = self.BUILDING
+            return (current_status, source)
+        except (KeyError, IndexError):
+            return ({}, None)
+
+    def _get_status_for_binary_packages_in_ppa(self):
+        '''Return current status for package in ppa
+
+        The status is dict (if not None) with {arch: status} and can be:
+            - None -> not visible yet
+            - BUILDING -> currently Building (or waiting to build)
+            - FAILED -> Build failed for this arch or has been canceled
+            - PUBLISHED -> All packages (including arch:all from other archs) published.
+
+            Only the 3 last statuses are returned by this call. See _get_status_for_source_package_in_ppa
+            for the other.'''
+
+        # Try to see if all binaries availables for this arch are built, including arch:all on other archs
+        status = self.current_status
+        only_arch_all_packages = True
+        at_least_one_published_binary = False
+        for binary in self.source.getPublishedBinaries():
+            at_least_one_published_binary = True
+            # all binaries for an arch are published at the same time
+            # launchpad is lying, it's telling that archs not in the ppa are built (for arch:all). Even for non supported arch!
+            # for instance, we can have the case of ARCH_FOR_ARCH_ALL (arch:all), built before the others and amd64 will be built for it
+            if binary.status == "Published" and (binary.distro_arch_series.architecture_tag == ARCH_FOR_ARCH_ALL or
+               (binary.distro_arch_series.architecture_tag != ARCH_FOR_ARCH_ALL and binary.architecture_specific)):
+                status[binary.distro_arch_series.architecture_tag] = self.PUBLISHED
+            if binary.architecture_specific:
+                only_arch_all_packages = False
+            print ("binary published, arch: %s" % binary.distro_arch_series.architecture_tag)
+
+        # Looking for builds on archs still BUILDING (just loop on builds once to avoid too many lp requests)
+        needs_checking_build = False
+        build_state_failed = ('Failed to build', 'Chroot problem', 'Failed to upload', 'Cancelled build', 'Build for superseded Source')
+        for arch in self.archs:
+            if self.current_status[arch] == self.BUILDING:
+                needs_checking_build = True
+        if needs_checking_build:
+            for build in self.source.getBuilds():
+                if self.current_status[build.arch_tag] == self.BUILDING:
+                    if build.buildstate in build_state_failed:
+                        print("ERROR on {}: Build {} ({}) failed because of {}".format(build.arch_tag, build.title,
+                                                                                       build.web_link, build.buildstate))
+                        status[build.arch_tag] = self.FAILED
+                    # Another launchpad trick: if a binary arch was published, but then is superseeded, getPublishedBinaries() won't list
+                    # those binaries anymore. So it's seen as BUILDING again.
+                    # If there is a successful build record of it and the source is superseded, it means that it built fine at some point,
+                    # Another arch will fail as superseeded.
+                    # We don't just retain the old state of "PUBLISHED" because maybe we started the script with that situation already
+                    elif build.buildstate not in build_state_failed and self.source.status == "Superseded":
+                        status[build.arch_tag] = self.PUBLISHED
+
+        # There is no way to know if there are some arch:all packages (and there are not in publishedBinaries for this arch until
+        # it's built on ARCH_FOR_ARCH_ALL). So mark all arch to BUILDING if ARCH_FOR_ARCH_ALL is building or FAILED if it failed.
+        if status[ARCH_FOR_ARCH_ALL] != self.PUBLISHED:
+            for arch in self.archs:
+                if status[arch] == self.PUBLISHED:
+                    status[arch] = status[ARCH_FOR_ARCH_ALL]
+                    if arch != ARCH_FOR_ARCH_ALL and status[arch] == self.FAILED:
+                        print("ERROR: {} marked as FAILED because {} build FAILED and we may miss arch:all packages".format(arch, ARCH_FOR_ARCH_ALL))
+
+        # If ARCH_FOR_ARCH_ALL is built and we only have arch:all packages, sync the published state
+        if status[ARCH_FOR_ARCH_ALL] == self.PUBLISHED and only_arch_all_packages and at_least_one_published_binary:
+            for arch in self.archs:
+                status[arch] = self.PUBLISHED
+
+        return status
