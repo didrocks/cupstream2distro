@@ -123,6 +123,8 @@ if __name__ == '__main__':
 #    multiple uploads the same day will then be 7.0daily12.11.10.1-0ubuntu1, 7.0daily12.11.10.2-0ubuntu1…
 #    if upstream go with 7.0.1, it's still handled thanks to 7.0daily and not 7.0.daily ;) (and so, will give 7.0.1daily12.11.11-0ubuntu1 for instance)
 #    Also, boostrapping or directly upload is handled, like 7.2-0ubuntu3, next daily upload will be 7.2daily12.11.15-0ubuntu1
+# 6. Prepare a relevant diff if there are some packaging changes, containing packaging changes itselfs as well as
+#    autotools and cmake files.
 # 8. propose for merging and accept automatically the changelog changes for the day.
 # 
 # The bug collect doesn't depend on when the changelog commit is merged
