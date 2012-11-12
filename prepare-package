@@ -87,6 +87,10 @@ if __name__ == '__main__':
         print("No new revision published since last daily push, no need to upload this component")
         sys.exit(0)
 
+    # Prepare if a packaging change is part of the diff
+    print("Generate a diff if meaningfull packaging changes")
+    branchhandling.generate_diff_in_branch(last_upstream_rev, source_package)
+
     # Prepare changelog
     print("Prepare changelog content")
     packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version)

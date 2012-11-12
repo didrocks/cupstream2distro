@@ -40,6 +40,27 @@ def get_tip_bzr_revision():
     return (int(stdout.split(':')[0]))
 
 
+def _packaging_changes_in_branch(starting_rev):
+    '''Return if there has been a packaging change
+
+    We ignore the changelog only changes'''
+    bzrinstance = subprocess.Popen(['bzr', 'diff', 'debian/', '-r', str(starting_rev)], stdout=subprocess.PIPE)
+    (change_in_debian, err) = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog'], stdin=bzrinstance.stdout, stdout=subprocess.PIPE).communicate()
+    return(change_in_debian != "")
+
+
+def generate_diff_in_branch(starting_rev, source_package_name):
+    '''Generate a diff file in the parent directory if the branch has packaging branch
+
+    The diff contains autotools files and cmakeries'''
+    if _packaging_changes_in_branch(starting_rev):
+        with open("../packaging_diff_{}".format(source_package_name), "w") as f:
+            bzrinstance = subprocess.Popen(['bzr', 'diff', '-r', str(starting_rev)], stdout=subprocess.PIPE)
+            (changes_to_publish, err) = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog',
+                                        '-i', '*Makefile.am', '-i', 'configure.*', '-i', 'debian/*',
+                                        '-i', '*CMakeLists.txt'], stdin=bzrinstance.stdout, stdout=f).communicate()
+
+
 def collect_author_bugs(starting_rev, source_package_name):
     '''Collect a dict with authors fixing bugs since last release
 
