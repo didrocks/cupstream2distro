@@ -20,13 +20,14 @@
 
 import argparse
 import os
+import sys
 
 from ps2distro import launchpadmanager, packageinppamanager
-
+from ps2distro.branchhandling import get_packaging_diff_filename
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="Watch for published package in a ppa",
+    parser = argparse.ArgumentParser(description="Watch for published package in a ppa. Exit with 3 if manual copy is needed",
                                      epilog="serie and ppa options can be set by the corresponding long option name env variables as well")
 
     parser.add_argument("-s", "--serie", help="Serie used to build the package")
@@ -55,9 +56,18 @@ if __name__ == '__main__':
     print("Copying from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for serie {serie}".format(
           src_archive=src_ppa, src_pocket=src_pocket, dest_archive=dest_archive, dest_pocket=dest_pocket,
           serie=serie))
+    packaging_change = False
     for (source, version) in packageinppamanager.get_all_packages_uploaded():
-        print ("Copying {} ({})".format(source, version))
-        if args.destppa:   ### security for now: don't upload for real!
-            dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=serie,
-                                 include_binaries=True, to_pocket=dest_pocket, to_series=serie,
-                                 source_name=source, version=version)
+        if os.path.exists(get_packaging_diff_filename(source, version)):
+            print ("WARNING: Packaging change for {} ({}). Don't upload the stack automatically.".format(source, version))
+            packaging_change = True
+
+    if packaging_change:
+        sys.exit(3)
+    else:
+        for (source, version) in packageinppamanager.get_all_packages_uploaded():
+            print ("Copying {} ({})".format(source, version))
+            if args.destppa:   ### security for now: don't upload for real!
+                dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=serie,
+                                     include_binaries=True, to_pocket=dest_pocket, to_series=serie,
+                                     source_name=source, version=version)
