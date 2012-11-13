@@ -17,10 +17,13 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import ConfigParser
+import os
 import re
 import subprocess
 
 from . import packagemanager
+from .settings import BRANCH_URL, PACKAGING_MERGE_COMMIT_MESSAGE
 
 
 def get_branch(branch_url, dest_dir):
@@ -44,6 +47,7 @@ def get_packaging_diff_filename(source_package_name, packaging_version):
     '''Return the packaging diff filename'''
 
     return "../packaging_changes_{}_{}.diff".format(source_package_name, packaging_version)
+
 
 def _packaging_changes_in_branch(starting_rev):
     '''Return if there has been a packaging change
@@ -135,3 +139,35 @@ def _get_all_bugs_in_branch(starting_rev):
 def commit_release(new_package_version, tip_bzr_rev):
     '''Commit latest release'''
     subprocess.call(["bzr", "commit", "-m", "Releasing {}, based on r{}".format(new_package_version, tip_bzr_rev)])
+
+
+def save_branch_config(source_package_name, branch):
+    '''Save branch configuration'''
+    config = ConfigParser.RawConfigParser()
+    config.add_section('Branch')
+    config.set('Branch', 'branch', branch)
+    with open("{}.config".format(source_package_name), 'wb') as configfile:
+        config.write(configfile)
+
+
+def _get_parent_branch(source_package_name):
+    '''Get parent branch from config'''
+    config = ConfigParser.RawConfigParser()
+    config.read("{}.config".format(source_package_name))
+    return config.get('Branch', 'branch')
+
+
+def propose_branch_for_merging(source_package_name, version):
+    '''Propose and commit a branch upstream'''
+
+    parent_branch = _get_parent_branch(source_package_name)
+    # suppress browser opening
+    env = os.environ.copy()
+    env["BROWSER"] = "echo"
+    env["BZR_EDITOR"] = "echo"
+
+    os.chdir(source_package_name)
+    subprocess.call(["bzr", "push", BRANCH_URL.format(source_package_name), "--overwrite"])
+    mergeinstance = subprocess.Popen(["bzr", "lp-propose-merge", parent_branch, "-m", PACKAGING_MERGE_COMMIT_MESSAGE.format(version), "--approve"], stdin=subprocess.PIPE, env=env)
+    mergeinstance.communicate(input="y")
+    os.chdir('..')

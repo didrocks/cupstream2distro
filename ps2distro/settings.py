@@ -19,6 +19,7 @@
 
 REV_STRING_FORMAT = "Automatic snapshot from revision "
 PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
+BRANCH_URL = "lp:~didrocks/{}/newsnapshot"
 
 BOT_DEBFULLNAME = "Automatic PS uploader"
 BOT_DEBEMAIL = "didrocks@ubuntu.com"
