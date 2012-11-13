@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+import os
 from launchpadlib.launchpad import Launchpad
 import lazr
 launchpad = None
@@ -35,7 +36,8 @@ def get_launchpad(use_staging=False):
         else:
             server = 'production'
         launchpad = Launchpad.login_with('ps2distro', server, allow_access_levels=["WRITE_PRIVATE"],
-                                         version='devel')  # devel because copyPackage is only available there
+                                         version='devel',
+                                         credentials_file=os.path.expanduser("~/launchpadcred"))  # devel because copyPackage is only available there
 
     return launchpad
 
