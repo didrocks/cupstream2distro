@@ -41,14 +41,14 @@ if __name__ == '__main__':
     serie = args.serie
     ppa = args.ppa
     if not source_package_name:
-        source_package_name = os.getenv("source_name")
+        source_package_name = os.getenv("sourcename")
     if not branch:
         branch = os.getenv("branch")
     if not serie:
         serie = os.getenv("serie")
     if not ppa:
         ppa = os.getenv("ppa")
-    instance_info = "for source: {}, branch: {}, branch: {}, serie: {}".format(source_package_name, branch, serie)
+    instance_info = "for source: {}, branch: {}, serie: {}".format(source_package_name, branch, serie)
 
     if not source_package_name or not branch or not serie or not ppa:
         print("ERROR: missing compulsory environment variables (sourcename, branch, serie, ppa) {}".format(instance_info))
