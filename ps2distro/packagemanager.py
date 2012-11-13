@@ -162,7 +162,7 @@ def update_changelog(new_package_version, serie, tip_bzr_rev, authors_bugs_with_
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8")[:-1])  # remove last \n
-    subprocess.call(["dch", "-r", "--distribution", serie, "", "--release-heuristic", "changelog"], env=dch_env)
+    subprocess.call(["dch", "-r", "--distribution", serie, ""], env=dch_env)
 
 
 def build_package():
