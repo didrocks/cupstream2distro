@@ -22,11 +22,11 @@ PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
 BRANCH_URL = "lp:~didrocks/{}/newsnapshot"
 
 BOT_DEBFULLNAME = "Automatic PS uploader"
-BOT_DEBEMAIL = "didrocks@ubuntu.com"
-BOT_KEY = "E4AC208E"
+BOT_DEBEMAIL = "ps-jenkins@lists.canonical.com"
+BOT_KEY = "B879A3E9"
 
 # selected arch for building arch:all packages
 VIRTUALIZED_PPA_ARCH = ["i386", "amd64"]
 
-TIME_BETWEEN_PPA_CHECKS = 60#15 * 60
-TIME_BEFORE_STOP_LOOKING_FOR_SOURCE_PUBLISH = 120#30 * 60
+TIME_BETWEEN_PPA_CHECKS = 15 * 60
+TIME_BEFORE_STOP_LOOKING_FOR_SOURCE_PUBLISH = 30 * 60
