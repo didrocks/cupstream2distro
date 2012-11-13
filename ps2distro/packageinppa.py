@@ -43,11 +43,14 @@ class PackageInPPA():
         for arch in self.current_status:
             if only_arch_all and arch != self.arch_all_arch:
                 continue
-            print("arch, status: " + arch + ", " + str(self.current_status[arch]))
+            str_status = "published"
             if self.current_status[arch] == PackageInPPA.BUILDING:
                 current_package_building = True
+                str_status = "building"
             if self.current_status[arch] == PackageInPPA.FAILED:
                 current_package_failed = True
+                str_status = "failed"
+            print("arch: {}, status: {}".format(arch, str_status))
 
         if current_package_building:
             return self.BUILDING
@@ -81,7 +84,7 @@ class PackageInPPA():
 
         try:
             source = self.ppa.getPublishedSources(exact_match=True, source_name=self.source_name, version=self.version, distro_series=self.serie)[0]
-            print ("source in ppa")
+            print ("Source available in ppa")
             current_status = {}
             for arch in self.archs:
                 current_status[arch] = self.BUILDING
@@ -115,7 +118,6 @@ class PackageInPPA():
                 status[binary.distro_arch_series.architecture_tag] = self.PUBLISHED
             if binary.architecture_specific:
                 only_arch_all_packages = False
-            print ("binary published, arch: %s" % binary.distro_arch_series.architecture_tag)
 
         # Looking for builds on archs still BUILDING (just loop on builds once to avoid too many lp requests)
         needs_checking_build = False
