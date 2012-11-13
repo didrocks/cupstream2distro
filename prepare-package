@@ -36,7 +36,7 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
     args = parser.parse_args()
 
-    source_package_name = args.source_name
+    source_package_name = args.sourcename
     branch = args.branch
     serie = args.serie
     ppa = args.ppa
