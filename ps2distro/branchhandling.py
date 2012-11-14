@@ -46,7 +46,7 @@ def get_tip_bzr_revision():
 def get_packaging_diff_filename(source_package_name, packaging_version):
     '''Return the packaging diff filename'''
 
-    return "../packaging_changes_{}_{}.diff".format(source_package_name, packaging_version)
+    return "packaging_changes_{}_{}.diff".format(source_package_name, packaging_version)
 
 
 def _packaging_changes_in_branch(starting_rev):
@@ -63,7 +63,7 @@ def generate_diff_in_branch(starting_rev, source_package_name, packaging_version
 
     The diff contains autotools files and cmakeries'''
     if _packaging_changes_in_branch(starting_rev):
-        with open(get_packaging_diff_filename(source_package_name, packaging_version), "w") as f:
+        with open("../{}".format(get_packaging_diff_filename(source_package_name, packaging_version)), "w") as f:
             bzrinstance = subprocess.Popen(['bzr', 'diff', '-r', str(starting_rev)], stdout=subprocess.PIPE)
             (changes_to_publish, err) = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog',
                                         '-i', '*Makefile.am', '-i', 'configure.*', '-i', 'debian/*',
