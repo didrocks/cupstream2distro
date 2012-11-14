@@ -80,8 +80,9 @@ if __name__ == '__main__':
     # FIXME: if previous_packaging_version is UNRELEASED and the released version is in distro?
     if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
         message = ("A manual upload to distro ({}) has been done for that component but is not in trunk which is still at {}. "
-                   "Ignoring that component for {}.".format(distro_version, previous_packaging_version, instance_info))
+                   "Ignoring that component {}.".format(distro_version, previous_packaging_version, instance_info))
         print(message)
+        os.chdir('..')
         generate_xml_artefacts("UploadToDistroOutsideTrunk",  message, UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT.format(source_package_name, distro_version))
         # TODO: open a merge proposal with the diff from distro and approve.
         sys.exit(0)
