@@ -23,6 +23,8 @@ import os
 import sys
 
 from ps2distro import branchhandling, packagemanager, launchpadmanager
+from ps2distro.tools import generate_xml_artefacts
+from ps2distro.settings import UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT
 
 
 if __name__ == '__main__':
@@ -77,10 +79,12 @@ if __name__ == '__main__':
     distro_version = packagemanager.get_current_version_for_serie(source_package_name, serie)
     # FIXME: if previous_packaging_version is UNRELEASED and the released version is in distro?
     if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
-        print("A manual upload to distro ({}) has been done for that component, compare to latest version in trunk ({}). "
-              "Ignoring that component for {}.".format(distro_version, previous_packaging_version, instance_info))
+        message = ("A manual upload to distro ({}) has been done for that component but is not in trunk which is still at {}. "
+                   "Ignoring that component for {}.".format(distro_version, previous_packaging_version, instance_info))
+        print(message)
+        generate_xml_artefacts("UploadToDistroOutsideTrunk",  message, UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT.format(source_package_name, distro_version))
         # TODO: open a merge proposal with the diff from distro and approve.
-        sys.exit(3)
+        sys.exit(0)
 
     # Check if new revision to publish
     print("Check if new revision were published")
@@ -103,7 +107,7 @@ if __name__ == '__main__':
 
     # opens bugs
     print("Sync launchpad with current proposed work")
-    branchhandling.commit_release(packaging_version, tip_bzr_rev)
+    branchhandling.commit_release(packagingc_version, tip_bzr_rev)
     bugs_set = set()
     for author in authors_bugs:
         bugs_set = bugs_set.union(authors_bugs[author])

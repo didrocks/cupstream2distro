@@ -17,19 +17,17 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-REV_STRING_FORMAT = "Automatic snapshot from revision "
-PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
-BRANCH_URL = "lp:~didrocks/{}/newsnapshot"
 
-BOT_DEBFULLNAME = "Automatic PS uploader"
-BOT_DEBEMAIL = "ps-jenkins@lists.canonical.com"
-BOT_KEY = "B879A3E9"
+WRAPPER_STRING = '''<testsuite errors="0" failures="1" name="" tests="0" time="0.0">
+  <testcase classname="MarkUnstable" name="{}" time="0.0">
+    <failure type="exception">
+    {}
+    </failure>
+  </testcase>
+</testsuite>'''
 
-# selected arch for building arch:all packages
-VIRTUALIZED_PPA_ARCH = ["i386", "amd64"]
 
-TIME_BETWEEN_PPA_CHECKS = 15 * 60
-TIME_BEFORE_STOP_LOOKING_FOR_SOURCE_PUBLISH = 30 * 60
-
-PUBLISHER_PACKAGING_CHANGE_FILENAME = 'publisher_packaging_changes.xml'
-UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT = 'upload_out_of_trunk_{}_{}.xml'
+def generate_xml_artefacts(test_name, details, filename):
+    '''Generate a fake test name xml result for marking the build as unstable'''
+    with open(filename, 'w') as f:
+        f.write(WRAPPER_STRING.format(test_name, details))
