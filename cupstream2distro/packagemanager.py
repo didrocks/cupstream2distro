@@ -47,10 +47,18 @@ def is_version1_higher_than_version2(version1, version2):
 def get_latest_upstream_bzr_rev(f):
     '''Report latest bzr rev in the file'''
     regex = re.compile(REV_STRING_FORMAT + "(\d+)")
+    last_bzr_rev = None
     for line in f:
         rev = regex.findall(line)
         if rev:
-            return int(rev[0])
+            last_bzr_rev = int(rev[0])
+        # end of current changelog stenza
+        if line.startswith(" -- "):
+            break
+
+    # we are taking the last added one to the changelog for bootstrapping: we have two rev in the case on the first upload and we just want the last one
+    if last_bzr_rev:
+        return last_bzr_rev
 
     raise Exception("Didn't find any string in debian/changelog of the form: \"{}\". Bootstrapping issue?".format(regex.pattern))
 
