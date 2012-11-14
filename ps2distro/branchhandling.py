@@ -31,7 +31,7 @@ def get_branch(branch_url, dest_dir):
     instance = subprocess.Popen(["bzr", "branch", branch_url, dest_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
-        raise Exception(stderr.decode("utf-8")[:-1])  # remove last \n
+        raise Exception(stderr.decode("utf-8").strip())
 
 
 def get_tip_bzr_revision():
@@ -39,7 +39,7 @@ def get_tip_bzr_revision():
     instance = subprocess.Popen(["bzr", "log", "-c", "-1", "--line"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
-        raise Exception(stderr.decode("utf-8")[:-1])  # remove last \n
+        raise Exception(stderr.decode("utf-8").strip())
     return (int(stdout.split(':')[0]))
 
 
@@ -96,7 +96,7 @@ def _get_all_bugs_in_branch(starting_rev):
     instance = subprocess.Popen(["bzr", "log", "-r", "{}..".format(starting_rev), "--include-merged", "--forward"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
-        raise Exception(stderr.decode("utf-8")[:-1])  # remove last \n
+        raise Exception(stderr.decode("utf-8").strip())
 
     results = {}
     bug_numbers = set()

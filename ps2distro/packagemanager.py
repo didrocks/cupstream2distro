@@ -69,7 +69,7 @@ def get_packaging_version():
     instance = subprocess.Popen(["dpkg-parsechangelog"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
-        raise Exception(stderr.decode("utf-8")[:-1])  # remove last \n
+        raise Exception(stderr.decode("utf-8").strip())
     expr = re.compile("Version: (.*)")
     for line in stdout.splitlines():
         packaging_version = expr.findall(line)
@@ -111,7 +111,7 @@ def get_packaging_sourcename():
     instance = subprocess.Popen(["dpkg-parsechangelog"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
-        raise Exception(stderr.decode("utf-8")[:-1])  # remove last \n
+        raise Exception(stderr.decode("utf-8").strip())
     expr = re.compile("Source: (.*)")
     for line in stdout.splitlines():
         source_name = expr.findall(line)
@@ -161,7 +161,7 @@ def update_changelog(new_package_version, serie, tip_bzr_rev, authors_bugs_with_
                                 stderr=subprocess.PIPE, env=dch_env)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
-        raise Exception(stderr.decode("utf-8")[:-1])  # remove last \n
+        raise Exception(stderr.decode("utf-8").strip())
     subprocess.call(["dch", "-r", "--distribution", serie, ""], env=dch_env)
 
 

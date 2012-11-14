@@ -29,7 +29,7 @@ def _rsync_stack_files():
     instance = subprocess.Popen(["rsync", RSYNC_PATTERN], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
-        raise Exception(stderr.decode("utf-8")[:-1])  # remove last \ns
+        raise Exception(stderr.decode("utf-8").strip())
 
 
 def get_stack_files_to_sync():
