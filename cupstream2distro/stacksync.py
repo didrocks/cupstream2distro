@@ -20,7 +20,7 @@
 import os
 import subprocess
 
-from ps2distro.settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN
+from .settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN
 
 
 def _rsync_stack_files():

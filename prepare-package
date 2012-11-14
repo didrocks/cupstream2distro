@@ -22,9 +22,9 @@ import argparse
 import os
 import sys
 
-from ps2distro import branchhandling, packagemanager, launchpadmanager
-from ps2distro.tools import generate_xml_artefacts
-from ps2distro.settings import UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT
+from cupstream2distro import branchhandling, packagemanager, launchpadmanager
+from cupstream2distro.tools import generate_xml_artefacts
+from cupstream2distro.settings import UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT
 
 
 if __name__ == '__main__':

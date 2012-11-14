@@ -21,8 +21,8 @@
 import argparse
 import os
 
-from ps2distro import launchpadmanager
-from ps2distro.stacksync import get_stack_files_to_sync
+from cupstream2distro import launchpadmanager
+from cupstream2distro.stacksync import get_stack_files_to_sync
 
 
 if __name__ == '__main__':

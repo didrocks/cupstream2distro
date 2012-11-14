@@ -20,7 +20,7 @@
 import os
 import re
 
-from ps2distro.packageinppa import PackageInPPA
+from .packageinppa import PackageInPPA
 
 
 def _ensure_removed_from_set(target_set, content_to_remove):

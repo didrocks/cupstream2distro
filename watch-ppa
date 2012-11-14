@@ -23,10 +23,10 @@ import os
 import sys
 import time
 
-from ps2distro import launchpadmanager, packageinppamanager
-from ps2distro.packageinppa import PackageInPPA
-from ps2distro.packagemanager import list_packages_info_in_str
-from ps2distro.settings import TIME_BETWEEN_PPA_CHECKS, TIME_BEFORE_STOP_LOOKING_FOR_SOURCE_PUBLISH
+from cupstream2distro import launchpadmanager, packageinppamanager
+from cupstream2distro.packageinppa import PackageInPPA
+from cupstream2distro.packagemanager import list_packages_info_in_str
+from cupstream2distro.settings import TIME_BETWEEN_PPA_CHECKS, TIME_BEFORE_STOP_LOOKING_FOR_SOURCE_PUBLISH
 
 
 if __name__ == '__main__':

@@ -35,7 +35,7 @@ def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser("~/launchp
             server = 'staging'
         else:
             server = 'production'
-        launchpad = Launchpad.login_with('ps2distro', server, allow_access_levels=["WRITE_PRIVATE"],
+        launchpad = Launchpad.login_with('cupstream2distro', server, allow_access_levels=["WRITE_PRIVATE"],
                                          version='devel',
                                          credentials_file=use_cred_file)  # devel because copyPackage is only available there
 

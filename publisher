@@ -22,10 +22,10 @@ import argparse
 import os
 import sys
 
-from ps2distro import launchpadmanager, packageinppamanager
-from ps2distro.branchhandling import get_packaging_diff_filename, propose_branch_for_merging
-from ps2distro.tools import generate_xml_artefacts
-from ps2distro.settings import PUBLISHER_PACKAGING_CHANGE_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT
+from cupstream2distro import launchpadmanager, packageinppamanager
+from cupstream2distro.branchhandling import get_packaging_diff_filename, propose_branch_for_merging
+from cupstream2distro.tools import generate_xml_artefacts
+from cupstream2distro.settings import PUBLISHER_PACKAGING_CHANGE_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT
 
 
 if __name__ == '__main__':
