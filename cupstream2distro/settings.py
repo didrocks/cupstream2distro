@@ -17,6 +17,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+CRED_FILE_PATH = "~/.cupstream_cred"
+
 REV_STRING_FORMAT = "Automatic snapshot from revision "
 PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
 BRANCH_URL = "lp:~didrocks/{}/newsnapshot"
@@ -36,4 +38,4 @@ UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT = 'upload_out_of_trunk_{}_{}.xml'
 
 PACKAGE_LIST_RSYNC_FILENAME_PREFIX = 'packagelist_rsync'
 PACKAGE_LIST_RSYNC_FILENAME_FORMAT = PACKAGE_LIST_RSYNC_FILENAME_PREFIX + '_{}'
-RSYNC_PATTERN = "rsync://cupstream2distro/*/{}*".format(PACKAGE_LIST_RSYNC_FILENAME_PREFIX)
+RSYNC_PATTERN = "rsync://cu2d/*/{}*".format(PACKAGE_LIST_RSYNC_FILENAME_PREFIX)

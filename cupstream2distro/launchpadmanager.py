@@ -24,10 +24,10 @@ from launchpadlib.launchpad import Launchpad
 import lazr
 launchpad = None
 
-from .settings import VIRTUALIZED_PPA_ARCH
+from .settings import VIRTUALIZED_PPA_ARCH, CRED_FILE_PATH
 
 
-def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser("~/launchpadcred")):
+def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_PATH)):
     '''Get THE Launchpad'''
     global launchpad
     if not launchpad:
