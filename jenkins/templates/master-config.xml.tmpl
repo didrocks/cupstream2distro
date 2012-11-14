@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Master Job for stack {{ stack }}/{{ release }}</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <EnvInjectJobProperty>
+      <info>
+        <propertiesContent>WORKDIR=unity-head</propertiesContent>
+        <loadFilesFromMaster>false</loadFilesFromMaster>
+      </info>
+      <on>true</on>
+      <keepJenkinsSystemVariables>true</keepJenkinsSystemVariables>
+      <keepBuildVariables>true</keepBuildVariables>
+      <contributors/>
+    </EnvInjectJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -eu
+
+BINDIR=/var/lib/jenkins/cu2d/cupstream2distro
+WRKDIR=/var/lib/jenkins/cu2d/work/{{ stack }}-{{ release }}
+BAKDIR=${WRKDIR}.bak
+
+[ -d &quot;$BAKDIR&quot; ] &amp;&amp; rm -Rf $BAKDIR
+[ -d &quot;$WRKDIR&quot; ] &amp;&amp; mv $WRKDIR $BAKDIR
+mkdir -p $WRKDIR
+cd $WRKDIR
+
+DELAY=$((RANDOM*10/32767))
+echo &quot;Sleeping for $DELAY seconds&quot;
+sleep $DELAY</command>
+    </hudson.tasks.Shell>
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder>
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
+          </configs>
+          <projects>{{ jobprepare }}</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <block>
+            <buildStepFailureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+            </buildStepFailureThreshold>
+            <unstableThreshold>
+              <name>UNSTABLE</name>
+              <ordinal>1</ordinal>
+              <color>YELLOW</color>
+            </unstableThreshold>
+            <failureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+            </failureThreshold>
+          </block>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder>
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
+          </configs>
+          <projects>{{ jobbuild }}</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <block>
+            <buildStepFailureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+            </buildStepFailureThreshold>
+            <unstableThreshold>
+              <name>UNSTABLE</name>
+              <ordinal>1</ordinal>
+              <color>YELLOW</color>
+            </unstableThreshold>
+            <failureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+            </failureThreshold>
+          </block>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder>
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
+          </configs>
+          <projects>{{ jobpublish }}</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <block>
+            <buildStepFailureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+            </buildStepFailureThreshold>
+            <unstableThreshold>
+              <name>UNSTABLE</name>
+              <ordinal>1</ordinal>
+              <color>YELLOW</color>
+            </unstableThreshold>
+            <failureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+            </failureThreshold>
+          </block>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

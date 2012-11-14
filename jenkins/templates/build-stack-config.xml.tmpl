@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Build on all archs</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+BINDIR=/var/lib/jenkins/cu2d/cupstream2distro
+WRKDIR=/var/lib/jenkins/cu2d/work/{{ stack }}-{{ release }}
+OPTS="{{ opts }}"
+
+cd $WRKDIR
+# $BINDIR/watch-ppa $OPTS
+
+DELAY=$((RANDOM*10/32767))
+echo &quot;Sleeping for $DELAY seconds&quot;
+sleep $DELAY</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
