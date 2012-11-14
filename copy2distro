@@ -1,0 +1,49 @@
+#!/usr/bin/python
+# -*- coding: UTF8 -*-
+# Copyright (C) 2012 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import os
+
+from ps2distro import launchpadmanager
+from ps2distro.stacksync import get_stack_files_to_sync
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Rsync all availables packages to be copied to the ubuntu archive from a ppa")
+    args = parser.parse_args()
+
+    dest_archive = launchpadmanager.get_ubuntu_archive()
+
+    print("Check if there are some stacks to synchronize")
+    for file in get_stack_files_to_sync():
+        print("Found {}".format(file))
+        with open(file) as f:
+            for line in f.readlines():
+                (ppa, src_pocket, from_serie, dest_pocket, to_serie, source, version) = line.strip().split("\t")
+                print("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version,
+                                                                    ppa, from_serie, src_pocket, to_serie, dest_pocket))
+                src_ppa = launchpadmanager.get_ppa(ppa)
+
+                continue  # don't copy until in prod
+                dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=from_serie,
+                             include_binaries=True, to_pocket=dest_pocket, to_series=to_serie,
+                             source_name=source, version=version)
+            os.remove(file)

@@ -27,7 +27,7 @@ launchpad = None
 from .settings import VIRTUALIZED_PPA_ARCH
 
 
-def get_launchpad(use_staging=False):
+def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser("~/launchpadcred")):
     '''Get THE Launchpad'''
     global launchpad
     if not launchpad:
@@ -37,7 +37,7 @@ def get_launchpad(use_staging=False):
             server = 'production'
         launchpad = Launchpad.login_with('ps2distro', server, allow_access_levels=["WRITE_PRIVATE"],
                                          version='devel',
-                                         credentials_file=os.path.expanduser("~/launchpadcred"))  # devel because copyPackage is only available there
+                                         credentials_file=use_cred_file)  # devel because copyPackage is only available there
 
     return launchpad
 

@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
     # opens bugs
     print("Sync launchpad with current proposed work")
-    branchhandling.commit_release(packagingc_version, tip_bzr_rev)
+    branchhandling.commit_release(packaging_version, tip_bzr_rev)
     bugs_set = set()
     for author in authors_bugs:
         bugs_set = bugs_set.union(authors_bugs[author])
