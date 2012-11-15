@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import logging
 import os
 import re
 
@@ -47,7 +48,7 @@ def update_all_packages_status(packages_not_in_ppa, packages_building, packages_
     '''Update all packages status, checking in the ppa'''
 
     for current_package in (packages_not_in_ppa.union(packages_building)):
-        print("current_package: " + current_package.source_name + " " + current_package.version)
+        logging.info("current_package: " + current_package.source_name + " " + current_package.version)
         package_status = current_package.get_status(only_arch_all)
         if package_status != None:  # global package_status can be 0 (building), 1 (failed), 2 (published)
             # if one arch building, still considered as building

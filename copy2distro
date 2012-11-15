@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import argparse
+import logging
 import os
 
 from cupstream2distro import launchpadmanager
@@ -27,18 +28,20 @@ from cupstream2distro.stacksync import get_stack_files_to_sync
 
 if __name__ == '__main__':
 
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
     parser = argparse.ArgumentParser(description="Rsync all availables packages to be copied to the ubuntu archive from a ppa")
     args = parser.parse_args()
 
     dest_archive = launchpadmanager.get_ubuntu_archive()
 
-    print("Check if there are some stacks to synchronize")
+    logging.info("Check if there are some stacks to synchronize")
     for file in get_stack_files_to_sync():
-        print("Found {}".format(file))
+        logging.info("Found {}".format(file))
         with open(file) as f:
             for line in f.readlines():
                 (ppa, src_pocket, from_serie, dest_pocket, to_serie, source, version) = line.strip().split("\t")
-                print("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version,
+                logging.info("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version,
                                                                     ppa, from_serie, src_pocket, to_serie, dest_pocket))
                 src_ppa = launchpadmanager.get_ppa(ppa)
 

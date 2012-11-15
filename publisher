@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import argparse
+import logging
 import os
 import sys
 
@@ -29,6 +30,8 @@ from cupstream2distro.settings import PUBLISHER_PACKAGING_CHANGE_FILENAME, PACKA
 
 
 if __name__ == '__main__':
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     parser = argparse.ArgumentParser(description="Watch for published package in a ppa. Create a xml artefact if manual copy is needed.",
                                      epilog="serie, ppa and JOB_NAME options can be set by the corresponding long option name env variables as well")
@@ -52,7 +55,7 @@ if __name__ == '__main__':
         jobname = os.getenv("JOB_NAME")
 
     if not ppa or not serie:
-        print("ppa and serie parameters are mandatory.")
+        logging.info("ppa and serie parameters are mandatory.")
         sys.exit(1)
 
     # getting the archives and series objects
@@ -63,27 +66,27 @@ if __name__ == '__main__':
         dest_archive = launchpadmanager.get_ubuntu_archive()
         dest_pocket = 'Proposed'
         if not jobname:
-            print("JOB_NAME is mandatory if you want to release to the main ubuntu archive")
+            logging.info("JOB_NAME is mandatory if you want to release to the main ubuntu archive")
             sys.exit(1)
     src_ppa = launchpadmanager.get_ppa(ppa)
     src_pocket = 'Release'
 
-    print("Copying from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {serie} serie".format(
+    logging.info("Copying from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {serie} serie".format(
           src_archive=src_ppa, src_pocket=src_pocket, dest_archive=dest_archive, dest_pocket=dest_pocket,
           serie=serie))
     projects_with_packaging_changes = []
     for (source, version) in packageinppamanager.get_all_packages_uploaded():
         if os.path.exists(get_packaging_diff_filename(source, version)):
-            print ("WARNING: Packaging change for {} ({}).".format(source, version))
+            logging.info("WARNING: Packaging change for {} ({}).".format(source, version))
             projects_with_packaging_changes.append(source)
 
     if projects_with_packaging_changes and not args.force:
-        print("Don't upload the stack automatically.")
+        logging.info("Don't upload the stack automatically.")
         generate_xml_artefacts("PackagingChange", "Packaging changes in {}".format(", ".join(projects_with_packaging_changes)), PUBLISHER_PACKAGING_CHANGE_FILENAME)
     else:
         package_to_copy = []
         for (source, version) in packageinppamanager.get_all_packages_uploaded():
-            print ("Copying {} ({})".format(source, version))
+            logging.info("Copying {} ({})".format(source, version))
             ###propose_branch_for_merging(source, version)
             if args.destppa:  # direct upload
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=serie,
@@ -92,6 +95,6 @@ if __name__ == '__main__':
             else:  # generate a file that will be rsynced from another place
                 package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}".format(ppa, src_pocket, serie, dest_pocket, serie, source, version))
         if package_to_copy:
-            print("writing {} for being able to rsync from main machine".format(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname)))
+            logging.info("writing {} for being able to rsync from main machine".format(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname)))
             with open(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname), 'w') as f:
                 f.write("\n".join(package_to_copy))

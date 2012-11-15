@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import argparse
+import logging
 import os
 import sys
 import time
@@ -30,6 +31,8 @@ from cupstream2distro.settings import TIME_BETWEEN_PPA_CHECKS, TIME_BEFORE_STOP_
 
 
 if __name__ == '__main__':
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     parser = argparse.ArgumentParser(description="Watch for published package in a ppa",
                                      epilog="serie and ppa options can be set by the corresponding long option name env variables as well")
@@ -49,7 +52,7 @@ if __name__ == '__main__':
     instance_info = "watching: {}, serie: {}".format(ppa, serie)
 
     if not serie or not ppa:
-        print("ERROR: missing compulsory environment variables (ppa, serie) {}".format(instance_info))
+        logging.info("ERROR: missing compulsory environment variables (ppa, serie) {}".format(instance_info))
         sys.exit(1)
 
     # Prepare launchpad connection:
@@ -67,17 +70,17 @@ if __name__ == '__main__':
     # Check the status regularly on all packages
     time_start_watching = time.time()
     while(packages_not_in_ppa or packages_building):
-        print("Checking the status for {}".format(list_packages_info_in_str(packages_not_in_ppa.union(packages_building))))
+        logging.info("Checking the status for {}".format(list_packages_info_in_str(packages_not_in_ppa.union(packages_building))))
         packageinppamanager.update_all_packages_status(packages_not_in_ppa, packages_building, packages_failed, args.arch)
 
         # if we have some packages failing and no more build in progress, exit
         if packages_failed and not packages_building and not packages_not_in_ppa:
-            print("Some of the packages failed to build: {}".format(list_packages_info_in_str(packages_failed)))
+            logging.info("Some of the packages failed to build: {}".format(list_packages_info_in_str(packages_failed)))
             sys.exit(1)
 
         # if we have no package building or failing and have wait for long enough to have some package appearing in the ppa, exit
         if packages_not_in_ppa and not packages_building and ((time.time() - time_start_watching) > TIME_BEFORE_STOP_LOOKING_FOR_SOURCE_PUBLISH):
-            print("Some source packages were never published in the ppa: {}".format(list_packages_info_in_str(packages_not_in_ppa)))
+            logging.info("Some source packages were never published in the ppa: {}".format(list_packages_info_in_str(packages_not_in_ppa)))
             sys.exit(1)
 
         # exit if all is fine
