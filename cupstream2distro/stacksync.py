@@ -19,14 +19,22 @@
 
 import os
 import subprocess
+import sys
 
 from .settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN
 
 
 def _rsync_stack_files():
     '''rsync all stack files'''
+    server = os.getenv('CU2D_RSYNCSVR')
+    if server:
+        RSYNC_PATTERN = RSYNC_PATTERN.replace('RSYNCSVR', server)
+    else:
+        print('ERROR: Please set environment variable CU2D_RSYNCSVR')
+        sys.exit(1)
 
-    instance = subprocess.Popen(["rsync", RSYNC_PATTERN], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cmd = ["rsync", '--remove-source-files', RSYNC_PATTERN]
+    instance = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8").strip())
