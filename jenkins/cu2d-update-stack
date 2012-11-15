@@ -206,9 +206,8 @@ def set_logging(debugmode=False):
 def main():
     ''' Main routine '''
     parser = argparse.ArgumentParser(
-        description='Check if a new version of a package or its dependencies '
-        'is available from the archive and trigger an autopkgtest run if '
-        'there is.')
+        description='Create/Update the configuration of the Jenkins jobs '
+        'for a stack')
     parser.add_argument('-C', '--credentials', metavar='CREDENTIALFILE',
                         default=None,
                         help='use Jenkins and load credentials from '

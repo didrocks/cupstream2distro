@@ -3,13 +3,24 @@
   <actions/>
   <description>Publish to the archive</description>
   <keepDependencies>false</keepDependencies>
-  <properties/>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.BooleanParameterDefinition>
+          <name>force</name>
+          <description></description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>master</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>Koh9xumayie3Eet8rooh4guniratae2b</authToken>
   <triggers class="vector"/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
@@ -24,6 +35,7 @@ WRKDIR=/var/lib/jenkins/cu2d/work/{{ stack }}-{{ release }}
 OUTDIR=/var/lib/jenkins/cu2d/out/
 
 OPTS="{{ opts }}"
+[ "$force" = "true" ] &amp;&amp; OPTS="$OPTS -f"
 
 cd $WRKDIR
 $BINDIR/publisher $OPTS
