@@ -28,12 +28,12 @@ def _rsync_stack_files():
     '''rsync all stack files'''
     server = os.getenv('CU2D_RSYNCSVR')
     if server:
-        RSYNC_PATTERN = RSYNC_PATTERN.replace('RSYNCSVR', server)
+        remoteaddr = RSYNC_PATTERN.replace('RSYNCSVR', server)
     else:
         print('ERROR: Please set environment variable CU2D_RSYNCSVR')
         sys.exit(1)
 
-    cmd = ["rsync", '--remove-source-files', RSYNC_PATTERN]
+    cmd = ["rsync", '--remove-source-files', remoteaddr, '.']
     instance = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
