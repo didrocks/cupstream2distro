@@ -15,17 +15,23 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash -eu
+# Cleanup workspace
+rm -f *
 
 export LANG=en_US.UTF-8
 BINDIR=/var/lib/jenkins/cu2d/cupstream2distro
 WRKDIR=/var/lib/jenkins/cu2d/work/{{ stack }}-{{ release }}
+OUTDIR=/var/lib/jenkins/cu2d/out/
+
 OPTS="{{ opts }}"
 
 cd $WRKDIR
 $BINDIR/publisher $OPTS
 RC=$?
 
-cp *diff publisher_packaging_changes.xml $WORKSPACE/
+cp *diff publisher_packaging_changes.xml $WORKSPACE/ 2&gt;/dev/null || true
+mkdir -p $OUTDIR
+mv packagelist_rsync_* $BINDIR/../out/ 2&gt;/dev/null || true
 </command>
     </hudson.tasks.Shell>
   </builders>
