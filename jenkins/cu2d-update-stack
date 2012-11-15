@@ -64,7 +64,6 @@ def load_stack_cfg(path):
 
     logging.debug('Loading stack configuration from %s', path)
     cfg = yaml.load(file(path, 'r'))
-    logging.debug(cfg)
     return False if not 'stack' in cfg else cfg['stack']
 
 
@@ -89,7 +88,7 @@ def setup_job(jkh, jjenv, jobname, tmplname, ctx, update=False):
             logging.info("Rejkcfguring Jenkins Job %s ", jobname)
             jkh.rejkcfg_job(jobname, jkcfg)
         else:
-            logging.debug('update set to %s. Skipping rejkcfguration of '
+            logging.debug('update set to %s. Skipping reconfiguration of '
                           '%s', update, jobname)
     return True
 
@@ -141,8 +140,11 @@ def update_jenkins(jkcfg, stack, update=False):
         srcname = prj.keys()[0]
         jobname = "-".join(basename + ['1.1prepare', srcname])
         projects.append(jobname)
+        lpb = prj[srcname]
+        if not lpb:
+            lpb = "lp:%s" % srcname
         ctx['opts'] = '-s %s -p %s -b %s -n %s' % (
-            stack['serie'], stack['ppa'], prj[srcname], srcname)
+            stack['serie'], stack['ppa'], lpb, srcname)
         ctx['projectname'] = srcname
         setup_job(jkh, jjenv, jobname, TEMPLATES['prepare-project'],
                   ctx, update)
@@ -176,7 +178,8 @@ def update_jenkins(jkcfg, stack, update=False):
     jobname = "-".join(basename + ['3.0publish'])
     subjobs['jobpublish'] = jobname
     ctx = dict(ctxbase)
-    ctx['opts'] = '-s %s -p %s' % (stack['serie'], stack['ppa'])
+    ctx['opts'] = '-s %s -p %s -j cu2d-%s-%s' % (stack['serie'], stack['ppa'],
+                                        stack['name'], stack['release'])
     setup_job(jkh, jjenv, jobname, TEMPLATES['publish'],
               ctx, update)
 

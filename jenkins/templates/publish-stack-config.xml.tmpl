@@ -20,7 +20,7 @@ WRKDIR=/var/lib/jenkins/cu2d/work/{{ stack }}-{{ release }}
 OPTS="{{ opts }}"
 
 cd $WRKDIR
-# $BINDIR/publish $OPTS
+# $BINDIR/publisher $OPTS
 
 # For testing purpose only
 DELAY=$((RANDOM*10/32767))
