@@ -30,7 +30,7 @@ from cupstream2distro.settings import PUBLISHER_PACKAGING_CHANGE_FILENAME, PACKA
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="Watch for published package in a ppa. Exit with 3 if manual copy is needed",
+    parser = argparse.ArgumentParser(description="Watch for published package in a ppa. Create a xml artefact if manual copy is needed.",
                                      epilog="serie, ppa and JOB_NAME options can be set by the corresponding long option name env variables as well")
 
     parser.add_argument("-f", "--force", action='store_true', help="Publish even if there are packaging change. Only done after manual reviews of the diff.")
