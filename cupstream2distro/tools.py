@@ -17,9 +17,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from xml.sax.saxutils import quoteattr, escape
 
 WRAPPER_STRING = '''<testsuite errors="0" failures="1" name="" tests="0" time="0.0">
-  <testcase classname="MarkUnstable" name="{}" time="0.0">
+  <testcase classname="MarkUnstable" name={} time="0.0">
     <failure type="exception">
     {}
     </failure>
@@ -30,4 +31,4 @@ WRAPPER_STRING = '''<testsuite errors="0" failures="1" name="" tests="0" time="0
 def generate_xml_artefacts(test_name, details, filename):
     '''Generate a fake test name xml result for marking the build as unstable'''
     with open(filename, 'w') as f:
-        f.write(WRAPPER_STRING.format(test_name, details))
+        f.write(WRAPPER_STRING.format(quoteattr(test_name), escape(details)))

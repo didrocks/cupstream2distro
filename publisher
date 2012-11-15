@@ -95,6 +95,6 @@ if __name__ == '__main__':
             else:  # generate a file that will be rsynced from another place
                 package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}".format(ppa, src_pocket, serie, dest_pocket, serie, source, version))
         if package_to_copy:
-            logging.info("writing {} for being able to rsync from main machine".format(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname)))
+            logging.info("Writing {} for being able to rsync from main machine".format(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname)))
             with open(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname), 'w') as f:
                 f.write("\n".join(package_to_copy))
