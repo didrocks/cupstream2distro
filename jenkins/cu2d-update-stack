@@ -85,8 +85,8 @@ def setup_job(jkh, jjenv, jobname, tmplname, ctx, update=False):
         jkh.create_job(jobname, jkcfg)
     else:
         if update:
-            logging.info("Rejkcfguring Jenkins Job %s ", jobname)
-            jkh.rejkcfg_job(jobname, jkcfg)
+            logging.info("Reconfiguring Jenkins Job %s ", jobname)
+            jkh.reconfig_job(jobname, jkcfg)
         else:
             logging.debug('update set to %s. Skipping reconfiguration of '
                           '%s', update, jobname)

@@ -20,12 +20,9 @@ WRKDIR=/var/lib/jenkins/cu2d/work/{{ stack }}-{{ release }}
 OPTS="{{ opts }}"
 
 cd $WRKDIR
-# $BINDIR/publisher $OPTS
+$BINDIR/publisher $OPTS
 
-# For testing purpose only
-DELAY=$((RANDOM*10/32767))
-echo &quot;Sleeping for $DELAY seconds&quot;
-sleep $DELAY</command>
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
