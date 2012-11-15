@@ -83,11 +83,11 @@ def setup_job(jkh, jjenv, jobname, tmplname, ctx, update=False):
     jkcfg = tmpl.render(ctx)
     if not jkh.job_exists(jobname):
         logging.info("Creating Jenkins Job %s ", jobname)
-        #jkh.create_job(jobname, jkcfg)
+        jkh.create_job(jobname, jkcfg)
     else:
         if update:
             logging.info("Rejkcfguring Jenkins Job %s ", jobname)
-            #jkh.rejkcfg_job(jobname, jkcfg)
+            jkh.rejkcfg_job(jobname, jkcfg)
         else:
             logging.debug('update set to %s. Skipping rejkcfguration of '
                           '%s', update, jobname)
