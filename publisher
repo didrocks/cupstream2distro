@@ -84,6 +84,7 @@ if __name__ == '__main__':
         logging.info("Don't upload the stack automatically.")
         generate_xml_artefacts("PackagingChange", "Packaging changes in {}".format(", ".join(projects_with_packaging_changes)), PUBLISHER_PACKAGING_CHANGE_FILENAME)
     else:
+        generate_xml_artefacts("PackagingChange", None, PUBLISHER_PACKAGING_CHANGE_FILENAME)
         package_to_copy = []
         for (source, version) in packageinppamanager.get_all_packages_uploaded():
             logging.info("Copying {} ({})".format(source, version))

@@ -19,16 +19,20 @@
 
 from xml.sax.saxutils import quoteattr, escape
 
-WRAPPER_STRING = '''<testsuite errors="0" failures="1" name="" tests="0" time="0.0">
-  <testcase classname="MarkUnstable" name={} time="0.0">
-    <failure type="exception">
-    {}
-    </failure>
-  </testcase>
+WRAPPER_STRING = '''<testsuite errors="0" failures="{}" name="" tests="1" time="0.1">
+  <testcase classname="MarkUnstable" name={} time="0.0">{}</testcase>
 </testsuite>'''
 
 
 def generate_xml_artefacts(test_name, details, filename):
     '''Generate a fake test name xml result for marking the build as unstable'''
+    failure = ""
+    errnum = 0
+    if details:
+        errnum = 1
+        failure = '''
+    <failure type="exception">{}</failure>
+'''.format(escape(details))
+
     with open(filename, 'w') as f:
-        f.write(WRAPPER_STRING.format(quoteattr(test_name), escape(details)))
+        f.write(WRAPPER_STRING.format(errnum, quoteattr(test_name), failure))

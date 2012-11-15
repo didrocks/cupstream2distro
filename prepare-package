@@ -90,6 +90,7 @@ if __name__ == '__main__':
         # TODO: open a merge proposal with the diff from distro and approve.
         sys.exit(0)
 
+    generate_xml_artefacts("UploadToDistroOutsideTrunk",  None, UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT.format(source_package_name, distro_version))
     # Check if new revision to publish
     logging.info("Check if new revision were published")
     tip_bzr_rev = branchhandling.get_tip_bzr_revision()
