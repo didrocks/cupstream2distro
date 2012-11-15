@@ -22,7 +22,7 @@ CRED_FILE_PATH = "~/.cupstream_cred"
 REV_STRING_FORMAT = "Automatic snapshot from revision "
 PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
 REPLACEME_TAG = "0replaceme"
-BRANCH_URL = "lp:~didrocks/{}/newsnapshot"
+BRANCH_URL = "lp:~ps-jenkins/{}/latestsnapshot"
 
 BOT_DEBFULLNAME = "Automatic PS uploader"
 BOT_DEBEMAIL = "ps-jenkins@lists.canonical.com"
