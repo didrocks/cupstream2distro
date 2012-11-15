@@ -175,12 +175,14 @@ def update_changelog(new_package_version, serie, tip_bzr_rev, authors_bugs_with_
 
 def build_package():
     '''Build the source package'''
-    subprocess.call(["bzr", "bd", "-S", "--", "-sa", "-k{}".format(BOT_KEY)])
+    if subprocess.call(["bzr", "bd", "-S", "--", "-sa", "-k{}".format(BOT_KEY)]) != 0:
+        raise Exception("The above command returned an error.")
 
 
 def upload_package(source, version, ppa):
     '''Upload the new package to a ppa'''
-    subprocess.call(["dput", "ppa:{}".format(ppa), "{}_{}_source.changes".format(source, version)])
+    if subprocess.call(["dput", "ppa:{}".format(ppa), "{}_{}_source.changes".format(source, version)]) != 0:
+        raise Exception("The above command returned an error.")
 
 
 def refresh_symbol_files(packaging_version):
