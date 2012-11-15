@@ -29,15 +29,15 @@ cd $WRKDIR
 $BINDIR/publisher $OPTS
 RC=$?
 
-cp *diff publisher_packaging_changes.xml $WORKSPACE/ 2&gt;/dev/null || true
+cp *diff publisher_packaging_changes.xml packagelist* $WORKSPACE/ 2&gt;/dev/null || true
 mkdir -p $OUTDIR
-mv packagelist_rsync_* $BINDIR/../out/ 2&gt;/dev/null || true
+mv packagelist_rsync_* $OUTDIR 2&gt;/dev/null || true
 </command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>*.diff,*xml</artifacts>
+      <artifacts>*.diff,*xml,packagelist*</artifacts>
       <latestOnly>false</latestOnly>
     </hudson.tasks.ArtifactArchiver>
     <hudson.tasks.junit.JUnitResultArchiver>
