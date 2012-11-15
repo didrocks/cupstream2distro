@@ -23,7 +23,7 @@ import re
 import subprocess
 
 from .launchpadmanager import get_serie, get_ubuntu_archive
-from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY
+from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, REPLACEME_TAG
 
 
 def get_current_version_for_serie(source_package_name, serie_name):
@@ -181,3 +181,18 @@ def build_package():
 def upload_package(source, version, ppa):
     '''Upload the new package to a ppa'''
     subprocess.call(["dput", "ppa:{}".format(ppa), "{}_{}_source.changes".format(source, version)])
+
+
+def refresh_symbol_files(packaging_version):
+    '''Refresh the symbols file having REPLACEME_TAG with version of the day.
+
+    Add a changelog entry if needed'''
+
+    new_upstream_version = packaging_version.split("-")[0]
+    if subprocess.call(['grep -qi {} debian/*symbols'.format(REPLACEME_TAG)], shell=True) == 0:  # shell=True for shell expansion
+        subprocess.call(["sed -i 's/{}\(.*\)/{}/i' debian/*symbols".format(REPLACEME_TAG, new_upstream_version)], shell=True)
+        dch_env = os.environ.copy()
+        dch_env["DEBFULLNAME"] = BOT_DEBFULLNAME
+        dch_env["DEBEMAIL"] = BOT_DEBEMAIL
+        subprocess.Popen(["dch", "debian/*symbols: auto-update new symbols to released version"], env=dch_env).communicate()
+        subprocess.call(["bzr", "commit", "-m", "Update symbols"])

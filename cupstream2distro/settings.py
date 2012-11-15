@@ -21,6 +21,7 @@ CRED_FILE_PATH = "~/.cupstream_cred"
 
 REV_STRING_FORMAT = "Automatic snapshot from revision "
 PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
+REPLACEME_TAG = "0replaceme"
 BRANCH_URL = "lp:~didrocks/{}/newsnapshot"
 
 BOT_DEBFULLNAME = "Automatic PS uploader"

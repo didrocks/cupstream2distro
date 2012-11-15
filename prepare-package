@@ -95,9 +95,14 @@ if __name__ == '__main__':
         print("No new revision published since last daily push, no need to upload this component")
         sys.exit(0)
 
+    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version)
+
+    # Refresh symbol files
+    print("Update symbol files version if needed")
+    packagemanager.refresh_symbol_files(packaging_version)
+
     # Prepare changelog
     print("Prepare changelog content")
-    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version)
     authors_bugs = branchhandling.collect_author_bugs(last_upstream_rev + 1, source_package_name)
     authors_bugs_with_title = launchpadmanager.get_bugs_titles(authors_bugs)
     packagemanager.update_changelog(packaging_version, serie, tip_bzr_rev, authors_bugs_with_title)
@@ -123,15 +128,16 @@ if __name__ == '__main__':
 # 1. stop if an intermediate upload has been done to ubuntu but not backported in the packaging branch
 # 2. collect all bugs that have been fixed in upstream trunk, and sort them by name in the changelog. The matching is really permissive: wide variety of format either --fixes lp: or in the commit message
 # 3. Filters them with the eventual manual cherry-pick upload done in between (don't repeat if already fixed in distro)
-# 4. Opens the downstream task automatically, nominate for a serie SRU if not the current one.
-# 5. Compute the version with <upstream_version>daily<version>
+# 4. Refresh the debian/symbols automatically (with "replaceme" magic tag) to refresh on the real day the component is released
+# 5. Opens the downstream task automatically, nominate for a serie SRU if not the current one.
+# 6. Compute the version with <upstream_version>daily<version>
 #    Version would be <upstream_version>daily<yy.mm.dd(.minor)>-0ubuntu1
 #    if we already have something delivered today, it will be .minor, then, .minor+1…'
 #    this enables 7.0daily12.11.09-0ubuntu2, then the day after 7.0daily12.11.10-0ubuntu1
 #    multiple uploads the same day will then be 7.0daily12.11.10.1-0ubuntu1, 7.0daily12.11.10.2-0ubuntu1…
 #    if upstream go with 7.0.1, it's still handled thanks to 7.0daily and not 7.0.daily ;) (and so, will give 7.0.1daily12.11.11-0ubuntu1 for instance)
 #    Also, boostrapping or directly upload is handled, like 7.2-0ubuntu3, next daily upload will be 7.2daily12.11.15-0ubuntu1
-# 6. Prepare a relevant diff if there are some packaging changes, containing packaging changes itselfs as well as
+# 7. Prepare a relevant diff if there are some packaging changes, containing packaging changes itselfs as well as
 #    autotools and cmake files.
 # 8. propose for merging and accept automatically the changelog changes for the day.
 # 
