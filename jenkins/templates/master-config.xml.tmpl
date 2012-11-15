@@ -3,21 +3,10 @@
   <actions/>
   <description>Master Job for stack {{ stack }}/{{ release }}</description>
   <keepDependencies>false</keepDependencies>
-  <properties>
-    <EnvInjectJobProperty>
-      <info>
-        <propertiesContent>WORKDIR=unity-head</propertiesContent>
-        <loadFilesFromMaster>false</loadFilesFromMaster>
-      </info>
-      <on>true</on>
-      <keepJenkinsSystemVariables>true</keepJenkinsSystemVariables>
-      <keepBuildVariables>true</keepBuildVariables>
-      <contributors/>
-    </EnvInjectJobProperty>
-  </properties>
+  <properties/>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>master</assignedNode>
-  <canRoam>true</canRoam>
+  <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
@@ -26,7 +15,7 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash -eu
-
+export LANG=en_US.UTF-8
 BINDIR=/var/lib/jenkins/cu2d/cupstream2distro
 WRKDIR=/var/lib/jenkins/cu2d/work/{{ stack }}-{{ release }}
 BAKDIR=${WRKDIR}.bak
