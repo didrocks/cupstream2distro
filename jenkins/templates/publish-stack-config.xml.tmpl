@@ -14,7 +14,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>#!/bin/bash -x
+      <command>#!/bin/bash
 
 export LANG=en_US.UTF-8
 BINDIR=/var/lib/jenkins/cu2d/cupstream2distro
@@ -23,10 +23,22 @@ OPTS="{{ opts }}"
 
 cd $WRKDIR
 $BINDIR/publisher $OPTS
+RC=$?
 
+cp *diff publisher_packaging_changes.xml $WORKSPACE/
 </command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>*.diff,*xml</artifacts>
+      <latestOnly>false</latestOnly>
+    </hudson.tasks.ArtifactArchiver>
+    <hudson.tasks.junit.JUnitResultArchiver>
+      <testResults>*.xml</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <testDataPublishers/>
+    </hudson.tasks.junit.JUnitResultArchiver>
+  </publishers>
   <buildWrappers/>
 </project>
