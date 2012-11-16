@@ -36,7 +36,7 @@ def _rsync_stack_files():
     cmd = ["rsync", '--remove-source-files', remoteaddr, '.']
     instance = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
-    if instance.returncode != 0:
+    if instance.returncode not in (0, 23):
         raise Exception(stderr.decode("utf-8").strip())
 
 
