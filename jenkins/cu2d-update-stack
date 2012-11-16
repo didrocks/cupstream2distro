@@ -41,6 +41,7 @@ TEMPLATES = {
     'check': 'check-stack-config.xml.tmpl',
     'publish': 'publish-stack-config.xml.tmpl'
 }
+DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
 
 
 def load_jenkins_credentials(path):
@@ -209,9 +210,9 @@ def main():
         description='Create/Update the configuration of the Jenkins jobs '
         'for a stack')
     parser.add_argument('-C', '--credentials', metavar='CREDENTIALFILE',
-                        default=None,
+                        default=DEFAULT_CREDENTIALS,
                         help='use Jenkins and load credentials from '
-                        'CREDENTIAL FILE.')
+                        'CREDENTIAL FILE (default: %s)' % DEFAULT_CREDENTIALS)
     parser.add_argument('-U', '--update-jobs', action='store_true',
                         default=False,
                         help='by default only new jobs are added. This '
