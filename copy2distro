@@ -21,6 +21,7 @@
 import argparse
 import logging
 import os
+import time
 
 from cupstream2distro import launchpadmanager
 from cupstream2distro.stacksync import get_stack_files_to_sync
@@ -50,4 +51,4 @@ if __name__ == '__main__':
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=from_serie,
                              include_binaries=True, to_pocket=dest_pocket, to_series=to_serie,
                              source_name=source, version=version)
-            os.remove(file)
+            os.rename(file, "%s_%s".format(file, time.strftime('%Y%m%d-%H%M%S')))
