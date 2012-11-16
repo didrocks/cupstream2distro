@@ -35,9 +35,13 @@ def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_
             server = 'staging'
         else:
             server = 'production'
-        launchpad = Launchpad.login_with('cupstream2distro', server, allow_access_levels=["WRITE_PRIVATE"],
-                                         version='devel',
-                                         credentials_file=use_cred_file)  # devel because copyPackage is only available there
+        if use_cred_file:
+            launchpad = Launchpad.login_with('cupstream2distro', server, allow_access_levels=["WRITE_PRIVATE"],
+                                             version='devel',  # devel because copyPackage is only available there
+                                             credentials_file=use_cred_file)
+        else:
+            launchpad = Launchpad.login_with('cupstream2distro', server, allow_access_levels=["WRITE_PRIVATE"],
+                                 version='devel')  # devel because copyPackage is only available there
 
     return launchpad
 

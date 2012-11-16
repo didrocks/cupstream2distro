@@ -33,6 +33,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Rsync all availables packages to be copied to the ubuntu archive from a ppa")
     args = parser.parse_args()
 
+    launchpadmanager.get_launchpad(use_cred_file=None)
     dest_archive = launchpadmanager.get_ubuntu_archive()
 
     logging.info("Check if there are some stacks to synchronize")
