@@ -51,6 +51,6 @@ if __name__ == '__main__':
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=from_serie,
                              include_binaries=True, to_pocket=dest_pocket, to_series=to_serie,
                              source_name=source, version=version)
-            if not os.path.isdir(OLD_STACK_DIR):
-                os.makedirs(OLD_STACK_DIR)
-            os.rename(file, "{}/{}_{}".format(OLD_STACK_DIR, file, time.strftime('%Y%m%d-%H%M%S')))
+            if not os.path.isdir("../" + OLD_STACK_DIR):
+                os.makedirs("../" + OLD_STACK_DIR)
+            os.rename(file, "../{}/{}_{}".format(OLD_STACK_DIR, file, time.strftime('%Y%m%d-%H%M%S')))
