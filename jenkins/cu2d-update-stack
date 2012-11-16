@@ -137,18 +137,24 @@ def update_jenkins(jkcfg, stack, update=False):
     # prepare by project
     ctx = dict(ctxbase)
     projects = []
-    for prj in stack['projects']:
-        srcname = prj.keys()[0]
-        jobname = "-".join(basename + ['1.1prepare', srcname])
-        projects.append(jobname)
-        lpb = prj[srcname]
-        if not lpb:
-            lpb = "lp:%s" % srcname
-        ctx['opts'] = '-s %s -p %s -b %s -n %s' % (
-            stack['serie'], stack['ppa'], lpb, srcname)
-        ctx['projectname'] = srcname
-        setup_job(jkh, jjenv, jobname, TEMPLATES['prepare-project'],
-                  ctx, update)
+    if stack['projects']:
+        for prj in stack['projects']:
+            if type(prj) == dict:
+                srcname = prj.keys()[0]
+                lpb = prj[srcname]
+            else:
+                srcname = prj
+                lpb = ''
+            jobname = "-".join(basename + ['1.1prepare', srcname])
+            projects.append(jobname)
+            if not lpb:
+                lpb = "lp:%s" % srcname
+
+            ctx['opts'] = '-s %s -p %s -b %s -n %s' % (
+                stack['serie'], stack['ppa'], lpb, srcname)
+            ctx['projectname'] = srcname
+            setup_job(jkh, jjenv, jobname, TEMPLATES['prepare-project'],
+                      ctx, update)
 
     # Main prepare
     jobname = "-".join(basename + ['1.0prepare'])
