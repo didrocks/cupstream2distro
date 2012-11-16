@@ -106,6 +106,9 @@ def get_all_available_archs_and_all_arch(serie, ppa=None):
         arch_all_arch = VIRTUALIZED_PPA_ARCH[0]
     else:
         for arch in serie.architectures:
+            # HACK: filters armel as it's still seen as available on raring: https://launchpad.net/bugs/1077257
+            if arch.architecture_tag == "armel":
+                continue
             available_arch.add(arch.architecture_tag)
             if arch.is_nominated_arch_indep:
                 arch_all_arch = arch.architecture_tag
