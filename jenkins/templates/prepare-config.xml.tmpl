@@ -54,6 +54,12 @@ cd $WRKDIR
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.plugins.build__publisher.BuildPublisher>
+      <publishUnstableBuilds>true</publishUnstableBuilds>
+      <publishFailedBuilds>true</publishFailedBuilds>
+      <postActions class="vector"/>
+    </hudson.plugins.build__publisher.BuildPublisher>
+  </publishers>
   <buildWrappers/>
 </project>

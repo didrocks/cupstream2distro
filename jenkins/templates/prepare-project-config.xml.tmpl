@@ -38,6 +38,11 @@ cp -a *_{{ projectname }}_*xml $WORKSPACE/</command>
       <keepLongStdio>false</keepLongStdio>
       <testDataPublishers/>
     </hudson.tasks.junit.JUnitResultArchiver>
+    <hudson.plugins.build__publisher.BuildPublisher>
+      <publishUnstableBuilds>true</publishUnstableBuilds>
+      <publishFailedBuilds>true</publishFailedBuilds>
+      <postActions class="vector"/>
+    </hudson.plugins.build__publisher.BuildPublisher>
   </publishers>
   <buildWrappers/>
 </project>

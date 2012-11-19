@@ -34,6 +34,12 @@ DELAY=$((RANDOM*10/32767))
 echo &quot;Sleeping for $DELAY seconds&quot;</command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.plugins.build__publisher.BuildPublisher>
+      <publishUnstableBuilds>true</publishUnstableBuilds>
+      <publishFailedBuilds>true</publishFailedBuilds>
+      <postActions class="vector"/>
+    </hudson.plugins.build__publisher.BuildPublisher>
+  </publishers>
   <buildWrappers/>
 </project>
