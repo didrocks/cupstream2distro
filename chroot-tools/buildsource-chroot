@@ -1,0 +1,49 @@
+#! /bin/bash
+# Copyright (C) 2012 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+#
+# Build a source package in a chroot
+# Syntax is: buildsource-chroot $WORKDIR $HOME $UID $GID $SIGN_KEYID
+# So, for instance in pbuilder:
+# sudo pbuilder --execute --bindmounts $(readlink -f ..) --bindmounts $HOME -- ./buildsource-chroot ${PWD} ${HOME} $(id -u) $(id -g) E4AC208E
+
+set -e
+
+# go to the working directory
+cd "$1"
+
+apt-get update
+# install the requirements
+apt-get install -q -y pbuilder bzr bzr-builddeb
+
+# install build-deps
+. /usr/lib/pbuilder/pdebuild-checkparams
+export PBCURRENTCOMMANDLINEOPERATION="pdebuild"
+"$PBUILDERSATISFYDEPENDSCMD"
+
+# set home directory to real HOME for signing the source packaging
+export HOME="$2"
+
+# create the user similar to that used outside.
+groupadd -g "$4" -o pbgroup
+useradd -g pbgroup -u "$3" -d "${HOME}" -o pbuser
+
+# build the source
+CMD="bzr bd -S -- -k$5"
+echo "Creating source with $CMD"
+echo "$CMD" | su -p pbuser; 
