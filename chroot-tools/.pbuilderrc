@@ -22,5 +22,5 @@ mkdir -p $BUILDPLACE
 # use ubuntu main mirror only
 # Ubuntu configuration
 MIRRORSITE="http://archive.ubuntu.com/ubuntu/"
-COMPONENTS="main restricted"
+COMPONENTS="main restricted universe multiverse"
 OTHERMIRROR=""
