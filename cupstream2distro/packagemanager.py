@@ -23,7 +23,7 @@ import re
 import subprocess
 
 from .launchpadmanager import get_serie, get_ubuntu_archive
-from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, REPLACEME_TAG
+from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, GNUPG_DIR, REPLACEME_TAG
 
 
 def get_current_version_for_serie(source_package_name, serie_name):
@@ -173,9 +173,14 @@ def update_changelog(new_package_version, serie, tip_bzr_rev, authors_bugs_with_
     subprocess.call(["dch", "-r", "--distribution", serie, ""], env=dch_env)
 
 
-def build_package():
-    '''Build the source package'''
-    if subprocess.call(["bzr", "bd", "-S", "--", "-sa", "-k{}".format(BOT_KEY)]) != 0:
+def build_package(serie):
+    '''Build the source package using the internal helper'''
+
+    buildsource = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "chroot-tools", "buildsource-chroot")
+    cur_dir = os.path.abspath('.')
+    if subprocess.call(["sudo",  "pbuilder", "--execute", "--distribution", serie, "--bindmounts", cur_dir, "--bindmounts", GNUPG_DIR,
+                        "--", buildsource, cur_dir, "--gnupg-parentdir", GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
+                                           "--gnupg-keyid", BOT_KEY]) != 0:
         raise Exception("The above command returned an error.")
 
 

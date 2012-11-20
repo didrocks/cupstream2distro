@@ -127,7 +127,7 @@ if __name__ == '__main__':
     launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, serie)
 
     logging.info("Build source package and upload to the ppa")
-    packagemanager.build_package()
+    packagemanager.build_package(serie)
     os.chdir('..')
     packagemanager.upload_package(source_package_name, packaging_version, ppa)
 

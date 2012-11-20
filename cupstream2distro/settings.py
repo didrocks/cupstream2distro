@@ -17,6 +17,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
+
 CRED_FILE_PATH = "~/.cupstream_cred"
 
 REV_STRING_FORMAT = "Automatic snapshot from revision "
@@ -26,6 +28,10 @@ BRANCH_URL = "lp:~ps-jenkins/{}/latestsnapshot"
 
 BOT_DEBFULLNAME = "Automatic PS uploader"
 BOT_DEBEMAIL = "ps-jenkins@lists.canonical.com"
+home_dir = os.path.expanduser("~")
+GNUPG_DIR = os.path.join(home_dir, "cu2d-gnupg")
+if not os.path.isdir(GNUPG_DIR):
+    GNUPG_DIR = home_dir
 BOT_KEY = "B879A3E9"
 
 # selected arch for building arch:all packages
