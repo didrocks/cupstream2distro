@@ -176,11 +176,17 @@ def update_changelog(new_package_version, serie, tip_bzr_rev, authors_bugs_with_
 def build_package(serie):
     '''Build the source package using the internal helper'''
 
-    buildsource = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "chroot-tools", "buildsource-chroot")
+    chroot_tool_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "chroot-tools")
+    buildsource = os.path.join(chroot_tool_dir, "buildsource-chroot")
     cur_dir = os.path.abspath('.')
-    if subprocess.call(["sudo",  "pbuilder", "--execute", "--distribution", serie, "--bindmounts", cur_dir, "--bindmounts", GNUPG_DIR,
+    cowbuilder_env = os.environ.copy()
+    cowbuilder_env["HOME"] = chroot_tool_dir  # take the internal .pbuilderrc
+    cowbuilder_env["DIST"] = serie
+    instance = subprocess.Popen(["sudo", "-E", "pbuilder", "--execute", "--bindmounts", cur_dir, "--bindmounts", GNUPG_DIR,
                         "--", buildsource, cur_dir, "--gnupg-parentdir", GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
-                                           "--gnupg-keyid", BOT_KEY]) != 0:
+                                           "--gnupg-keyid", BOT_KEY], env=cowbuilder_env)
+    instance.communicate()
+    if instance.returncode != 0:
         raise Exception("The above command returned an error.")
 
 

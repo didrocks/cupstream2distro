@@ -1,0 +1,26 @@
+# The file is automatically picked up by the internal pbuilder call
+# Juse use it to create the cowbuilder with: sudo DIST=<wanted_dist> cowbuilder create --debootstrapopts --variant=buildd
+
+# Optionally set the serie to the host serie and
+# architecture to the host architecture if none set.
+: ${DIST:="$(lsb-release -sc)"}
+: ${ARCH:="$(dpkg --print-architecture)"}
+NAME="$DIST-$ARCH"
+
+BASETGZ="/var/cache/pbuilder/$NAME-base.tgz"
+BASEPATH="/var/cache/pbuilder/$NAME/base.cow" # for cowbuilder
+DISTRIBUTION="$DIST"
+BUILDRESULT="/var/cache/pbuilder/$NAME/result/"
+APTCACHE="/var/cache/pbuilder/$NAME/aptcache/"
+BUILDPLACE="/var/cache/pbuilder/build/"
+
+# create the directories if doesn't exist
+mkdir -p $BUILDRESULT
+mkdir -p $APTCACHE
+mkdir -p $BUILDPLACE
+
+# use ubuntu main mirror only
+# Ubuntu configuration
+MIRRORSITE="http://archive.ubuntu.com/ubuntu/"
+COMPONENTS="main restricted"
+OTHERMIRROR=""
