@@ -88,8 +88,6 @@ HOME="$CHROOT_HOME"
 export HOME;
 
 apt-get update
-# install the requirements
-apt-get install -q -y pbuilder bzr bzr-builddeb
 
 # install build-deps
 . /usr/lib/pbuilder/pdebuild-checkparams

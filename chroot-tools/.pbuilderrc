@@ -26,5 +26,5 @@ COMPONENTS="main restricted universe multiverse"
 OTHERMIRROR=""
 
 # Enable eatmydata
-EXTRAPACKAGES=eatmydata
+EXTRAPACKAGES="eatmydata pbuilder bzr bzr-builddeb"
 export LD_PRELOAD="${LD_PRELOAD:+$LD_PRELOAD:}/usr/lib/libeatmydata/libeatmydata.so"
