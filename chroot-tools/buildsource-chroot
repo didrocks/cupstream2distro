@@ -88,6 +88,7 @@ HOME="$CHROOT_HOME"
 export HOME;
 
 apt-get update
+apt-get -yq dist-upgrade
 
 # install build-deps
 . /usr/lib/pbuilder/pdebuild-checkparams
