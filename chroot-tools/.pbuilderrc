@@ -24,3 +24,7 @@ mkdir -p $BUILDPLACE
 MIRRORSITE="http://archive.ubuntu.com/ubuntu/"
 COMPONENTS="main restricted universe multiverse"
 OTHERMIRROR=""
+
+# Enable eatmydata
+EXTRAPACKAGES=eatmydata
+export LD_PRELOAD="${LD_PRELOAD:+$LD_PRELOAD:}/usr/lib/libeatmydata/libeatmydata.so"
