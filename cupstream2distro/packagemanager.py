@@ -22,7 +22,7 @@ import os
 import re
 import subprocess
 
-from .launchpadmanager import get_serie, get_ubuntu_archiven get_ppa
+from .launchpadmanager import get_serie, get_ubuntu_archive, get_ppa
 from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, GNUPG_DIR, REPLACEME_TAG
 
 
