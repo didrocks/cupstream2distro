@@ -182,7 +182,7 @@ def build_package(serie):
     cowbuilder_env = os.environ.copy()
     cowbuilder_env["HOME"] = chroot_tool_dir  # take the internal .pbuilderrc
     cowbuilder_env["DIST"] = serie
-    instance = subprocess.Popen(["sudo", "-E", "pbuilder", "--execute", "--bindmounts", cur_dir, "--bindmounts", GNUPG_DIR,
+    instance = subprocess.Popen(["sudo", "-E", "cowbuilder", "--execute", "--bindmounts", cur_dir, "--bindmounts", GNUPG_DIR,
                         "--", buildsource, cur_dir, "--gnupg-parentdir", GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
                                            "--gnupg-keyid", BOT_KEY], env=cowbuilder_env)
     instance.communicate()
