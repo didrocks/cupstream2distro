@@ -147,6 +147,9 @@ if __name__ == '__main__':
 # 7. Prepare a relevant diff if there are some packaging changes, containing packaging changes itselfs as well as
 #    autotools and cmake files.
 # 8. propose for merging and accept automatically the changelog changes for the day.
+# 9. Create the source package inside a cowbuilder chroot corresponding to the current serie, after installing all the needed build-deps to avoid having
+#    the master machine crafted with build-deps across different series.
+# 10. Finally push that to a ppa.
 # 
 # The bug collect doesn't depend on when the changelog commit is merged
 
