@@ -77,6 +77,13 @@ if __name__ == '__main__':
         logging.info("ERROR: projectbranch doesn't specify the same source name than the packaging itself {}".format(instance_info))
         sys.exit(1)
 
+    # Check version in ppa
+    logging.info("Get previous version in ppa")
+    version_in_ppa = packagemanager.get_current_version_for_serie(source_package_name, serie, ppa)
+    if packagemanager.is_version1_higher_than_version2(version_in_ppa, previous_packaging_version):
+        logging.info("A version in the ppa ({}) is higher than the previous automated upload ({}) (tests/builds failing?). Basing on that one.".format(version_in_ppa, previous_packaging_version))
+        previous_packaging_version = version_in_ppa
+
     # Check version in distro
     logging.info("Get version available in distro")
     distro_version = packagemanager.get_current_version_for_serie(source_package_name, serie)
@@ -150,6 +157,7 @@ if __name__ == '__main__':
 # 9. Create the source package inside a cowbuilder chroot corresponding to the current serie, after installing all the needed build-deps to avoid having
 #    the master machine crafted with build-deps across different series.
 # 10. Finally push that to a ppa.
+# 11. If a version in the ppa fail (build failure, tests not passing), then another try the same day will bump the version from the last upload in the ppa
 # 
 # The bug collect doesn't depend on when the changelog commit is merged
 
