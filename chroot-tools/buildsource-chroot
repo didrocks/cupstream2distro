@@ -17,15 +17,75 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
-# Build a source package in a chroot
-# Syntax is: buildsource-chroot $WORKDIR $HOME $UID $GID $SIGN_KEYID
-# So, for instance in pbuilder:
-# sudo pbuilder --execute --bindmounts $(readlink -f ..) --bindmounts $HOME -- ./buildsource-chroot ${PWD} ${HOME} $(id -u) $(id -g) E4AC208E
 
 set -e
 
 # go to the working directory
 cd "$1"
+shift
+
+while [ -n "$1" ]; do 
+    case "$1" in 
+        --debug)
+            set -x
+            shift;
+            ;;
+        --gid)
+            CHROOT_GID=$2
+            shift; shift;
+            ;;
+        --gnupg-parentdir)
+            # set home directory to real HOME for signing the source packaging
+            CHROOT_HOME="${2}";
+            shift; shift;
+            ;;
+        --help)
+            echo "$0: Enable building a source package inside a chroot
+
+    Usage: $0 WORKDIR --uid=UID --gid=GID --gnupg-parentdir=DIR --gnupg-keyid=KEYID
+    All parameters below are mandatory:
+    - WORKDIR is the current package source directory (in tree)
+    - uid is the uid owning the current source tree (used so that root don't own the new created files)
+    - gid is the gid owning the current source tree (used so that root don't own the new created files)
+    - gnupg-parentdir is the directory containing the .gnupg/ directory. Certainly $HOME for you.
+    - gnupg-keyid is the keyid with which signing the source package.
+
+
+    Note that WORKDIR and gnupg-keyid should be bindmounted into the chroot.
+    This will create a signed source package using bzr bd -S, after installing all build-deps, ran into the WORKDIR, with the correct permission.
+
+
+    Example on how to run it with pbuilder (cowbuilder can be used with exactly the same parameters, replace pbuilder with cowbuilder):"'
+    
+    $ pbuilder --execute --distribution TARGET_DIST --bindmounts ${PWD} --bindmounts ${HOME} -- '$0' ${PWD} --gnupg-parentdir ${HOME} --uid $(id -u) --gid $(id -g) --gnupg-keyid E4AC208E'
+            shift;
+            exit 0
+            ;;
+        --gnupg-keyid)
+            KEYID=$2
+            shift; shift;
+            ;;
+        --uid)
+            CHROOT_UID=$2
+            shift; shift;
+            ;;
+        --*)
+            echo "E: Unknown option [$1] was specified "
+            exit 1;
+            ;;
+        *)
+            break;
+            ;;
+    esac
+done
+
+if [ -z "$CHROOT_HOME" ] || [ -z "$CHROOT_UID" ] || [ -z "$CHROOT_GID" ]  || [ -z "KEYID" ] ; then
+    echo "Every parameters is mandatory to run $0. Use --help for more info."
+    exit 1
+fi
+
+HOME="$CHROOT_HOME"
+export HOME;
 
 apt-get update
 # install the requirements
@@ -36,14 +96,12 @@ apt-get install -q -y pbuilder bzr bzr-builddeb
 export PBCURRENTCOMMANDLINEOPERATION="pdebuild"
 "$PBUILDERSATISFYDEPENDSCMD"
 
-# set home directory to real HOME for signing the source packaging
-export HOME="$2"
 
 # create the user similar to that used outside.
-groupadd -g "$4" -o pbgroup
-useradd -g pbgroup -u "$3" -d "${HOME}" -o pbuser
+groupadd -g $CHROOT_GID -o pbgroup
+useradd -g pbgroup -u $CHROOT_UID -d "${HOME}" -o pbuser
 
 # build the source
-CMD="bzr bd -S -- -k$5"
+CMD="bzr bd -S -- -k$KEYID"
 echo "Creating source with $CMD"
 echo "$CMD" | su -p pbuser; 
