@@ -88,7 +88,7 @@ if __name__ == '__main__':
         package_to_copy = []
         for (source, version) in packageinppamanager.get_all_packages_uploaded():
             logging.info("Copying {} ({})".format(source, version))
-            ###propose_branch_for_merging(source, version)
+            propose_branch_for_merging(source, version)
             if args.destppa:  # direct upload
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=serie,
                                          include_binaries=True, to_pocket=dest_pocket, to_series=serie,
