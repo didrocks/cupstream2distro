@@ -19,8 +19,6 @@
 
 import os
 
-CRED_FILE_PATH = "~/.cupstream_cred"
-
 REV_STRING_FORMAT = "Automatic snapshot from revision "
 PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
 REPLACEME_TAG = "0replaceme"
@@ -29,9 +27,11 @@ BRANCH_URL = "lp:~ps-jenkins/{}/latestsnapshot"
 BOT_DEBFULLNAME = "Automatic PS uploader"
 BOT_DEBEMAIL = "ps-jenkins@lists.canonical.com"
 home_dir = os.path.expanduser("~")
-GNUPG_DIR = os.path.join(home_dir, "cu2d-gnupg")
+CU2D_DIR = os.path.join(home_dir, "cu2d")
+GNUPG_DIR = CU2D_DIR
 if not os.path.isdir(GNUPG_DIR):
     GNUPG_DIR = home_dir
+CRED_FILE_PATH = os.path.join(CU2D_DIR, ".cupstream_cred")
 BOT_KEY = "B879A3E9"
 
 # selected arch for building arch:all packages
