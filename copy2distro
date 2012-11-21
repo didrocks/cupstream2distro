@@ -47,10 +47,9 @@ if __name__ == '__main__':
                                                                     ppa, from_serie, src_pocket, to_serie, dest_pocket))
                 src_ppa = launchpadmanager.get_ppa(ppa)
 
-                continue  # don't copy until in prod
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=from_serie,
-                             include_binaries=True, to_pocket=dest_pocket, to_series=to_serie,
-                             source_name=source, version=version)
+                                         include_binaries=True, to_pocket=dest_pocket, to_series=to_serie,
+                                         source_name=source, version=version)
             if not os.path.isdir("../" + OLD_STACK_DIR):
                 os.makedirs("../" + OLD_STACK_DIR)
             os.rename(file, "../{}/{}_{}".format(OLD_STACK_DIR, file, time.strftime('%Y%m%d-%H%M%S')))
