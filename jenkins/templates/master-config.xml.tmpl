@@ -10,7 +10,15 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+{% if schedule is defined %}
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>{{ schedule }}</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+{% else %}  
   <triggers class="vector"/>
+{% endif %}
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
