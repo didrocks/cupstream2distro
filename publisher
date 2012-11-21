@@ -34,28 +34,28 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     parser = argparse.ArgumentParser(description="Watch for published package in a ppa. Create a xml artefact if manual copy is needed.",
-                                     epilog="serie, ppa and JOB_NAME options can be set by the corresponding long option name env variables as well")
+                                     epilog="series, ppa and JOB_NAME options can be set by the corresponding long option name env variables as well")
 
     parser.add_argument("-f", "--force", action='store_true', help="Publish even if there are packaging change. Only done after manual reviews of the diff.")
-    parser.add_argument("-s", "--serie", help="Serie used to build the package")
+    parser.add_argument("-s", "--series", help="Serie used to build the package")
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
-    parser.add_argument("-d", "--destppa", help="Consider this destppa instead of {serie}-proposed")
+    parser.add_argument("-d", "--destppa", help="Consider this destppa instead of {series}-proposed")
     parser.add_argument("-j", "--JOB_NAME", help="Set this JOB_NAME for generating an unique id for the file to rsync")
 
     args = parser.parse_args()
 
-    serie = args.serie
+    series = args.series
     ppa = args.ppa
     jobname = args.JOB_NAME
-    if not serie:
-        serie = os.getenv("serie")
+    if not series:
+        series = os.getenv("series")
     if not ppa:
         ppa = os.getenv("ppa")
     if not jobname:
         jobname = os.getenv("JOB_NAME")
 
-    if not ppa or not serie:
-        logging.info("ppa and serie parameters are mandatory.")
+    if not ppa or not series:
+        logging.info("ppa and series parameters are mandatory.")
         sys.exit(1)
 
     # getting the archives and series objects
@@ -71,14 +71,14 @@ if __name__ == '__main__':
     src_ppa = launchpadmanager.get_ppa(ppa)
     src_pocket = 'Release'
 
-    logging.info("Copying from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {serie} serie".format(
+    logging.info("Copying from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series".format(
           src_archive=src_ppa, src_pocket=src_pocket, dest_archive=dest_archive, dest_pocket=dest_pocket,
-          serie=serie))
+          series=series))
     projects_with_packaging_changes = []
     for (source, version) in packageinppamanager.get_all_packages_uploaded():
         if os.path.exists(get_packaging_diff_filename(source, version)):
             logging.info("WARNING: Packaging change for {} ({}).".format(source, version))
-            projects_with_packaging_changes.append(source)
+            projectshey_with_packaging_changes.append(source)
 
     if projects_with_packaging_changes and not args.force:
         logging.info("Don't upload the stack automatically.")
@@ -90,11 +90,11 @@ if __name__ == '__main__':
             logging.info("Copying {} ({})".format(source, version))
             propose_branch_for_merging(source, version)
             if args.destppa:  # direct upload
-                dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=serie,
-                                         include_binaries=True, to_pocket=dest_pocket, to_series=serie,
+                dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=series,
+                                         include_binaries=True, to_pocket=dest_pocket, to_series=series,
                                          source_name=source, version=version)
             else:  # generate a file that will be rsynced from another place
-                package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}".format(ppa, src_pocket, serie, dest_pocket, serie, source, version))
+                package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}".format(ppa, src_pocket, series, dest_pocket, series, source, version))
         if package_to_copy:
             logging.info("Writing {} for being able to rsync from main machine".format(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname)))
             with open(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname), 'w') as f:

@@ -24,10 +24,10 @@ class PackageInPPA():
 
     (BUILDING, FAILED, PUBLISHED) = range(3)
 
-    def __init__(self, source_name, version, ppa, serie, archs, arch_all_arch):
+    def __init__(self, source_name, version, ppa, series, archs, arch_all_arch):
         self.source_name = source_name
         self.version = version
-        self.serie = serie
+        self.series = series
         self.archs = archs
         self.arch_all_arch = arch_all_arch
         self.ppa = ppa
@@ -85,7 +85,7 @@ class PackageInPPA():
             for the others.'''
 
         try:
-            source = self.ppa.getPublishedSources(exact_match=True, source_name=self.source_name, version=self.version, distro_series=self.serie)[0]
+            source = self.ppa.getPublishedSources(exact_match=True, source_name=self.source_name, version=self.version, distro_series=self.series)[0]
             logging.info("Source available in ppa")
             current_status = {}
             for arch in self.archs:

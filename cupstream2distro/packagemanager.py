@@ -22,19 +22,19 @@ import os
 import re
 import subprocess
 
-from .launchpadmanager import get_serie, get_ubuntu_archive, get_ppa
+from .launchpadmanager import get_series, get_ubuntu_archive, get_ppa
 from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, GNUPG_DIR, REPLACEME_TAG
 
 
-def get_current_version_for_serie(source_package_name, serie_name, ppa_name=None):
-    '''Get current version for a package name in that serie'''
-    serie = get_serie(serie_name)
+def get_current_version_for_series(source_package_name, series_name, ppa_name=None):
+    '''Get current version for a package name in that series'''
+    series = get_series(series_name)
     version = None
     if ppa_name:
         dest = get_ppa(ppa_name)
     else:
         dest = get_ubuntu_archive()
-    for source in dest.getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=serie):
+    for source in dest.getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=series):
         if version:
             if is_version1_higher_than_version2(source.source_package_version, version):
                 version = source.source_package_version
@@ -98,7 +98,7 @@ def create_new_packaging_version(previous_package_version):
     if we already have something delivered today, it will be .minor, then, .minor+1…'''
 
     today_version = datetime.date.today().strftime('%y.%m.%d')
-    # bootstrapping mode or direct upload or UNRELEASED for bumping to a new serie
+    # bootstrapping mode or direct upload or UNRELEASED for bumping to a new series
     if not "daily" in previous_package_version:
         upstream_version = previous_package_version.split('-')[0]
     else:

@@ -57,9 +57,9 @@ def get_ubuntu_archive():
     return get_ubuntu().main_archive
 
 
-def get_serie(serie_name):
-    '''Return the launchpad object for the requested serie'''
-    return get_ubuntu().getSeries(name_or_version=serie_name)
+def get_series(series_name):
+    '''Return the launchpad object for the requested series'''
+    return get_ubuntu().getSeries(name_or_version=series_name)
 
 
 def get_bugs_titles(author_bugs):
@@ -78,16 +78,16 @@ def get_bugs_titles(author_bugs):
     return author_bugs_with_title
 
 
-def open_bugs_for_source(bugs_list, source_name, serie_name):
+def open_bugs_for_source(bugs_list, source_name, series_name):
     lp = get_launchpad()
     ubuntu = get_ubuntu()
 
-    # don't nominate for current serie
-    if ubuntu.current_series.name == serie_name:
+    # don't nominate for current series
+    if ubuntu.current_series.name == series_name:
         package = ubuntu.getSourcePackage(name=source_name)
     else:
-        serie = get_serie(serie_name)
-        package = serie.getSourcePackage(name=source_name)
+        series = get_series(series_name)
+        package = series.getSourcePackage(name=source_name)
 
     for bug_num in bugs_list:
         try:
@@ -98,14 +98,14 @@ def open_bugs_for_source(bugs_list, source_name, serie_name):
             pass  # ignore non existing or available bugs
 
 
-def get_all_available_archs_and_all_arch(serie, ppa=None):
+def get_all_available_archs_and_all_arch(series, ppa=None):
     '''Return a set of available arch for a ppa eventually'''
     available_arch = set()
     if ppa and ppa.require_virtualized:
         available_arch = VIRTUALIZED_PPA_ARCH
         arch_all_arch = VIRTUALIZED_PPA_ARCH[0]
     else:
-        for arch in serie.architectures:
+        for arch in series.architectures:
             # HACK: filters armel as it's still seen as available on raring: https://launchpad.net/bugs/1077257
             if arch.architecture_tag == "armel":
                 continue

@@ -42,13 +42,13 @@ if __name__ == '__main__':
         logging.info("Found {}".format(file))
         with open(file) as f:
             for line in f.readlines():
-                (ppa, src_pocket, from_serie, dest_pocket, to_serie, source, version) = line.strip().split("\t")
+                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version) = line.strip().split("\t")
                 logging.info("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version,
-                                                                    ppa, from_serie, src_pocket, to_serie, dest_pocket))
+                                                                    ppa, from_series, src_pocket, to_series, dest_pocket))
                 src_ppa = launchpadmanager.get_ppa(ppa)
 
-                dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=from_serie,
-                                         include_binaries=True, to_pocket=dest_pocket, to_series=to_serie,
+                dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=from_series,
+                                         include_binaries=True, to_pocket=dest_pocket, to_series=to_series,
                                          source_name=source, version=version)
             if not os.path.isdir("../" + OLD_STACK_DIR):
                 os.makedirs("../" + OLD_STACK_DIR)
