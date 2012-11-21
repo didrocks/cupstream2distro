@@ -47,3 +47,6 @@ OLD_STACK_DIR = 'old'
 PACKAGE_LIST_RSYNC_FILENAME_PREFIX = 'packagelist_rsync'
 PACKAGE_LIST_RSYNC_FILENAME_FORMAT = PACKAGE_LIST_RSYNC_FILENAME_PREFIX + '_{}'
 RSYNC_PATTERN = "rsync://RSYNCSVR/cu2d_out/{}*".format(PACKAGE_LIST_RSYNC_FILENAME_PREFIX)
+
+ROOT_CU2D = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+CONFIG_STACK_DIR = os.path.join(ROOT_CU2D, 'jenkins', 'etc')

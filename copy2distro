@@ -26,6 +26,7 @@ import time
 from cupstream2distro import launchpadmanager
 from cupstream2distro.stacksync import get_stack_files_to_sync
 from cupstream2distro.settings import OLD_STACK_DIR
+from cupstream2distro.tools import get_allowed_projects
 
 if __name__ == '__main__':
 
@@ -37,6 +38,8 @@ if __name__ == '__main__':
     launchpadmanager.get_launchpad(use_cred_file=None)
     dest_archive = launchpadmanager.get_ubuntu_archive()
 
+    allowed_projects = get_allowed_projects()
+
     logging.info("Check if there are some stacks to synchronize")
     for file in get_stack_files_to_sync():
         logging.info("Found {}".format(file))
@@ -45,6 +48,10 @@ if __name__ == '__main__':
                 (ppa, src_pocket, from_series, dest_pocket, to_series, source, version) = line.strip().split("\t")
                 logging.info("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version,
                                                                     ppa, from_series, src_pocket, to_series, dest_pocket))
+                if not source in allowed_projects:
+                    logging.error("The project {} is not in the allowed stack to be copied. Rejecting.".format(source))
+                    continue
+
                 src_ppa = launchpadmanager.get_ppa(ppa)
 
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=from_series,

@@ -23,7 +23,7 @@ import re
 import subprocess
 
 from .launchpadmanager import get_series, get_ubuntu_archive, get_ppa
-from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, GNUPG_DIR, REPLACEME_TAG
+from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, GNUPG_DIR, REPLACEME_TAG, ROOT_CU2D
 
 
 def get_current_version_for_series(source_package_name, series_name, ppa_name=None):
@@ -180,7 +180,7 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with
 def build_package(series):
     '''Build the source package using the internal helper'''
 
-    chroot_tool_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "chroot-tools")
+    chroot_tool_dir = os.path.join(ROOT_CU2D, "chroot-tools")
     buildsource = os.path.join(chroot_tool_dir, "buildsource-chroot")
     cur_dir = os.path.abspath('.')
     cowbuilder_env = os.environ.copy()
