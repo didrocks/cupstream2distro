@@ -158,7 +158,7 @@ def collect_bugs_until_latest_bzr_rev(f, source_package_name):
     raise Exception("Didn't find any string in debian/changelog of the form: \"{}\". Bootstrapping issue?".format(end_regexp.pattern))
 
 
-def update_changelog(new_package_version, serie, tip_bzr_rev, authors_bugs_with_title):
+def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with_title):
     '''Update the changelog for the incoming upload'''
 
     dch_env = os.environ.copy()
@@ -174,10 +174,10 @@ def update_changelog(new_package_version, serie, tip_bzr_rev, authors_bugs_with_
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8").strip())
-    subprocess.call(["dch", "-r", "--distribution", serie, "--force-distribution", ""], env=dch_env)
+    subprocess.call(["dch", "-r", "--distribution", series, "--force-distribution", ""], env=dch_env)
 
 
-def build_package(serie):
+def build_package(series):
     '''Build the source package using the internal helper'''
 
     chroot_tool_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "chroot-tools")
@@ -185,7 +185,7 @@ def build_package(serie):
     cur_dir = os.path.abspath('.')
     cowbuilder_env = os.environ.copy()
     cowbuilder_env["HOME"] = chroot_tool_dir  # take the internal .pbuilderrc
-    cowbuilder_env["DIST"] = serie
+    cowbuilder_env["DIST"] = series
     instance = subprocess.Popen(["sudo", "-E", "cowbuilder", "--execute", "--bindmounts", cur_dir, "--bindmounts", GNUPG_DIR,
                         "--", buildsource, cur_dir, "--gnupg-parentdir", GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
                                            "--gnupg-keyid", BOT_KEY], env=cowbuilder_env)

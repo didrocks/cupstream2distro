@@ -151,7 +151,7 @@ def update_jenkins(jkcfg, stack, update=False):
                 lpb = "lp:%s" % srcname
 
             ctx['opts'] = '-s %s -p %s -b %s -n %s' % (
-                stack['serie'], stack['ppa'], lpb, srcname)
+                stack['series'], stack['ppa'], lpb, srcname)
             ctx['projectname'] = srcname
             setup_job(jkh, jjenv, jobname, TEMPLATES['prepare-project'],
                       ctx, update)
@@ -168,7 +168,7 @@ def update_jenkins(jkcfg, stack, update=False):
     jobname = "-".join(basename + ['2.1build'])
     subjobs['jobbuild'] = jobname
     ctx = dict(ctxbase)
-    ctx['opts'] = '-s %s -p %s' % (stack['serie'], stack['ppa'])
+    ctx['opts'] = '-s %s -p %s' % (stack['series'], stack['ppa'])
     setup_job(jkh, jjenv, jobname, TEMPLATES['build'],
               ctx, update)
 
@@ -177,7 +177,7 @@ def update_jenkins(jkcfg, stack, update=False):
         jobname = "-".join(basename + ['2.2check'])
         subjobs['jobbuild'] += ',' + jobname
         ctx = dict(ctxbase)
-        ctx['opts'] = '-a -s %s -p %s' % (stack['serie'], stack['ppa'])
+        ctx['opts'] = '-a -s %s -p %s' % (stack['series'], stack['ppa'])
         setup_job(jkh, jjenv, jobname, TEMPLATES['check'],
                   ctx, update)
 
@@ -185,7 +185,7 @@ def update_jenkins(jkcfg, stack, update=False):
     jobname = "-".join(basename + ['3.0publish'])
     subjobs['jobpublish'] = jobname
     ctx = dict(ctxbase)
-    ctx['opts'] = '-s %s -p %s -j cu2d-%s-%s' % (stack['serie'], stack['ppa'],
+    ctx['opts'] = '-s %s -p %s -j cu2d-%s-%s' % (stack['series'], stack['ppa'],
                                         stack['name'], stack['release'])
     setup_job(jkh, jjenv, jobname, TEMPLATES['publish'],
               ctx, update)
