@@ -46,16 +46,16 @@ if __name__ == '__main__':
         with open(file) as f:
             for line in f.readlines():
                 (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, previous_packaging_version) = line.strip().split("\t")
-                logging.info("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version,
+                logging.debug("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version,
                                                                     ppa, from_series, src_pocket, to_series, dest_pocket))
                 if not source in allowed_projects:
-                    logging.error("The project {} is not in the allowed stack to be copied. Rejecting.".format(source))
+                    logging.error("The project {} is not in the allowed stack to be copied to distro. Rejecting.".format(source))
                     continue
 
                 distro_version = packagemanager.get_current_version_for_serie(source, to_series)
                 if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
-                    message = ("A manual upload to distro ({}) has been done for that component but is not in trunk which is still at {}. "
-                               "Ignoring that component.".format(distro_version, previous_packaging_version))
+                    message = ("A manual upload of {} ({}) to distro has been done but is not in trunk which is still at {}. "
+                               "Ignore uploading {}.".format(source, distro_version, previous_packaging_version, version))
                     logging.error(message)
                     continue
 
