@@ -138,7 +138,8 @@ def _get_all_bugs_in_branch(starting_rev):
 
 def commit_release(new_package_version, tip_bzr_rev):
     '''Commit latest release'''
-    subprocess.call(["bzr", "commit", "-m", "Releasing {}, based on r{}".format(new_package_version, tip_bzr_rev)])
+    if subprocess.call(["bzr", "commit", "-m", "Releasing {}, based on r{}".format(new_package_version, tip_bzr_rev)]) != 0:
+        raise Exception("The above command returned an error.")
 
 
 def save_branch_config(source_package_name, branch):
@@ -167,7 +168,10 @@ def propose_branch_for_merging(source_package_name, version):
     env["BZR_EDITOR"] = "echo"
 
     os.chdir(source_package_name)
-    subprocess.call(["bzr", "push", BRANCH_URL.format(source_package_name), "--overwrite"])
+    if subprocess.call(["bzr", "push", BRANCH_URL.format(source_package_name), "--overwrite"]) != 0:
+        raise Exception("The above command returned an error.")
     mergeinstance = subprocess.Popen(["bzr", "lp-propose-merge", parent_branch, "-m", PACKAGING_MERGE_COMMIT_MESSAGE.format(version), "--approve"], stdin=subprocess.PIPE, env=env)
     mergeinstance.communicate(input="y")
+    if mergeinstance.returncode != 0:
+        raise Exception("The above command returned an error.")
     os.chdir('..')

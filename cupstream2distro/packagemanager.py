@@ -207,7 +207,8 @@ def refresh_symbol_files(packaging_version):
 
     new_upstream_version = packaging_version.split("-")[0]
     if subprocess.call(['grep -qi {} debian/*symbols'.format(REPLACEME_TAG)], shell=True) == 0:  # shell=True for shell expansion
-        subprocess.call(["sed -i 's/{}\(.*\)/{}/i' debian/*symbols".format(REPLACEME_TAG, new_upstream_version)], shell=True)
+        if subprocess.call(["sed -i 's/{}\(.*\)/{}/i' debian/*symbols".format(REPLACEME_TAG, new_upstream_version)], shell=True) != 0:
+            raise Exception("The above command returned an error.")
         dch_env = os.environ.copy()
         dch_env["DEBFULLNAME"] = BOT_DEBFULLNAME
         dch_env["DEBEMAIL"] = BOT_DEBEMAIL
