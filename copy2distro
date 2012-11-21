@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     allowed_projects = get_allowed_projects()
 
-    logging.info("Check if there are some stacks to synchronize")
+    logging.debug("Check if there are some stacks to synchronize")
     for file in get_stack_files_to_sync():
         logging.info("Found {}".format(file))
         with open(file) as f:
