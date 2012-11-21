@@ -142,15 +142,6 @@ def commit_release(new_package_version, tip_bzr_rev):
         raise Exception("The above command returned an error.")
 
 
-def save_branch_config(source_package_name, branch):
-    '''Save branch configuration'''
-    config = ConfigParser.RawConfigParser()
-    config.add_section('Branch')
-    config.set('Branch', 'branch', branch)
-    with open("{}.config".format(source_package_name), 'wb') as configfile:
-        config.write(configfile)
-
-
 def _get_parent_branch(source_package_name):
     '''Get parent branch from config'''
     config = ConfigParser.RawConfigParser()

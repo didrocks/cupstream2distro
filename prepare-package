@@ -24,7 +24,7 @@ import os
 import sys
 
 from cupstream2distro import branchhandling, packagemanager, launchpadmanager
-from cupstream2distro.tools import generate_xml_artefacts
+from cupstream2distro.tools import generate_xml_artefacts, save_config_for_publish
 from cupstream2distro.settings import UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT
 
 
@@ -58,9 +58,6 @@ if __name__ == '__main__':
     if not source_package_name or not branch or not series or not ppa:
         logging.info("ERROR: missing compulsory environment variables (sourcename, branch, series, ppa) {}".format(instance_info))
         sys.exit(1)
-
-    # Set paperwork
-    branchhandling.save_branch_config(source_package_name, branch)
 
     # Grab project branch
     logging.info("Branching {} to {}".format(branch, source_package_name))
@@ -138,6 +135,8 @@ if __name__ == '__main__':
     os.chdir('..')
     packagemanager.upload_package(source_package_name, packaging_version, ppa)
 
+    # Save info for publish
+    save_config_for_publish(source_package_name, branch, previous_packaging_version)
 
 # 1. stop if an intermediate upload has been done to ubuntu but not backported in the packaging branch
 # 2. collect all bugs that have been fixed in upstream trunk, and sort them by name in the changelog. The matching is really permissive: wide variety of format either --fixes lp: or in the commit message

@@ -25,6 +25,7 @@ import sys
 
 from cupstream2distro import launchpadmanager, packageinppamanager
 from cupstream2distro.branchhandling import get_packaging_diff_filename, propose_branch_for_merging
+from cupstream2distro.packagemanager import get_previous_packaging_version_from_config
 from cupstream2distro.tools import generate_xml_artefacts
 from cupstream2distro.settings import PUBLISHER_PACKAGING_CHANGE_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT
 
@@ -78,7 +79,7 @@ if __name__ == '__main__':
     for (source, version) in packageinppamanager.get_all_packages_uploaded():
         if os.path.exists(get_packaging_diff_filename(source, version)):
             logging.info("WARNING: Packaging change for {} ({}).".format(source, version))
-            projectshey_with_packaging_changes.append(source)
+            projects_with_packaging_changes.append(source)
 
     if projects_with_packaging_changes and not args.force:
         logging.info("Don't upload the stack automatically.")
@@ -94,7 +95,8 @@ if __name__ == '__main__':
                                          include_binaries=True, to_pocket=dest_pocket, to_series=series,
                                          source_name=source, version=version)
             else:  # generate a file that will be rsynced from another place
-                package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}".format(ppa, src_pocket, series, dest_pocket, series, source, version))
+                previous_packaging_version = get_previous_packaging_version_from_config(source)
+                package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(ppa, src_pocket, series, dest_pocket, series, source, version, previous_packaging_version))
         if package_to_copy:
             logging.info("Writing {} for being able to rsync from main machine".format(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname)))
             with open(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname), 'w') as f:

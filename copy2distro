@@ -23,7 +23,7 @@ import logging
 import os
 import time
 
-from cupstream2distro import launchpadmanager
+from cupstream2distro import launchpadmanager, packagemanager
 from cupstream2distro.stacksync import get_stack_files_to_sync
 from cupstream2distro.settings import OLD_STACK_DIR
 from cupstream2distro.tools import get_allowed_projects
@@ -45,11 +45,18 @@ if __name__ == '__main__':
         logging.info("Found {}".format(file))
         with open(file) as f:
             for line in f.readlines():
-                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version) = line.strip().split("\t")
+                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, previous_packaging_version) = line.strip().split("\t")
                 logging.info("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version,
                                                                     ppa, from_series, src_pocket, to_series, dest_pocket))
                 if not source in allowed_projects:
                     logging.error("The project {} is not in the allowed stack to be copied. Rejecting.".format(source))
+                    continue
+
+                distro_version = packagemanager.get_current_version_for_serie(source, to_series)
+                if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
+                    message = ("A manual upload to distro ({}) has been done for that component but is not in trunk which is still at {}. "
+                               "Ignoring that component.".format(distro_version, previous_packaging_version))
+                    logging.error(message)
                     continue
 
                 src_ppa = launchpadmanager.get_ppa(ppa)

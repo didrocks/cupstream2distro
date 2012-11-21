@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import ConfigParser
 import os
 import yaml
 from xml.sax.saxutils import quoteattr, escape
@@ -64,3 +65,13 @@ def get_allowed_projects():
                     projects.append(project)
     return set(projects)
 
+
+def save_config_for_publish(source_package_name, branch, previous_packaging_version):
+    '''Save branch configuration'''
+    config = ConfigParser.RawConfigParser()
+    config.add_section('Branch')
+    config.set('Branch', 'branch', branch)
+    config.add_section('Package')
+    config.set('Package', 'previous_packaging_version', previous_packaging_version)
+    with open("{}.config".format(source_package_name), 'wb') as configfile:
+        config.write(configfile)
