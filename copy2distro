@@ -52,7 +52,7 @@ if __name__ == '__main__':
                     logging.error("The project {} is not in the allowed stack to be copied to distro. Rejecting.".format(source))
                     continue
 
-                distro_version = packagemanager.get_current_version_for_serie(source, to_series)
+                distro_version = packagemanager.get_current_version_for_series(source, to_series)
                 if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
                     message = ("A manual upload of {} ({}) to distro has been done but is not in trunk which is still at {}. "
                                "Ignore uploading {}.".format(source, distro_version, previous_packaging_version, version))
