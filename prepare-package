@@ -76,14 +76,14 @@ if __name__ == '__main__':
 
     # Check version in ppa
     logging.info("Get previous version in ppa")
-    version_in_ppa = packagemanager.get_current_version_for_serie(source_package_name, series, ppa)
+    version_in_ppa = packagemanager.get_current_version_for_series(source_package_name, series, ppa)
     if packagemanager.is_version1_higher_than_version2(version_in_ppa, previous_packaging_version):
         logging.info("A version in the ppa ({}) is higher than the previous automated upload ({}) (tests/builds failing?). Basing on that one.".format(version_in_ppa, previous_packaging_version))
         previous_packaging_version = version_in_ppa
 
     # Check version in distro
     logging.info("Get version available in distro")
-    distro_version = packagemanager.get_current_version_for_serie(source_package_name, series)
+    distro_version = packagemanager.get_current_version_for_series(source_package_name, series)
     resultfile = os.path.abspath(os.path.join(
         '..', UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT.format(
             source_package_name, distro_version)))
