@@ -40,6 +40,9 @@ def get_current_version_for_series(source_package_name, series_name, ppa_name=No
                 version = source.source_package_version
         else:
             version = source.source_package_version
+    # was never in the dest, set the lowest possible version
+    if version is None:
+        version = "0"
     return version
 
 
