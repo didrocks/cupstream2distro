@@ -30,6 +30,10 @@ import yaml
 import jinja2
 import jenkins
 import argparse
+import subprocess
+
+sys.path.append('..')  # add local cupstream2distro
+from cupstream2distro import launchpadmanager
 
 BINDIR = os.path.dirname(__file__)
 PREFIX = 'cu2d'
@@ -66,6 +70,34 @@ def load_stack_cfg(path):
     logging.debug('Loading stack configuration from %s', path)
     cfg = yaml.load(file(path, 'r'))
     return False if not 'stack' in cfg else cfg['stack']
+
+
+def setup_branch(stack):
+    """Configure the branch so that lp-propose target the wanted one
+
+    :param stack: dictionary with configuration of the stack
+    """
+
+    if stack['projects']:
+        lp = launchpadmanager.get_launchpad(use_cred_file=None)
+        for prj in stack['projects']:
+            if type(prj) == dict:
+                srcname = prj.keys()[0]
+                lpb = prj[srcname]
+            else:
+                lpb = "lp:{}".format(prj)
+
+            current_branch = lp.branches.getByUrl(url=lpb)
+            if not current_branch:
+                logging.error("No branch exist on launchpad for {}".format(lpb))
+                sys.exit(1)
+
+            # set the bzr config so that targeted branch is the right one when using the short name
+            logging.info("Set branch {} as target for {}".format(current_branch.unique_name, lpb))
+            cmd = ["bzr", "config", "-d", "lp:{}".format(current_branch.unique_name), "public_branch={}".format(lpb)]
+            if subprocess.call(cmd) != 0:
+                logging.error("Can't set the target branch {} for {}".format(current_branch.unique_name, lpb))
+                sys.exit(1)
 
 
 def setup_job(jkh, jjenv, jobname, tmplname, ctx, update=False):
@@ -242,6 +274,8 @@ To update the indicator stack run the following command:
     stackcfg = load_stack_cfg(args.stackcfg)
     if not stackcfg:
         logging.error('Stack configuration failed to load. Aborting!')
+
+    setup_branch(stackcfg)
 
     credentials = None
     if args.credentials:
