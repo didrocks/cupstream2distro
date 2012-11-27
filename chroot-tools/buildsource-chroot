@@ -100,7 +100,7 @@ export PBCURRENTCOMMANDLINEOPERATION="pdebuild"
 groupadd -g $CHROOT_GID -o pbgroup
 useradd -g pbgroup -u $CHROOT_UID -d "${HOME}" -o pbuser
 
-# build the source
-CMD="bzr bd -S -- -k$KEYID"
+# build the source in split mode
+CMD="bzr bd -S --split -- -k$KEYID"
 echo "Creating source with $CMD"
 echo "$CMD" | su -p pbuser; 
