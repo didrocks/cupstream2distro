@@ -90,17 +90,19 @@ export HOME;
 apt-get update
 apt-get -yq dist-upgrade
 
+# this isn't need (you should install them in the chroot), but easier for debugging
+apt-get install pbuilder bzr-builddeb -yq
+
 # install build-deps
 . /usr/lib/pbuilder/pdebuild-checkparams
 export PBCURRENTCOMMANDLINEOPERATION="pdebuild"
-"$PBUILDERSATISFYDEPENDSCMD"
-
+"$PBUILDERSATISFYDEPENDSCMD"-classic --force-version --continue-fail
 
 # create the user similar to that used outside.
 groupadd -g $CHROOT_GID -o pbgroup
 useradd -g pbgroup -u $CHROOT_UID -d "${HOME}" -o pbuser
 
 # build the source in split mode
-CMD="bzr bd -S --split -- -k$KEYID"
+CMD="bzr bd -S --split -- -k$KEYID -d"
 echo "Creating source with $CMD"
 echo "$CMD" | su -p pbuser; 
