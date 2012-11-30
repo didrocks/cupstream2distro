@@ -222,7 +222,9 @@ def build_package(series):
 
 def upload_package(source, version, ppa):
     '''Upload the new package to a ppa'''
-    if subprocess.call(["dput", "ppa:{}".format(ppa), "{}_{}_source.changes".format(source, version)]) != 0:
+    # remove epoch is there is one
+    version_for_source_file = version.split(':')[-1]
+    if subprocess.call(["dput", "ppa:{}".format(ppa), "{}_{}_source.changes".format(version_for_source_file, version)]) != 0:
         raise Exception("The above command returned an error.")
 
 
