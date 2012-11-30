@@ -106,10 +106,12 @@ def _get_all_bugs_in_branch(starting_rev):
     # bug #12345, bug#12345, bug12345, bug 12345
     # lp: #12345, lp:#12345, lp:12345, lp: 12345
     # lp #12345, lp#12345, lp12345, lp 12345,
-    # https://launchpad.net/bugs/1234567890 and
+    # Fix #12345, Fix 12345, Fix: 12345, Fix12345, Fix: #12345,
+    # Fixes #12345, Fixes 12345, Fixes: 12345, Fixes:12345, Fixes: #12345
+    # *launchpad.net/bugs/1234567890 and
     # #12345 (but not 12345 for false positive)
     # Support multiple bugs per commit
-    bug_regexp = re.compile("((lp:?|bug)[ #]*|#|https://launchpad.net/bugs/)(\d{5,})", re.IGNORECASE)
+    bug_regexp = re.compile("((lp|bug|fix(es)?)[: #]*|#|launchpad.net/bugs/)(\d{5,})", re.IGNORECASE)
     author_regexp = re.compile("committer: (.*) <.*>")
     for line in stdout.splitlines():
         matches = bug_regexp.findall(line)
