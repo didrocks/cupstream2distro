@@ -74,5 +74,5 @@ def save_project_config(source_package_name, branch, previous_packaging_version,
     config.add_section('Package')
     config.set('Package', 'previous_packaging_version', previous_packaging_version)
     config.set('Package', 'packaging_version', current_packaging_version)
-    with open("{}.{}}".format(source_package_name, PROJECT_CONFIG_SUFFIX), 'wb') as configfile:
+    with open("{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX), 'wb') as configfile:
         config.write(configfile)
