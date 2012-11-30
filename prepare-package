@@ -135,7 +135,7 @@ if __name__ == '__main__':
     packagemanager.upload_package(source_package_name, packaging_version, ppa)
 
     # Save infos for other jobs
-    save_project_config(source_package_name, branch, previous_packaging_version)
+    save_project_config(source_package_name, branch, previous_packaging_version, packaging_version)
 
 # 1. stop if an intermediate upload has been done to ubuntu but not backported in the packaging branch
 # 1.1 Only consider the upload if there has been some new commits in the branch (not counting the previous changelog committed or any upload done directly to distro which have been backported to trunk)
