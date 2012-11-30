@@ -207,7 +207,10 @@ def compute_stat(cfg, new, old):
     toldrun = old['total'] - old['skip']
     pfail = float(len(new['fail'])) / trun
     pregr = float(dfail) / trun
-    ptotal = float(dtotal) / toldrun
+    try:
+        ptotal = float(dtotal) / toldrun
+    except ZeroDivisionError:
+        ptotal = 1
     pskip = float(new['skip']) / trun
 
     sys.stdout.write('count\t{:d}\t{:d}\t{:d}\n'.format(
@@ -225,7 +228,7 @@ def compute_stat(cfg, new, old):
         ret += EREGRESS
     if not goal_reached(cfg['skip'], trun, new['skip']):
         ret += ESKIP
-    if not goal_reached(cfg['removal'], toldrun, dtotal):
+    if not goal_reached(cfg['removal'], toldrun, -dtotal):
         ret += EREMOVAL
 
     return ret
