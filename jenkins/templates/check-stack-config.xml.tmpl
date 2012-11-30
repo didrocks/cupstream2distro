@@ -26,12 +26,30 @@ $BINDIR/watch-ppa $OPTS
 </command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-      <command>#!/bin/bash
+      <command>#!/bin/bash -u
 
-echo &quot;Step autopilot&quot;
+BASEDIR=/var/lib/jenkins/cu2d
+BINDIR=$BASEDIR/cupstream2distro
+JOBROOT=ps-unity-autopilot-raring
 
-DELAY=$((RANDOM*10/32767))
-echo &quot;Sleeping for $DELAY seconds&quot;</command>
+for card in ati intel nvidia; do
+    echo &quot;Calculating results for card $card&quot;
+    JUNIT=$($BINDIR/jenkins/latest_autopilot_results $JOBROOT $card)
+    RET=$?
+
+    if [ $RET -gt 0 ]; then
+        echo &quot;Failed to find junit results for latest run, exiting!&quot;
+        exit $RET
+    fi
+
+    $BINDIR/jenkins/cu2d-autopilot-report -C $BASEDIR/autopilot.rc $JUNIT
+    RET=$?
+
+    if [ $RET -gt 0 ]; then
+        echo &quot;Tests for card &apos;$card&apos; failed!&quot;
+        exit $RET
+    fi
+done</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
