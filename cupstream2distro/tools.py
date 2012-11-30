@@ -22,7 +22,7 @@ import os
 import yaml
 from xml.sax.saxutils import quoteattr, escape
 
-from .settings import CONFIG_STACK_DIR
+from .settings import CONFIG_STACK_DIR, PROJECT_CONFIG_SUFFIX
 
 WRAPPER_STRING = '''<testsuite errors="0" failures="{}" name="" tests="1" time="0.1">
   <testcase classname="MarkUnstable" name={} time="0.0">{}</testcase>
@@ -66,12 +66,13 @@ def get_allowed_projects():
     return set(projects)
 
 
-def save_config_for_publish(source_package_name, branch, previous_packaging_version):
-    '''Save branch configuration'''
+def save_project_config(source_package_name, branch, previous_packaging_version, current_packaging_version):
+    '''Save branch and package configuration'''
     config = ConfigParser.RawConfigParser()
     config.add_section('Branch')
     config.set('Branch', 'branch', branch)
     config.add_section('Package')
     config.set('Package', 'previous_packaging_version', previous_packaging_version)
-    with open("{}.config".format(source_package_name), 'wb') as configfile:
+    config.set('Package', 'packaging_version', current_packaging_version)
+    with open("{}.{}}".format(source_package_name, PROJECT_CONFIG_SUFFIX), 'wb') as configfile:
         config.write(configfile)

@@ -17,11 +17,13 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import ConfigParser
 import logging
 import os
 import re
 
 from .packageinppa import PackageInPPA
+from .settings import PROJECT_CONFIG_SUFFIX
 
 
 def _ensure_removed_from_set(target_set, content_to_remove):
@@ -35,12 +37,16 @@ def _ensure_removed_from_set(target_set, content_to_remove):
 def get_all_packages_uploaded():
     '''Get (package, version) of all packages uploaded'''
 
+    # we do not rely on the .changes files but in the config file
+    # because we need the exact version (which can have an epoch)
     result = set()
-    source_package_regexp = re.compile("(.*)_(.*)_source.changes")
+    source_package_regexp = re.compile("(.*).{}".format(PROJECT_CONFIG_SUFFIX))
     for file in os.listdir('.'):
         substract = source_package_regexp.findall(file)
         if substract:
-            result.add(substract[0])
+            version = _get_current_packaging_version_from_config(substract[0])
+            result.add((substract[0], version))
+
     return result
 
 
@@ -63,3 +69,10 @@ def update_all_packages_status(packages_not_in_ppa, packages_building, packages_
             elif package_status == PackageInPPA.PUBLISHED:
                 _ensure_removed_from_set(packages_building, current_package)  # in case we missed the "build" step
                 _ensure_removed_from_set(packages_not_in_ppa, current_package)  # in case we missed the "wait" step
+
+
+def _get_current_packaging_version_from_config(source_package_name):
+    '''Get previous packaging version from the saved config'''
+    config = ConfigParser.RawConfigParser()
+    config.read("{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX))
+    return config.get('Package', 'packaging_version')

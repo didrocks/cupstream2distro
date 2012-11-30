@@ -20,6 +20,8 @@
 import ConfigParser
 import logging
 
+from .settings import PROJECT_CONFIG_SUFFIX
+
 
 class PackageInPPA():
 
@@ -163,5 +165,5 @@ class PackageInPPA():
 def get_previous_packaging_version_from_config(source_package_name):
     '''Get previous packaging version from the saved config'''
     config = ConfigParser.RawConfigParser()
-    config.read("{}.config".format(source_package_name))
+    config.read("{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX))
     return config.get('Package', 'previous_packaging_version')
