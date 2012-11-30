@@ -23,7 +23,7 @@ import re
 import subprocess
 
 from .launchpadmanager import get_series, get_ubuntu_archive, get_ppa
-from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, GNUPG_DIR, REPLACEME_TAG, ROOT_CU2D
+from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, GNUPG_DIR, REPLACEME_TAG, ROOT_CU2D, NEW_CHANGELOG_PATTERN
 
 
 def get_current_version_for_series(source_package_name, series_name, ppa_name=None):
@@ -59,8 +59,8 @@ def get_latest_upstream_bzr_rev(f):
         rev = regex.findall(line)
         if rev:
             last_bzr_rev = int(rev[0])
-        # end of current changelog stenza
-        if line.startswith(" -- "):
+        # end of current changelog stenza (doesn't have last_bzr_rev if cherry-pick from distro)
+        if last_bzr_rev and line.startswith(" -- "):
             break
 
     # we are taking the last added one to the changelog for bootstrapping: we have two rev in the case on the first upload and we just want the last one
@@ -92,6 +92,29 @@ def get_packaging_version():
             return packaging_version[0]
 
     raise Exception("Didn't find any Version in the package: {}".format(stdout))
+
+
+def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name):
+    '''Return True if a new snapshot is needed'''
+
+    # We always at least have +1 revision from last_upstream_rev (automated merge of changelog)
+    # We can as well having versions pushed to distro that has been backported, each count
+    # as one commit. If we only have those, no need to rerelease a newer version.
+
+    num_uploads = 0
+    regex = re.compile(REV_STRING_FORMAT + "(\d+)")
+    new_changelog_regexp = re.compile(NEW_CHANGELOG_PATTERN.format(source_package_name))
+    for line in open("debian/changelog"):
+        if regex.search(line):
+            break
+        # end of a changelog stenza (without getting the automated tag) means a manual upload
+        if new_changelog_regexp.match(line):
+            num_uploads += 1
+
+    # num_uploads will at least be 1 for the last automated release merge in changelog
+    # + the number of manual uploads, relying on the fact that a manual upload backported
+    # is done in one commit.
+    return (tip_bzr_rev > last_upstream_rev + num_uploads)
 
 
 def create_new_packaging_version(previous_package_version):
@@ -143,7 +166,7 @@ def collect_bugs_until_latest_bzr_rev(f, source_package_name):
     # matching only bug format that launchpad accepts
     bug_regexp = re.compile("lp: ?#(\d{5,})", re.IGNORECASE)
     end_regexp = re.compile(REV_STRING_FORMAT + "(\d+)")
-    new_changelog_regexp = re.compile("^{} \(".format(source_package_name))
+    new_changelog_regexp = re.compile(NEW_CHANGELOG_PATTERN.format(source_package_name))
     for line in f:
         bug_list = bug_regexp.findall(line)
         for bug in bug_list:

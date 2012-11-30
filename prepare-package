@@ -101,9 +101,8 @@ if __name__ == '__main__':
     # Check if new revision to publish
     logging.info("Check if new revision were published")
     tip_bzr_rev = branchhandling.get_tip_bzr_revision()
-    # +1 as there is at least an additional automatic commit for latest changelog content of last release.
-    if tip_bzr_rev <= last_upstream_rev + 1:
-        logging.info("No new revision published since last daily push, no need to upload this component")
+    if not packagemanager.is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name):
+        logging.info("No new useful revision published since last daily push, no need to upload this component")
         sys.exit(0)
 
     packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version)
@@ -139,6 +138,7 @@ if __name__ == '__main__':
     save_config_for_publish(source_package_name, branch, previous_packaging_version)
 
 # 1. stop if an intermediate upload has been done to ubuntu but not backported in the packaging branch
+# 1.1 Only consider the upload if there has been some new commits in the branch (not counting the previous changelog committed or any upload done directly to distro which have been backported to trunk)
 # 2. collect all bugs that have been fixed in upstream trunk, and sort them by name in the changelog. The matching is really permissive: wide variety of format either --fixes lp: or in the commit message
 # 3. Filters them with the eventual manual cherry-pick upload done in between (don't repeat if already fixed in distro)
 # 4. Refresh the debian/symbols automatically (with "replaceme" magic tag) to refresh on the real day the component is released
