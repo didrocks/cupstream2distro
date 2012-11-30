@@ -263,6 +263,12 @@ To update the indicator stack run the following command:
                         help='by default only new jobs are added. This '
                         'option enables \nupdate of existing jobs from '
                         'configuration template.')
+    parser.add_argument('-S', '--no-setupbranch', action='store_true',
+                        default=False,
+                        help='Skip branch setup (useful if you do not have '
+                        'privileges to configure branchs but need to update '
+                        'job configuration. In this case, only update of '
+                        'existing jobs is allowed')
     parser.add_argument('-d', '--debug', action='store_true', default=False,
                         help='enable debug mode')
     parser.add_argument('stackcfg', help='Path to a configuration file for '
@@ -275,7 +281,8 @@ To update the indicator stack run the following command:
     if not stackcfg:
         logging.error('Stack configuration failed to load. Aborting!')
 
-    setup_branch(stackcfg)
+    if not args.no_setupbranch:
+        setup_branch(stackcfg)
 
     credentials = None
     if args.credentials:
@@ -285,7 +292,8 @@ To update the indicator stack run the following command:
         if not credentials:
             logging.error('Credentials not found. Aborting!')
             sys.exit(1)
-        if not update_jenkins(credentials, stackcfg, args.update_jobs):
+        if not update_jenkins(credentials, stackcfg,
+                              args.update_jobs & (not args.no_setupbranch)):
             logging.error('Failed to configure jenkins jobs. Aborting!')
             sys.exit(2)
 
