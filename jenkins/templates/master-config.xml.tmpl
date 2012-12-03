@@ -3,7 +3,17 @@
   <actions/>
   <description>Master Job for stack {{ stack }}/{{ release }}</description>
   <keepDependencies>false</keepDependencies>
-  <properties/>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>REBUILD_ONLY</name>
+          <description>space separated list of project to rebuild</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>master</assignedNode>
   <canRoam>false</canRoam>
