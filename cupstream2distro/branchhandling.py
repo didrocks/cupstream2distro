@@ -23,7 +23,7 @@ import re
 import subprocess
 
 from . import packagemanager
-from .settings import BRANCH_URL, PACKAGING_MERGE_COMMIT_MESSAGE
+from .settings import BRANCH_URL, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX
 
 
 def get_branch(branch_url, dest_dir):
@@ -147,7 +147,7 @@ def commit_release(new_package_version, tip_bzr_rev):
 def _get_parent_branch(source_package_name):
     '''Get parent branch from config'''
     config = ConfigParser.RawConfigParser()
-    config.read("{}.config".format(source_package_name))
+    config.read("{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX))
     return config.get('Branch', 'branch')
 
 
