@@ -119,6 +119,10 @@ def main():
         action = "publish"
     if args.run:
         action = "run"
+        if not args.projects:
+            logging.error('No project specified in the command line.'
+                          ' This tool is used to only run part of it. Aborting!')
+            sys.exit(1)
         args_for_run = {'projects': " ".join(args.projects)}
 
     if not action:
