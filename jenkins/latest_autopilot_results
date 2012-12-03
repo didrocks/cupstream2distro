@@ -6,7 +6,7 @@ usage: $(basename $0) jobname card_brand
 Returns the path to the junit result file of latest build of autopilot
 
 example:
-  \$ $(basename $0) ps-unity-autopilot-raring intel
+  \$ $(basename $0) ps-unity-autopilot-release-testing intel
 EOF
 
     exit 1
