@@ -67,7 +67,7 @@ def run(jkcfg, stack, release, job, **kwargs):
         jobname = "-".join((PREFIX, stack, release, '3.0publish'))
         args = {'force': 'true'}  # publish even we have packaging changes
     elif job == "run":
-        jobname = "-".join((PREFIX, stack, release, 'head'))
+        jobname = "-".join((PREFIX, stack, release))
         args = {'REBUILD_ONLY': kwargs['projects']}  # only rebuild those projects
 
     if not jkh.job_exists(jobname):
@@ -114,12 +114,12 @@ def main():
     set_logging(args.debug)
 
     action = None
-    args_for_run = None
+    args_for_run = {}
     if args.publish:
         action = "publish"
     if args.run:
         action = "run"
-        args_for_run = " ".join(args.projects)
+        args_for_run = {'projects': " ".join(args.projects)}
 
     if not action:
         logging.error('Nor publish or run action given. Aborting!')
@@ -134,7 +134,7 @@ def main():
             logging.error('Credentials not found. Aborting!')
             sys.exit(1)
 
-        if not run(credentials, args.stack, args.release, action, args_for_run):
+        if not run(credentials, args.stack, args.release, action, **args_for_run):
             logging.error('Failed to run job. Aborting!')
             sys.exit(2)
 
