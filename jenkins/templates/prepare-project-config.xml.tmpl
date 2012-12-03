@@ -14,16 +14,29 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>#!/bin/bash -eu
+      <command>#!/bin/bash -e
+export LANG=en_US.UTF-8
+
+if [ -n "$REBUILD_ONLY" ]; then
+    DO_REBUILD=0
+    for prj in $REBUILD_ONLY; do
+        [ "$prj" = "{{ projectname }}" ] &amp;&amp; DO_REBUILD=1
+    done
+    if [ $DO_REBUILD -eq 0 ]; then
+        touch *xml
+        exit 0
+    fi
+fi
+
 # WS Clean-up
 rm -f *xml
 
-export LANG=en_US.UTF-8
 BINDIR=/var/lib/jenkins/cu2d/cupstream2distro
 WRKDIR=/var/lib/jenkins/cu2d/work/{{ stack }}-{{ release }}
 OPTS="{{ opts }}"
 
 cd $WRKDIR
+rm -Rf {{ projectname }}_* *_{{ projectname }}_* {{ projectname }} || true
 $BINDIR/prepare-package $OPTS
 RC=$?
 
