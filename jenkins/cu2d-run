@@ -1,5 +1,5 @@
 #! /usr/bin/python
-""" Force publication of a stack in argument
+""" Run manualy part of a stack in argument
 """
 # Copyright (C) 2012, Canonical Ltd (http://www.canonical.com/)
 #
@@ -47,12 +47,13 @@ def load_jenkins_credentials(path):
     return False if not 'jenkins' in cred else cred['jenkins']
 
 
-def run_publish(jkcfg, stack, release):
+def run(jkcfg, stack, release, job, **kwargs):
     """ Force publication of a stack/release
 
     :param jkcfg: dictionary with the credentials
     :param stack: Name of the stack to publish
     :param release: Name of the release the stack belongs tostack to publish
+    :job: support either "publish" or "run" for running steps on a stack
     """
     logging.debug('Logging to Jenkins')
     if 'username' in jkcfg:
@@ -62,14 +63,19 @@ def run_publish(jkcfg, stack, release):
     else:
         jkh = jenkins.Jenkins(jkcfg['url'])
 
-    jobname = "-".join((PREFIX, stack, release, '3.0publish'))
+    if job == "publish":
+        jobname = "-".join((PREFIX, stack, release, '3.0publish'))
+        args = {'force': 'true'}  # publish even we have packaging changes
+    elif job == "run":
+        jobname = "-".join((PREFIX, stack, release, 'head'))
+        args = {'REBUILD_ONLY': kwargs['projects']}  # only rebuild those projects
 
     if not jkh.job_exists(jobname):
         logging.info("Job '%s' doesn't exists.", jobname)
         return False
 
     logging.info('Triggering build: %s', jobname)
-    jkh.build_job(jobname, {'force': 'true'}, token=jkcfg['token'])
+    jkh.build_job(jobname, args, token=jkcfg['token'])
 
     return True
 
@@ -86,7 +92,7 @@ def set_logging(debugmode=False):
 def main():
     ''' Main routine '''
     parser = argparse.ArgumentParser(
-        description='Force the publication of a stack')
+        description='Run manually a cu2d step')
     parser.add_argument('-C', '--credentials', metavar='CREDENTIALFILE',
                         default=DEFAULT_CREDENTIALS,
                         help='use Jenkins and load credentials from '
@@ -97,10 +103,27 @@ def main():
                         '(default: %s)' % DEFAULT_RELEASE)
     parser.add_argument('-d', '--debug', action='store_true', default=False,
                         help='enable debug mode')
+    parser.add_argument('-P', '--publish', action='store_true', default=False,
+                        help='Force the publication of a stack')
+    parser.add_argument('-R', '--run', action='store_true', default=False,
+                        help='Run a full stack limited to the provided projects')
     parser.add_argument('stack', help='Name of the stack to publish')
+    parser.add_argument('projects', nargs='*', help='Name of the projects to rerun against (only with -R)')
 
     args = parser.parse_args()
     set_logging(args.debug)
+
+    action = None
+    args_for_run = None
+    if args.publish:
+        action = "publish"
+    if args.run:
+        action = "run"
+        args_for_run = " ".join(args.projects)
+
+    if not action:
+        logging.error('Nor publish or run action given. Aborting!')
+        sys.exit(1)
 
     credentials = None
     if args.credentials:
@@ -110,8 +133,9 @@ def main():
         if not credentials:
             logging.error('Credentials not found. Aborting!')
             sys.exit(1)
-        if not run_publish(credentials, args.stack, args.release):
-            logging.error('Failed to publish stack. Aborting!')
+
+        if not run(credentials, args.stack, args.release, action, args_for_run):
+            logging.error('Failed to run job. Aborting!')
             sys.exit(2)
 
 if __name__ == "__main__":
