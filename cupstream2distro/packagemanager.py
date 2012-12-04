@@ -114,7 +114,14 @@ def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name):
     # num_uploads will at least be 1 for the last automated release merge in changelog
     # + the number of manual uploads, relying on the fact that a manual upload backported
     # is done in one commit.
-    return (tip_bzr_rev > last_upstream_rev + num_uploads)
+    if not tip_bzr_rev > last_upstream_rev + num_uploads:
+        return False
+
+    # now check the relevance of the committed changes. For instance, a commit and a revert (making a 0 diff)
+    # shouldn't be released. The only change in that case is in debian/changelog "new snapshot from rev…")
+    bzrinstance = subprocess.Popen(['bzr', 'diff', '-r', str(last_upstream_rev)], stdout=subprocess.PIPE)
+    (relevant_changes, err) = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog'], stdin=bzrinstance.stdout, stdout=subprocess.PIPE).communicate()
+    return (relevant_changes != '')
 
 
 def create_new_packaging_version(previous_package_version):
