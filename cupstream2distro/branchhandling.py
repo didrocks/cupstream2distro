@@ -23,7 +23,7 @@ import re
 import subprocess
 
 from . import packagemanager
-from .settings import BRANCH_URL, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX
+from .settings import BRANCH_URL, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX, REV_STRING_FORMAT
 
 
 def get_branch(branch_url, dest_dir):
@@ -113,6 +113,10 @@ def _get_all_bugs_in_branch(starting_rev):
     # Support multiple bugs per commit
     bug_regexp = re.compile("((lp|bug|fix(es)?)[: #]*|#|launchpad.net/bugs/)(\d{5,})", re.IGNORECASE)
     author_regexp = re.compile("committer: (.*) <.*>")
+    merge_trunk_commit_regex = re.compile(REV_STRING_FORMAT + "(\d+)")
+    # Ignore resync from trunk, with commit message having be done with debcommit (see rev 2892.5.19 in unity)
+    # as it's listing every bugs already fixed.
+    resync_trunk_commit = False
     for line in stdout.splitlines():
         matches = bug_regexp.findall(line)
         for match in matches:
@@ -120,14 +124,17 @@ def _get_all_bugs_in_branch(starting_rev):
         matches = author_regexp.findall(line)
         for match in matches:
             author = match
+        if merge_trunk_commit_regex.search(line):
+            resync_trunk_commit = True
 
         if "---------------------------------" in line:
-            if author and bug_numbers:
+            if not resync_trunk_commit and author and bug_numbers:
                 results.setdefault(author, set())
                 for bug in bug_numbers:
                     results[author].add(bug)
             bug_numbers = set()
             author = None
+            resync_trunk_commit = False
 
     # last one
     if author and bug_numbers:
