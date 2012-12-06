@@ -26,6 +26,12 @@ import sys
 from .settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN, CONFIG_STACK_DIR, STACK_STATUS_FILENAME
 
 
+def get_current_stackname():
+    '''Return current stackname based on current path'''
+
+    return os.getcwd().split(os.path.sep)[-1]
+
+
 def _rsync_stack_files():
     '''rsync all stack files'''
     server = os.getenv('CU2D_RSYNCSVR')

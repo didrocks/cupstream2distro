@@ -23,7 +23,7 @@ import logging
 import sys
 import time
 
-from cupstream2distro.stacks import get_depending_stacks, get_stack_status
+from cupstream2distro.stacks import get_depending_stacks, get_stack_status, get_current_stackname
 from cupstream2distro.settings import TIME_BETWEEN_STACK_CHECKS
 
 
@@ -31,11 +31,11 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-    parser = argparse.ArgumentParser(description="Wait on other stacks to finish their work to exit")
-    parser.add_argument("stackname", help="Current stack name")
+    parser = argparse.ArgumentParser(description="Wait on other stacks to finish their work to exit",
+                                     epilog="Stack should be in a directory matching their current stack name stacks and all should have the same parent dir.")
     args = parser.parse_args()
 
-    stackname = args.stackname
+    stackname = get_current_stackname()
     waiting_on_stacks = get_depending_stacks(stackname)
 
     if not waiting_on_stacks:
