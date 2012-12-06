@@ -31,11 +31,12 @@ def generate_xml_artefacts(test_name, details, filename):
     '''Generate a fake test name xml result for marking the build as unstable'''
     failure = ""
     errnum = 0
-    if details:
+    for detail in details:
         errnum = 1
+        failure += '<failure type="exception">{}</failure>\n'.format(escape(detail))
+    if failure:
         failure = '''
-    <failure type="exception">{}</failure>
-'''.format(escape(details))
+    {}'''.format(failure)
 
     with open(filename, 'w') as f:
         f.write(WRAPPER_STRING.format(errnum, quoteattr(test_name), failure))

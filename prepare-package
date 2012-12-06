@@ -25,7 +25,7 @@ import sys
 
 from cupstream2distro import branchhandling, packagemanager, launchpadmanager
 from cupstream2distro.tools import generate_xml_artefacts, save_project_config
-from cupstream2distro.settings import UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT
+from cupstream2distro.settings import PREPARE_ARTEFACTS_FILENAME_FORMAT
 
 
 if __name__ == '__main__':
@@ -84,15 +84,16 @@ if __name__ == '__main__':
     # Check version in distro
     logging.info("Get version available in distro")
     distro_version = packagemanager.get_current_version_for_series(source_package_name, series)
-    resultfile = os.path.abspath(os.path.join(
-        '..', UPLOAD_OUTSIDE_TRUNK_FILENAME_FORMAT.format(
-            source_package_name, distro_version)))
+    artefacts_file = os.path.abspath(os.path.join(
+                        '..', PREPARE_ARTEFACTS_FILENAME_FORMAT.format(
+                            source_package_name, distro_version)))
+
     # FIXME: if previous_packaging_version is UNRELEASED and the released version is in distro?
     if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
         message = ("A manual upload to distro ({}) has been done for that component but is not in trunk which is still at {}. "
                    "Ignoring that component {}.".format(distro_version, previous_packaging_version, instance_info))
         logging.info(message)
-        generate_xml_artefacts("Prepare",  message, resultfile)
+        generate_xml_artefacts("Prepare",  [message], artefacts_file)
         # TODO: open a merge proposal with the diff from distro and approve.
         sys.exit(0)
 
@@ -137,7 +138,7 @@ if __name__ == '__main__':
 
     # generate artefacts
     os.chdir(source_package_name)
-    generate_xml_artefacts("Prepare",  None, resultfile)
+    generate_xml_artefacts("Prepare",  [], artefacts_file)
 
 # 1. stop if an intermediate upload has been done to ubuntu but not backported in the packaging branch
 # 1.1 Only consider the upload if there has been some new commits in the branch (not counting the previous changelog committed or any upload done directly to distro which have been backported to trunk)

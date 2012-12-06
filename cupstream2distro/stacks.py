@@ -100,3 +100,37 @@ def get_stack_status(stackname):
         return None
     with open(statusfile, 'r') as f:
         return(int(f.read()))
+
+
+def generate_dep_status_message(stackname):
+    '''Return a list of potential problems from others stack which should block current publication'''
+
+    global_dep_status_info = []
+    for stack in get_depending_stacks(stackname):
+        logging.info("Check status for {}".format(stack))
+        status = get_stack_status(stack)
+        message = None
+        # We should have a status for every stack
+        if status is None:
+            message = "Can't find status for {}. This shouldn't happen apart if the stack is currently running.".format(stack)
+        elif status == 1:
+            message = '''{depstack} failed to build. Possible cause are:
+    * the stack really didn't build/can be prepared at all.
+    * the stack have integration tests not working with this previous stack.
+
+What's need to be done:
+    * The integration tests for {depstack} may be rerolled with current dependant stack. If they works, both stacks should be published at the same time.
+    * If we only want to publish this stack, ensure as the integration tests were maybe run from a build against {stackname}, that we can publish the current stack only safely.'''.format({'depstack': stack})
+        elif status == 2:
+            message = '''{depstack} is in manually publish mode. Possible cause are:
+    * Some part of the stack has packaging changes
+    * This stack is depending on another stack not being published
+
+What's need to be done:
+    * The other stack can be published and we want to publish both stacks at the same time.
+    * If we only want to publish this stack, ensure as the integration tests were run from a build against {stackname}, that we can publish the current stack only safely.'''.format({'depstack': stack})
+
+        if message:
+            logging.warning(message)
+            global_dep_status_info.append(message)
+    return global_dep_status_info
