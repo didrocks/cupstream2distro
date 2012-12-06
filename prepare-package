@@ -92,12 +92,10 @@ if __name__ == '__main__':
         message = ("A manual upload to distro ({}) has been done for that component but is not in trunk which is still at {}. "
                    "Ignoring that component {}.".format(distro_version, previous_packaging_version, instance_info))
         logging.info(message)
-        generate_xml_artefacts("UploadToDistroOutsideTrunk",  message,
-                               resultfile)
+        generate_xml_artefacts("Prepare",  message, resultfile)
         # TODO: open a merge proposal with the diff from distro and approve.
         sys.exit(0)
 
-    generate_xml_artefacts("UploadToDistroOutsideTrunk",  None, resultfile)
     # Check if new revision to publish
     logging.info("Check if new revision were published")
     tip_bzr_rev = branchhandling.get_tip_bzr_revision()
@@ -136,6 +134,10 @@ if __name__ == '__main__':
 
     # Save infos for other jobs
     save_project_config(source_package_name, branch, previous_packaging_version, packaging_version)
+
+    # generate artefacts
+    os.chdir(source_package_name)
+    generate_xml_artefacts("Prepare",  None, resultfile)
 
 # 1. stop if an intermediate upload has been done to ubuntu but not backported in the packaging branch
 # 1.1 Only consider the upload if there has been some new commits in the branch (not counting the previous changelog committed or any upload done directly to distro which have been backported to trunk)
