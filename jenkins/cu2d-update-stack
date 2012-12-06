@@ -39,6 +39,7 @@ BINDIR = os.path.dirname(__file__)
 PREFIX = 'cu2d'
 TEMPLATES = {
     'master': 'master-config.xml.tmpl',
+    'waitonstacks': 'waitonstacks-stack-config.xml.tmpl',
     'prepare-master': 'prepare-config.xml.tmpl',
     'prepare-project': 'prepare-project-config.xml.tmpl',
     'build': 'build-stack-config.xml.tmpl',
@@ -166,6 +167,16 @@ def update_jenkins(jkcfg, stack, update=False):
         'release': stack['release']
     }
     subjobs = {}
+
+    # wait that other stack are published if there are some stack dependencies
+    if 'dependencies' in stack:
+        jobname = "-".join(basename + ['0waitonstacks'])
+        subjobs['jobwaitonstacks'] = jobname
+        ctx = dict(ctxbase)
+        ctx['opts'] = ''
+        setup_job(jkh, jjenv, jobname, TEMPLATES['waitonstacks'],
+                  ctx, update)
+
     # prepare by project
     ctx = dict(ctxbase)
     projects = []
