@@ -33,10 +33,9 @@ def generate_xml_artefacts(test_name, details, filename):
     errnum = 0
     for detail in details:
         errnum = 1
-        failure += '<failure type="exception">{}</failure>\n'.format(escape(detail))
+        failure += '    <failure type="exception">{}</failure>\n'.format(escape(detail))
     if failure:
-        failure = '''
-    {}'''.format(failure)
+        failure = '\n{}'.format(failure)
 
     with open(filename, 'w') as f:
         f.write(WRAPPER_STRING.format(errnum, quoteattr(test_name), failure))
@@ -58,3 +57,4 @@ def get_packaging_diff_filename(source_package_name, packaging_version):
     '''Return the packaging diff filename'''
 
     return "packaging_changes_{}_{}.diff".format(source_package_name, packaging_version)
+

@@ -42,11 +42,13 @@ if __name__ == '__main__':
         logging.info("No depending stacks were found. This steps should even not be called.")
         sys.exit(0)
 
-    while(waiting_on_stacks):
+    while(True):
         logging.info("Waiting on {}".format(', '.join(waiting_on_stacks)))
         for stack in waiting_on_stacks[:]:  # as we modify the list, makes a copy first
             status = get_stack_status(stack)
             if status is not None:
                 logging.info("Stack {} has now finished".format(stack))
                 waiting_on_stacks.remove(stack)
+        if not waiting_on_stacks:
+            break
         time.sleep(TIME_BETWEEN_STACK_CHECKS)

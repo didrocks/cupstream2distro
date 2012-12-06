@@ -118,7 +118,7 @@ def generate_dep_status_message(stackname):
         message = None
         # We should have a status for every stack
         if status is None:
-            message = "Can't find status for {}. This shouldn't happen apart if the stack is currently running.".format(stack)
+            message = "Can't find status for {}. This shouldn't happen apart if the stack is currently running. If this is the case, it means that current stack shouldn't be uploaded as the state is unknown.".format(stack)
         elif status == 1:
             message = '''{depstack} failed to build. Possible cause are:
     * the stack really didn't build/can be prepared at all.
@@ -126,7 +126,7 @@ def generate_dep_status_message(stackname):
 
 What's need to be done:
     * The integration tests for {depstack} may be rerolled with current dependant stack. If they works, both stacks should be published at the same time.
-    * If we only want to publish this stack, ensure as the integration tests were maybe run from a build against {stackname}, that we can publish the current stack only safely.'''.format({'depstack': stack})
+    * If we only want to publish this stack, ensure as the integration tests were maybe run from a build against {depstack}, that we can publish the current stack only safely.'''.format(depstack=stack)
         elif status == 2:
             message = '''{depstack} is in manually publish mode. Possible cause are:
     * Some part of the stack has packaging changes
@@ -134,7 +134,7 @@ What's need to be done:
 
 What's need to be done:
     * The other stack can be published and we want to publish both stacks at the same time.
-    * If we only want to publish this stack, ensure as the integration tests were run from a build against {stackname}, that we can publish the current stack only safely.'''.format({'depstack': stack})
+    * If we only want to publish this stack, ensure as the integration tests were run from a build against {depstack}, that we can publish the current stack only safely.'''.format(depstack=stack)
 
         if message:
             logging.warning(message)
