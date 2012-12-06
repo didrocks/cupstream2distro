@@ -24,6 +24,7 @@ import subprocess
 
 from . import packagemanager
 from .settings import BRANCH_URL, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX, REV_STRING_FORMAT
+from .tools import get_packaging_diff_filename
 
 
 def get_branch(branch_url, dest_dir):
@@ -41,12 +42,6 @@ def get_tip_bzr_revision():
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8").strip())
     return (int(stdout.split(':')[0]))
-
-
-def get_packaging_diff_filename(source_package_name, packaging_version):
-    '''Return the packaging diff filename'''
-
-    return "packaging_changes_{}_{}.diff".format(source_package_name, packaging_version)
 
 
 def _packaging_changes_in_branch(starting_rev):

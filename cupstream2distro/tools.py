@@ -52,3 +52,9 @@ def save_project_config(source_package_name, branch, previous_packaging_version,
     config.set('Package', 'packaging_version', current_packaging_version)
     with open("{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX), 'wb') as configfile:
         config.write(configfile)
+
+
+def get_packaging_diff_filename(source_package_name, packaging_version):
+    '''Return the packaging diff filename'''
+
+    return "packaging_changes_{}_{}.diff".format(source_package_name, packaging_version)
