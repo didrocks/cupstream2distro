@@ -1,0 +1,52 @@
+#!/usr/bin/python
+# -*- coding: UTF8 -*-
+# Copyright (C) 2012 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import logging
+import sys
+import time
+
+from cupstream2distro.stacks import get_depending_stacks, get_stack_status
+from cupstream2distro.settings import TIME_BETWEEN_STACK_CHECKS
+
+
+if __name__ == '__main__':
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+    parser = argparse.ArgumentParser(description="Wait on other stacks to finish their work to exit")
+    parser.add_argument("stackname", help="Current stack name")
+    args = parser.parse_args()
+
+    stackname = args.stackname
+    waiting_on_stacks = get_depending_stacks(stackname)
+
+    if not waiting_on_stacks:
+        logging.info("No depending stacks were found. This steps should even not be called.")
+        sys.exit(0)
+
+    while(waiting_on_stacks):
+        logging.info("Waiting on {}".format(', '.join(waiting_on_stacks)))
+        for stack in waiting_on_stacks[:]:  # as we modify the list, makes a copy first
+            status = get_stack_status(stack)
+            if status is not None:
+                logging.info("Stack {} has now finished".format(stack))
+                waiting_on_stacks.remove(stack)
+        time.sleep(TIME_BETWEEN_STACK_CHECKS)

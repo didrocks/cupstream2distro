@@ -24,9 +24,8 @@ import os
 import time
 
 from cupstream2distro import launchpadmanager, packagemanager
-from cupstream2distro.stacksync import get_stack_files_to_sync
+from cupstream2distro.stacks import get_stack_files_to_sync, get_allowed_projects
 from cupstream2distro.settings import OLD_STACK_DIR
-from cupstream2distro.tools import get_allowed_projects
 
 if __name__ == '__main__':
 

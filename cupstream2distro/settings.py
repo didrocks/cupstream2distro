@@ -41,6 +41,7 @@ BOT_KEY = "B879A3E9"
 VIRTUALIZED_PPA_ARCH = ["i386", "amd64"]
 
 TIME_BETWEEN_PPA_CHECKS = 5 * 60
+TIME_BETWEEN_STACK_CHECKS = 60
 TIME_BEFORE_STOP_LOOKING_FOR_SOURCE_PUBLISH = 20 * 60
 
 PUBLISHER_PACKAGING_CHANGE_FILENAME = 'publisher_packaging_changes.xml'
@@ -53,3 +54,4 @@ RSYNC_PATTERN = "rsync://RSYNCSVR/cu2d_out/{}*".format(PACKAGE_LIST_RSYNC_FILENA
 
 ROOT_CU2D = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 CONFIG_STACK_DIR = os.path.join(ROOT_CU2D, 'jenkins', 'etc')
+STACK_STATUS_FILENAME = "stack.status"
