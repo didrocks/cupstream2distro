@@ -134,7 +134,7 @@ class PackageInPPA():
             for build in self.source.getBuilds():
                 if self.current_status[build.arch_tag] == self.BUILDING:
                     if build.buildstate in build_state_failed:
-                        logging.info("ERROR on {}: Build {} ({}) failed because of {}".format(build.arch_tag, build.title,
+                        logging.error("{}: Build {} ({}) failed because of {}".format(build.arch_tag, build.title,
                                                                                        build.web_link, build.buildstate))
                         status[build.arch_tag] = self.FAILED
                     # Another launchpad trick: if a binary arch was published, but then is superseeded, getPublishedBinaries() won't list
@@ -152,7 +152,7 @@ class PackageInPPA():
                 if status[arch] == self.PUBLISHED:
                     status[arch] = status[self.arch_all_arch]
                     if arch != self.arch_all_arch and status[arch] == self.FAILED:
-                        logging.info("ERROR: {} marked as FAILED because {} build FAILED and we may miss arch:all packages".format(arch, self.arch_all_arch))
+                        logging.error("{} marked as FAILED because {} build FAILED and we may miss arch:all packages".format(arch, self.arch_all_arch))
 
         # If arch_all_arch is built and we only have arch:all packages, sync the published state
         if status[self.arch_all_arch] == self.PUBLISHED and only_arch_all_packages and at_least_one_published_binary:

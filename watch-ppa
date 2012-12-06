@@ -52,7 +52,7 @@ if __name__ == '__main__':
     instance_info = "watching: {}, series: {}".format(ppa, series)
 
     if not series or not ppa:
-        logging.info("ERROR: missing compulsory environment variables (ppa, series) {}".format(instance_info))
+        logging.error("Missing compulsory environment variables (ppa, series) {}".format(instance_info))
         sys.exit(1)
 
     # Prepare launchpad connection:

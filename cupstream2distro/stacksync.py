@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import logging
 import os
 import subprocess
 import sys
@@ -30,7 +31,7 @@ def _rsync_stack_files():
     if server:
         remoteaddr = RSYNC_PATTERN.replace('RSYNCSVR', server)
     else:
-        print('ERROR: Please set environment variable CU2D_RSYNCSVR')
+        logging.error('Please set environment variable CU2D_RSYNCSVR')
         sys.exit(1)
 
     cmd = ["rsync", '--remove-source-files', remoteaddr, '.']

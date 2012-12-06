@@ -56,7 +56,7 @@ if __name__ == '__main__':
     instance_info = "for source: {}, branch: {}, series: {}".format(source_package_name, branch, series)
 
     if not source_package_name or not branch or not series or not ppa:
-        logging.info("ERROR: missing compulsory environment variables (sourcename, branch, series, ppa) {}".format(instance_info))
+        logging.error("Missing compulsory environment variables (sourcename, branch, series, ppa) {}".format(instance_info))
         sys.exit(1)
 
     # Grab project branch
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     previous_packaging_version = packagemanager.get_packaging_version()
 
     if (source_package_name != packagemanager.get_packaging_sourcename()):
-        logging.info("ERROR: projectbranch doesn't specify the same source name than the packaging itself {}".format(instance_info))
+        logging.error("Projectbranch doesn't specify the same source name than the packaging itself {}".format(instance_info))
         sys.exit(1)
 
     # Check version in ppa
