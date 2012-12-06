@@ -47,6 +47,7 @@ cd $WRKDIR
 
 </command>
     </hudson.tasks.Shell>
+{% if dependencies is defined %}
     <hudson.plugins.parameterizedtrigger.TriggerBuilder>
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
@@ -77,6 +78,7 @@ cd $WRKDIR
         </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
+{% endif %}
     <hudson.plugins.parameterizedtrigger.TriggerBuilder>
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>

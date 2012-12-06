@@ -240,6 +240,8 @@ def update_jenkins(jkcfg, stack, update=False):
     ctx.update(subjobs)
     if 'schedule' in stack:
         ctx['schedule'] = stack['schedule']
+    if 'dependencies' in stack:
+        ctx['dependencies'] = True
     setup_job(jkh, jjenv, jobname, TEMPLATES['master'],
               ctx, update)
 
