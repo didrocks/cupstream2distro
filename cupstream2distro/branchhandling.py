@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import ConfigParser
+import logging
 import os
 import re
 import subprocess
@@ -107,35 +108,41 @@ def _get_all_bugs_in_branch(starting_rev):
     # #12345 (but not 12345 for false positive)
     # Support multiple bugs per commit
     bug_regexp = re.compile("((lp|bug|fix(es)?)[: #]*|#|launchpad.net/bugs/)(\d{5,})", re.IGNORECASE)
-    author_regexp = re.compile("committer: (.*) <.*>")
+    # see lp:autopilot, rev 76, Only a committer:Tarmac and right author, we need to get the author in that case
+    author_regexp = re.compile("(author|committer): (.*) <.*>")
     merge_trunk_commit_regex = re.compile(REV_STRING_FORMAT + "(\d+)")
     # Ignore resync from trunk, with commit message having be done with debcommit (see rev 2892.5.19 in unity)
     # as it's listing every bugs already fixed.
     resync_trunk_commit = False
     for line in stdout.splitlines():
+        logging.debug(line)
         matches = bug_regexp.findall(line)
         for match in matches:
             bug_numbers.add(match[-1])
+            logging.debug("Bug regexp match: {}".format(match[-1]))
         matches = author_regexp.findall(line)
         for match in matches:
-            author = match
+            author = match[-1]
         if merge_trunk_commit_regex.search(line):
             resync_trunk_commit = True
+            logging.debug("Detected as resync trunk commit, need to ignore all bugs from this set")
 
         if "---------------------------------" in line:
             if not resync_trunk_commit and author and bug_numbers:
                 results.setdefault(author, set())
                 for bug in bug_numbers:
                     results[author].add(bug)
+                logging.debug("Adding matched bug to global dict for {}".format(author))
             bug_numbers = set()
             author = None
             resync_trunk_commit = False
 
-    # last one
+    # last one (no (-----------------))
     if author and bug_numbers:
         results.setdefault(author, set())
         for bug in bug_numbers:
             results[author].add(bug)
+            logging.debug("Adding matched bug to global dict for {}".format(author))
 
     return results
 
