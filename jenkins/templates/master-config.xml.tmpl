@@ -171,6 +171,16 @@ cd $WRKDIR
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
   </builders>
   <publishers>
+    <hudson.plugins.postbuildtask.PostbuildTask>
+      <tasks>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts/>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+          <script>/var/lib/jenkins/cu2d/cupstream2distro/jenkins/stack_status</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
+      </tasks>
+    </hudson.plugins.postbuildtask.PostbuildTask>
     <hudson.plugins.build__publisher.BuildPublisher>
       <publishUnstableBuilds>true</publishUnstableBuilds>
       <publishFailedBuilds>true</publishFailedBuilds>
