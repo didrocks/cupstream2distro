@@ -135,6 +135,13 @@ What's need to be done:
 What's need to be done:
     * The other stack can be published and we want to publish both stacks at the same time.
     * If we only want to publish this stack, ensure as the integration tests were run from a build against {depstack}, that we can publish the current stack only safely.'''.format(depstack=stack)
+        elif status == 3 or status == -1:
+            message = '''{depstack} has been manually aborted or failed for an unknown reason. Possible cause are:
+    * A job of this stack was stopped manually
+    * Jenkins had an internal error/shutdown
+
+What's need to be done:
+    * If we want to publish this stack, ensure as the integration tests were maybe run from a build against {depstack}, that we can publish the current stack only safely.'''.format(depstack=stack)
 
         if message:
             logging.warning(message)
