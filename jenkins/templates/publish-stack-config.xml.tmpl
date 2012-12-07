@@ -41,7 +41,7 @@ cd $WRKDIR
 $BINDIR/publisher $OPTS
 RC=$?
 
-cp *diff publisher_packaging_changes.xml packagelist* $WORKSPACE/ 2&gt;/dev/null || true
+cp *diff publisher.xml packagelist* $WORKSPACE/ 2&gt;/dev/null || true
 mkdir -p $OUTDIR
 mv packagelist_rsync_* $OUTDIR 2&gt;/dev/null || true
 </command>
