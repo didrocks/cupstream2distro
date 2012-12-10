@@ -105,7 +105,7 @@ def get_version_from_distro_path(source_package_name, distro_version, series):
         logging.info("This package was never released to the distro, don't return downloaded source")
         return None
 
-    logging.info("Grab version for {} (distro_version) from {}".format(source_package_name, distro_version, series))
+    logging.info("Grab version for {} ({}) from {}".format(source_package_name, distro_version, series))
     source_package_download_dir = os.path.join('ubuntu', source_package_name)
     try:
         os.makedirs(source_package_download_dir)
