@@ -106,21 +106,22 @@ def get_version_from_distro_path(source_package_name, distro_version, series):
         return None
 
     logging.info("Grab version for {} (distro_version) from {}".format(source_package_name, distro_version, series))
+    source_package_download_dir = os.path.join('ubuntu', source_package_name)
     try:
-        os.makedirs('ubuntu')
+        os.makedirs(source_package_download_dir)
     except OSError:
         pass
-    os.chdir('ubuntu')
+    os.chdir(source_package_download_dir)
     if subprocess.call(['pull-lp-source', source_package_name, series]) != 0:
         raise Exception("Can't download this version from launchpad")
 
     # check the dir exist
     version_for_source_file = distro_version.split(':')[-1].split('-0ubuntu')[0]   # remove epoch is there is one and ubuntu version
-    directory_name = "{}-{}".format(source_package_name, version_for_source_file)
-    if not os.path.isdir(directory_name):
-        raise Exception("We tried to download and check that the directory {} is present, but it's not the case".format(directory_name))
-    os.chdir('..')
-    return ('../ubuntu/{}'.format(directory_name))
+    source_directory_name = "{}-{}".format(source_package_name, version_for_source_file)
+    if not os.path.isdir(source_directory_name):
+        raise Exception("We tried to download and check that the directory {} is present, but it's not the case".format(source_directory_name))
+    os.chdir('../..')
+    return (os.path.join('..', source_package_download_dir, source_directory_name))
 
 
 def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, ubuntu_version_source):
