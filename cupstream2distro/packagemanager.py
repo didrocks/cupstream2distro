@@ -96,8 +96,37 @@ def get_packaging_version():
     raise Exception("Didn't find any Version in the package: {}".format(stdout))
 
 
-def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name):
-    '''Return True if a new snapshot is needed'''
+def get_version_from_distro_path(source_package_name, distro_version, series):
+    '''Return a path containing a checkout of the current distro version.
+
+    None if this package was never published to distro'''
+
+    if distro_version == "0":
+        logging.info("This package was never released to the distro, don't return downloaded source")
+        return None
+
+    logging.info("Grab version for {} (distro_version) from {}".format(source_package_name, distro_version, series))
+    try:
+        os.makedirs('ubuntu')
+    except OSError:
+        pass
+    os.chdir('ubuntu')
+    if subprocess.call(['pull-lp-source', source_package_name, series]) != 0:
+        raise Exception("Can't download this version from launchpad")
+
+    # check the dir exist
+    version_for_source_file = distro_version.split(':')[-1].split('-0ubuntu')[0]   # remove epoch is there is one and ubuntu version
+    directory_name = "{}-{}".format(source_package_name, version_for_source_file)
+    if not os.path.isdir(directory_name):
+        raise Exception("We tried to download and check that the directory {} is present, but it's not the case".format(directory_name))
+    os.chdir('..')
+    return ('../ubuntu/{}'.format(directory_name))
+
+
+def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, ubuntu_version_source):
+    '''Return True if a new snapshot is needed
+
+    ubuntu_version_source can be None if no released version was done before'''
 
     # We always at least have +1 revision from last_upstream_rev (automated merge of changelog)
     # We can as well having versions pushed to distro that has been backported, each count
@@ -119,11 +148,14 @@ def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name):
     if not tip_bzr_rev > last_upstream_rev + num_uploads:
         return False
 
-    # now check the relevance of the committed changes. For instance, a commit and a revert (making a 0 diff)
-    # shouldn't be released. The only change in that case is in debian/changelog "new snapshot from rev…")
-    bzrinstance = subprocess.Popen(['bzr', 'diff', '-r', str(last_upstream_rev)], stdout=subprocess.PIPE)
-    (relevant_changes, err) = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog'], stdin=bzrinstance.stdout, stdout=subprocess.PIPE).communicate()
-    return (relevant_changes != '')
+    # now check the relevance of the committed changes compared to the version in the repository (if any)
+    if ubuntu_version_source:
+        diffinstance = subprocess.Popen(['diff', '-Nrup', '.', ubuntu_version_source], stdout=subprocess.PIPE)
+        filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog', '-x', '*po', '-x', '*pot'], stdin=diffinstance.stdout, stdout=subprocess.PIPE)
+        lsdiffinstance = subprocess.Popen(['lsdiff'], stdin=filterinstance.stdout, stdout=subprocess.PIPE)
+        (relevant_changes, err) = subprocess.Popen(['grep', '-v', '.bzr'], stdin=lsdiffinstance.stdout, stdout=subprocess.PIPE).communicate()
+        return (relevant_changes != '')
+    return True
 
 
 def create_new_packaging_version(previous_package_version):
