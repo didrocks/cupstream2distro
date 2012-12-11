@@ -116,7 +116,7 @@ def get_version_from_distro_path(source_package_name, distro_version, series):
         raise Exception("Can't download this version from launchpad")
 
     # check the dir exist
-    version_for_source_file = distro_version.split(':')[-1].split('-0ubuntu')[0]   # remove epoch is there is one and ubuntu version
+    version_for_source_file = '-'.join(distro_version.split(':')[-1].split('-')[:-1])   # remove epoch is there is one and ubuntu version
     source_directory_name = "{}-{}".format(source_package_name, version_for_source_file)
     if not os.path.isdir(source_directory_name):
         raise Exception("We tried to download and check that the directory {} is present, but it's not the case".format(source_directory_name))
