@@ -35,6 +35,7 @@ GNUPG_DIR = CU2D_DIR
 if not os.path.isdir(GNUPG_DIR):
     GNUPG_DIR = home_dir
 CRED_FILE_PATH = os.path.join(CU2D_DIR, ".cupstream_cred")
+COMMON_LAUNCHPAD_CACHE_DIR = os.path.join(CU2D_DIR, "launchpad.cache")
 BOT_KEY = "B879A3E9"
 
 # selected arch for building arch:all packages

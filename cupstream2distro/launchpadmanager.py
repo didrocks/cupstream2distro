@@ -24,7 +24,7 @@ from launchpadlib.launchpad import Launchpad
 import lazr
 launchpad = None
 
-from .settings import VIRTUALIZED_PPA_ARCH, CRED_FILE_PATH
+from .settings import VIRTUALIZED_PPA_ARCH, CRED_FILE_PATH, COMMON_LAUNCHPAD_CACHE_DIR
 
 
 def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_PATH)):
@@ -35,13 +35,21 @@ def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_
             server = 'staging'
         else:
             server = 'production'
+
+        # as launchpadlib isn't multiproc, fiddling the cache dir if any
+        launchpadlib_dir = os.getenv("JOB_NAME")
+        if launchpadlib_dir:
+            launchpadlib_dir = os.path.join(COMMON_LAUNCHPAD_CACHE_DIR, launchpadlib_dir)
+
         if use_cred_file:
             launchpad = Launchpad.login_with('cupstream2distro', server, allow_access_levels=["WRITE_PRIVATE"],
                                              version='devel',  # devel because copyPackage is only available there
-                                             credentials_file=use_cred_file)
+                                             credentials_file=use_cred_file,
+                                             launchpadlib_dir=launchpadlib_dir)
         else:
             launchpad = Launchpad.login_with('cupstream2distro', server, allow_access_levels=["WRITE_PRIVATE"],
-                                              version='devel')  # devel because copyPackage is only available there
+                                             version='devel',  # devel because copyPackage is only available there
+                                             launchpadlib_dir=launchpadlib_dir)
 
     return launchpad
 
