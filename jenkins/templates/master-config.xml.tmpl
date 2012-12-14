@@ -43,7 +43,7 @@ BINDIR=/var/lib/jenkins/cu2d/cupstream2distro
 WRKDIR=/var/lib/jenkins/cu2d/work/{{ stack }}-{{ release }}
 BAKDIR=${WRKDIR}.bak
 
-if [ -z &quot;$REBUILD_ONLY&quot; ]; then
+if [ -z &quot;$REBUILD_ONLY&quot; -a "$CHECK_WITH_WHOLE_PPA" != "true" ]; then
     [ -d &quot;$BAKDIR&quot; ] &amp;&amp; rm -Rf $BAKDIR
     [ -d &quot;$WRKDIR&quot; ] &amp;&amp; mv $WRKDIR $BAKDIR
 fi
