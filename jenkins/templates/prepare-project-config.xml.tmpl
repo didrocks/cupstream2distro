@@ -17,6 +17,12 @@
       <command>#!/bin/bash -e
 export LANG=en_US.UTF-8
 
+# don't rebuild the stack
+if [ "$CHECK_WITH_WHOLE_PPA" = "true" ]; then
+    touch *xml
+    exit 0
+fi
+
 if [ -n "$REBUILD_ONLY" ]; then
     DO_REBUILD=0
     for prj in $REBUILD_ONLY; do

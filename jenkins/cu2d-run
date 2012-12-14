@@ -68,7 +68,8 @@ def run(jkcfg, stack, release, job, **kwargs):
         args = {'force': 'true'}  # publish even we have packaging changes
     elif job == "run":
         jobname = "-".join((PREFIX, stack, release))
-        args = {'REBUILD_ONLY': kwargs['projects']}  # only rebuild those projects
+        args = {'REBUILD_ONLY': kwargs['projects'], # only rebuild those projects
+                'CHECK_WITH_WHOLE_PPA': kwargs['check-with-whole-ppa']} # eventually, recheck against full ppa 
 
     if not jkh.job_exists(jobname):
         logging.info("Job '%s' doesn't exists.", jobname)
@@ -107,6 +108,8 @@ def main():
                         help='Force the publication of a stack')
     parser.add_argument('-R', '--run', action='store_true', default=False,
                         help='Run a full stack limited to the provided projects')
+    parser.add_argument('--check-with-whole-ppa', action='store_true', default=False,
+                        help="don't rebuild the current stack, only rerun it with the whole ppa content for the check step")
     parser.add_argument('stack', help='Name of the stack to publish')
     parser.add_argument('projects', nargs='*', help='Name of the projects to rerun against (only with -R)')
 
@@ -123,7 +126,7 @@ def main():
             logging.error('No project specified in the command line.'
                           ' This tool is used to only run part of it. Aborting!')
             sys.exit(1)
-        args_for_run = {'projects': " ".join(args.projects)}
+        args_for_run = {'projects': " ".join(args.projects), 'check-with-whole-ppa': args.check_with_whole_ppa}
 
     if not action:
         logging.error('Nor publish or run action given. Aborting!')

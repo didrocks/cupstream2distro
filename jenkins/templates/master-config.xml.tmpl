@@ -11,6 +11,11 @@
           <description>space separated list of project to rebuild</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>CHECK_WITH_WHOLE_PPA</name>
+          <description>don't rebuild the current stack, only rerun it with the whole ppa content for the check step</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
