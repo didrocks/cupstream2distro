@@ -122,9 +122,9 @@ def main():
         action = "publish"
     if args.run:
         action = "run"
-        if not args.projects:
-            logging.error('No project specified in the command line.'
-                          ' This tool is used to only run part of it. Aborting!')
+        if not args.projects and not args.check_with_whole_ppa:
+            logging.error('No project or check-with-whole-ppa parameter specified on the command line.'
+                          ' This tool is used for those cases. Aborting!')
             sys.exit(1)
         args_for_run = {'projects': " ".join(args.projects), 'check-with-whole-ppa': args.check_with_whole_ppa}
 
