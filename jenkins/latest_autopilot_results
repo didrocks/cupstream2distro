@@ -13,7 +13,7 @@ EOF
 fi
 
 BASEDIR=/var/lib/jenkins/jobs
-SEARCHPATH=${BASEDIR}/${1}/configurations/axis-label/master/axis-machine_name/dx-autopilot-${2}/builds/
+SEARCHPATH=${BASEDIR}/${1}/configurations/axis-label/dx-autopilot-${2}/builds/
 RESULTFILE=junitResult.xml
 if [ ! -d "$SEARCHPATH" ]; then
     echo "Result directory doesn't exists, exiting!">&2
