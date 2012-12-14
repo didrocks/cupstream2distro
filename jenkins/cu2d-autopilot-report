@@ -272,15 +272,15 @@ def main():
     else:
         currlog = args.logfile
 
-    presult = {
+    nresult = {
         'total': 0,
         'skip': 0,
         'fail': []
     }
-    nresult = dict(presult)
 
     logging.debug('Parsing latest log file')
     (nresult['total'], nresult['skip'], nresult['fail']) = parselog(currlog)
+    presult = dict(nresult)
     if prevlog:
         logging.debug('Parsing previous log file')
         (presult['total'], presult['skip'], presult['fail']) = parselog(
