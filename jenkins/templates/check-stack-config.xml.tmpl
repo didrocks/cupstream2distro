@@ -31,7 +31,7 @@ $BINDIR/watch-ppa $OPTS
           <configs>
             <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
           </configs>
-          <projects>ps-unity-autopilot-release-testing</projects>
+          <projects>{{ extracheck }}</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
           <block>
