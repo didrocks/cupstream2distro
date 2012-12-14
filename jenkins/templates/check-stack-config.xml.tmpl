@@ -60,7 +60,7 @@ $BINDIR/watch-ppa $OPTS
 
 BASEDIR=/var/lib/jenkins/cu2d
 BINDIR=$BASEDIR/cupstream2distro
-JOBROOT=ps-unity-autopilot-release-testing
+JOBROOT={{ extracheck }}
 
 for card in ati intel nvidia; do
     echo &quot;Calculating results for card $card&quot;
@@ -72,7 +72,9 @@ for card in ati intel nvidia; do
         exit $RET
     fi
 
-    $BINDIR/jenkins/cu2d-autopilot-report -C $BASEDIR/autopilot.rc $JUNIT
+    AUTOPILOTRC=$BASEDIR/default.autopilotrc
+    [ -e "$BASEDIR/{{ stack }}.autopilotrc" ] &amp;&amp; AUTOPILOTRC=$BASEDIR/{{ stack }}.autopilotrc
+    $BINDIR/jenkins/cu2d-autopilot-report -C $AUTOPILOTRC $JUNIT
     RET=$?
 
     if [ $RET -gt 0 ]; then

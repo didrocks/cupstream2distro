@@ -221,6 +221,7 @@ def update_jenkins(jkcfg, stack, update=False):
         subjobs['jobbuild'] += ',' + jobname
         ctx = dict(ctxbase)
         ctx['opts'] = '-a -s %s -p %s' % (stack['series'], stack['ppa'])
+        ctx['extracheck'] = stack['extracheck']
         setup_job(jkh, jjenv, jobname, TEMPLATES['check'],
                   ctx, update)
 
