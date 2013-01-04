@@ -38,7 +38,6 @@ class CU2DStackStatus(object):
         ''' Constructor '''
         self.args = self.__parse_args()
 
-        logging.debug(self.args)
         self.stack = self.args.stack
         self.release = self.args.release
 
@@ -46,7 +45,7 @@ class CU2DStackStatus(object):
         self.jobs = ('1.0prepare', '2.1build', '2.2check', '3.0publish')
         self.statuses = ('NA', 'SUCCESS', 'UNSTABLE', 'ABORTED', 'FAILURE')
         self.jobformat = 'cu2d-{}-{}-{}'
-        self.jobsdir = os.path.join(self.jenkinsdir, '/jobs')
+        self.jobsdir = os.path.join(self.jenkinsdir, 'jobs')
         self.job_name = os.getenv('JOB_NAME')
         self.stack_status = -1
 
