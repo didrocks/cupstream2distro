@@ -36,45 +36,39 @@ class CU2DStackStatus(object):
 
     def __init__(self):
         ''' Constructor '''
-        self.jenkinsdir = '/var/lib/jenkins'
-        self.jobs = ('1.0prepare', '2.1build', '2.2check', '3.0publish')
-        self.statuses = ('NA', 'SUCCESS', 'UNSTABLE', 'ABORTED', 'FAILURE')
-        self.jobformat = 'cu2d-{}-head-{}'
-        self.jobsdir = os.path.join(self.jenkinsdir, '/jobs')
-        self.job_name = os.getenv('JOB_NAME')
-        self.stack = ''
-        if self.job_name:
-            # Removes prefix and suffix
-            self.stack = '-'.join(self.job_name.split('-')[1:-1])
-        self.stack_status = -1
-        self.outputfile = os.path.join(self.jenkinsdir, 'cu2d/work',
-                                       '%s-head' % self.stack,
-                                       'stack.status')
-
         self.args = self.__parse_args()
 
         logging.debug(self.args)
         self.stack = self.args.stack
-        self.jobsdir = self.args.jobsdir
-        self.outputfile = os.path.abspath(os.path.expanduser(self.args.output))
+        self.release = self.args.release
+
+        self.jenkinsdir = '/var/lib/jenkins'
+        self.jobs = ('1.0prepare', '2.1build', '2.2check', '3.0publish')
+        self.statuses = ('NA', 'SUCCESS', 'UNSTABLE', 'ABORTED', 'FAILURE')
+        self.jobformat = 'cu2d-{}-{}-{}'
+        self.jobsdir = os.path.join(self.jenkinsdir, '/jobs')
+        self.job_name = os.getenv('JOB_NAME')
+        self.stack_status = -1
+
+        self.outputfile = os.path.join(self.jenkinsdir, 'cu2d/work',
+                                       '%s-%s' % (self.stack, self.release),
+                                       'stack.status')
 
     def __parse_args(self):
         ''' Argument parser '''
         parser = argparse.ArgumentParser(description='Start a jenkins slave')
         parser.add_argument('-d', '--debug', action='store_true',
                             default=False, help='enable debug mode')
-        parser.add_argument('-J', '--jobsdir', default=self.jobsdir,
-                            help='Jenkins jobs directory (default: %s)' %
-                            self.jobsdir)
-        parser.add_argument('-s', '--stack', default=self.stack,
-                            help='name of the stack (default: %s)' %
-                            self.stack)
-        parser.add_argument('-o', '--output', default=self.outputfile,
-                            help='Filename of local slave.jar (default: %s)'
-                            % self.outputfile)
+        parser.add_argument('-s', '--stack',
+                            help='name of the stack')
+        parser.add_argument('-r', '--release',
+                            help='name of the release (default: head)')
         args = parser.parse_args()
         set_logging(args.debug)
         logging.debug(args)
+        if not args.stack or not args.release:
+            logging.error('Stack and release parameters are mandatory')
+            sys.exit(1)
         return args
 
     def get_stack_status(self):
@@ -85,7 +79,7 @@ class CU2DStackStatus(object):
         '''
         overall = 0
         for job in self.jobs:
-            jobdir = self.jobformat.format(self.stack, job)
+            jobdir = self.jobformat.format(self.stack, self.release, job)
             jobpath = os.path.join(self.jobsdir, jobdir)
 
             buildnumber = 0
