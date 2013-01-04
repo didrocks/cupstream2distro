@@ -41,6 +41,13 @@ def generate_xml_artefacts(test_name, details, filename):
         f.write(WRAPPER_STRING.format(errnum, quoteattr(test_name), failure))
 
 
+def get_previous_packaging_version_from_config(source_package_name):
+    '''Get previous packaging version which was in bzr from the saved config'''
+    config = ConfigParser.RawConfigParser()
+    config.read("{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX))
+    return config.get('Package', 'previous_packaging_version')
+
+
 def save_project_config(source_package_name, branch, previous_packaging_version, current_packaging_version):
     '''Save branch and package configuration'''
     config = ConfigParser.RawConfigParser()

@@ -17,10 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import ConfigParser
 import logging
-
-from .settings import PROJECT_CONFIG_SUFFIX
 
 
 class PackageInPPA():
@@ -160,10 +157,3 @@ class PackageInPPA():
                 status[arch] = self.PUBLISHED
 
         return status
-
-
-def get_previous_packaging_version_from_config(source_package_name):
-    '''Get previous packaging version from the saved config'''
-    config = ConfigParser.RawConfigParser()
-    config.read("{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX))
-    return config.get('Package', 'previous_packaging_version')
