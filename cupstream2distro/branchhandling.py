@@ -70,7 +70,9 @@ def collect_author_bugs(starting_rev, source_package_name):
     '''Collect a dict with authors fixing bugs since last release
 
     Form: {Author: set(bug_number, )}'''
-    author_bugs = _get_all_bugs_in_branch(starting_rev)
+
+    content_to_parse = _return_log_diff(starting_rev)
+    author_bugs = _get_all_bugs_from_content(content_to_parse)
     with open("debian/changelog") as f:
         alreadyfixed_bugs = packagemanager.collect_bugs_until_latest_bzr_rev(f, source_package_name)
 
@@ -85,14 +87,20 @@ def collect_author_bugs(starting_rev, source_package_name):
     return author_bugs
 
 
-def _get_all_bugs_in_branch(starting_rev):
-    '''Collect all bugs from the branchs since starting_rev into a dict
+def _return_log_diff(starting_rev):
+    '''Return the relevant part of the cvs log since starting_rev'''
 
-    Form: {Author: set(bug_number)}'''
     instance = subprocess.Popen(["bzr", "log", "-r", "{}..".format(starting_rev), "--include-merged", "--forward"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8").strip())
+    return stdout
+
+
+def _get_all_bugs_from_content(content):
+    '''Collect all bugs from the content string into a dict
+
+    Form: {Author: set(bug_number)}'''
 
     results = {}
     bug_numbers = set()
@@ -114,7 +122,7 @@ def _get_all_bugs_in_branch(starting_rev):
     # Ignore resync from trunk, with commit message having be done with debcommit (see rev 2892.5.19 in unity)
     # as it's listing every bugs already fixed.
     resync_trunk_commit = False
-    for line in stdout.splitlines():
+    for line in content.splitlines():
         logging.debug(line)
         matches = bug_regexp.findall(line)
         for match in matches:
