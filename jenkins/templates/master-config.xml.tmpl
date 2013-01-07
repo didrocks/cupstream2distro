@@ -179,7 +179,12 @@ cd $WRKDIR
     <hudson.plugins.postbuildtask.PostbuildTask>
       <tasks>
         <hudson.plugins.postbuildtask.TaskProperties>
-          <logTexts/>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>.*</logText>
+              <operator>AND</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
           <EscalateStatus>false</EscalateStatus>
           <RunIfJobSuccessful>false</RunIfJobSuccessful>
           <script>/var/lib/jenkins/cu2d/cupstream2distro/jenkins/stack_status -s {{ stack }} -r {{ release }}</script>
