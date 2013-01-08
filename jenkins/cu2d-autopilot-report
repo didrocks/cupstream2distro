@@ -133,6 +133,7 @@ def md5sum(filename):
 def archive_log(histdir, lognew):
     ''' Copy logfile to histdir if not already archived '''
 
+    histdir = os.path.abspath(os.path.expanduser(histdir))
     if not os.path.exists(histdir):
         os.makedirs(histdir)
     elif not os.path.isdir(histdir):
