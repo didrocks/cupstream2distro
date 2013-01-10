@@ -24,7 +24,7 @@ cd $WRKDIR
 
 if [ -z "$(ls $WRKDIR/*.project 2&gt;/dev/null)" -a "$CHECK_WITH_WHOLE_PPA" != "true" ]; then
     echo "No new source uploaded to PPA and CHECK_WITH_WHOLE_PPA is not set.  Skipping check!"
-    touch /tmp/autopilot.{{ stack }}.skip
+    echo "&lt;testsuite errors='0' failures='0' name='' tests='1' time='0.001'&gt;&lt;testcase classname='notest.skip' name='skipped' time='0.001'/&gt;&lt;/testsuite&gt;" &gt; /tmp/autopilot.{{ stack }}.skip
     exit 0
 fi
 
