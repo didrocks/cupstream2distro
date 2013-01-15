@@ -120,7 +120,7 @@ def generate_dep_status_message(stackname):
         if status is None:
             message = "Can't find status for {}. This shouldn't happen apart if the stack is currently running. If this is the case, it means that current stack shouldn't be uploaded as the state is unknown.".format(stack)
         elif status == 1:
-            message = '''{depstack} failed to build. Possible cause are:
+            message = '''{depstack} failed to publish. Possible cause are:
     * the stack really didn't build/can be prepared at all.
     * the stack have integration tests not working with this previous stack.
 
