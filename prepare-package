@@ -146,30 +146,4 @@ if __name__ == '__main__':
     os.chdir(source_package_name)
     generate_xml_artefacts("Prepare",  [], artefacts_file)
 
-# 1. stop if an intermediate upload has been done to ubuntu but not backported in the packaging branch
-# 1.1 Only consider the upload if there has been some new commits in the branch (not counting the previous changelog committed or any upload done directly to distro which have been backported to trunk)
-# 2. collect all bugs that have been fixed in upstream trunk, and sort them by name in the changelog. The matching is really permissive: wide variety of format either --fixes lp: or in the commit message
-# 3. Filters them with the eventual manual cherry-pick upload done in between (don't repeat if already fixed in distro)
-# 4. Refresh the debian/symbols automatically (with "replaceme" magic tag) to refresh on the real day the component is released
-# 5. Opens the downstream task automatically, nominate for a series SRU if not the current one.
-# 6. Compute the version with <upstream_version>daily<version>
-#    Version would be <upstream_version>daily<yy.mm.dd(.minor)>-0ubuntu1
-#    if we already have something delivered today, it will be .minor, then, .minor+1…'
-#    this enables 7.0daily12.11.09-0ubuntu2, then the day after 7.0daily12.11.10-0ubuntu1
-#    multiple uploads the same day will then be 7.0daily12.11.10.1-0ubuntu1, 7.0daily12.11.10.2-0ubuntu1…
-#    if upstream go with 7.0.1, it's still handled thanks to 7.0daily and not 7.0.daily ;) (and so, will give 7.0.1daily12.11.11-0ubuntu1 for instance)
-#    Also, boostrapping or directly upload is handled, like 7.2-0ubuntu3, next daily upload will be 7.2daily12.11.15-0ubuntu1
-# 7. Prepare a relevant diff if there are some packaging changes, containing packaging changes itselfs as well as
-#    autotools and cmake files.
-# 8. propose for merging and accept automatically the changelog changes for the day.
-# 9. Create the source package inside a cowbuilder chroot corresponding to the current series, after installing all the needed build-deps to avoid having
-#    the master machine crafted with build-deps across different series.
-# 10. Finally push that to a ppa.
-# 11. If a version in the ppa fail (build failure, tests not passing), then another try the same day will bump the version from the last upload in the ppa
-# 
-# The bug collect doesn't depend on when the changelog commit is merged
-
-
-
-# Metrics: number of bugs fixed per stack, per component, which ones…
 # TODO: clean the ppa (remove all old unpublished packages)
