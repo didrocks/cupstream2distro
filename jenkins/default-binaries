@@ -61,7 +61,8 @@ if __name__ == '__main__':
                     raise Exception(stderr.decode("utf-8").strip())
 
                 for bin_line in bin_stdout.splitlines():
-                    if bin_line.startswith('Task: ') and 'ubuntu-desktop' in bin_line:
+                    # add a space to ensure we don't map edubuntu-desktop
+                    if bin_line.startswith('Task: ') and ' ubuntu-desktop' in bin_line:
                         binaries.add(bin_package)
 
     print(" ".join(binaries))
