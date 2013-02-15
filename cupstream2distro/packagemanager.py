@@ -96,8 +96,8 @@ def get_packaging_version():
     raise Exception("Didn't find any Version in the package: {}".format(stdout))
 
 
-def get_version_from_distro_path(source_package_name, distro_version, series):
-    '''Return a path containing a checkout of the current distro version.
+def get_source_package_from_distro(source_package_name, distro_version, series):
+    '''Download and return a path containing a checkout of the current distro version.
 
     None if this package was never published to distro'''
 
@@ -105,7 +105,7 @@ def get_version_from_distro_path(source_package_name, distro_version, series):
         logging.info("This package was never released to the distro, don't return downloaded source")
         return None
 
-    logging.info("Grab version for {} ({}) from {}".format(source_package_name, distro_version, series))
+    logging.info("Grab code for {} ({}) from {}".format(source_package_name, distro_version, series))
     source_package_download_dir = os.path.join('ubuntu', source_package_name)
     try:
         os.makedirs(source_package_download_dir)
