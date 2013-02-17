@@ -17,16 +17,16 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from ..tools import basetestcase
+from . import BaseUnitTestCase
 import os
 
 from cupstream2distro import branchhandling
 
 
-class BranchHandlingTests(basetestcase.BaseTestCase):
+class BranchHandlingTests(BaseUnitTestCase):
 
     def test_branching(self):
-        '''Test that we correcly branch a branch'''
+        '''Test that we correcly try to branch a branch'''
         source_branch = self.get_data_branch('basic')
         self.get_a_temp_workdir()
         branchhandling.get_branch(source_branch, 'test_branch')

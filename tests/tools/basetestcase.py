@@ -32,20 +32,27 @@ class BaseTestCase(unittest.TestCase):
         cls.root_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
         cls.data_dir = os.path.join(cls.root_dir, 'data')
 
+    @classmethod
+    def addToPath(cls, path):
+        '''Prepend some data to path, if path is relative, root_dir is used'''
+        #TODO: check if the path is cleaned when using testnose and going to other tests types.
+        if not os.path.isabs(path):
+            path = os.path.join(cls.root_dir, path)
+        os.environ['PATH'] = "{}:{}".format(path, os.environ["PATH"])
+
     def setUp(self):
         self._dirs_to_remove = []
 
     def tearDown(self):
         '''remove all temp dirs'''
         os.chdir(self.root_dir)
-        print(self._dirs_to_remove)
         for dir in self._dirs_to_remove:
             try:
                 shutil.rmtree(dir)
             except OSError:
                 pass
 
-    def create_temp_workdir(self):
+    def get_a_temp_workdir(self):
         '''Create a temporary work directory and cd in it'''
         tempdir = tempfile.mkdtemp()
         self._dirs_to_remove.append(tempdir)
