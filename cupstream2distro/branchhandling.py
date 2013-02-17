@@ -50,7 +50,17 @@ def _packaging_changes_in_branch(starting_rev):
 
     We ignore the changelog only changes'''
     bzrinstance = subprocess.Popen(['bzr', 'diff', 'debian/', '-r', str(starting_rev)], stdout=subprocess.PIPE)
-    (change_in_debian, err) = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog'], stdin=bzrinstance.stdout, stdout=subprocess.PIPE).communicate()
+    filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog'], stdin=bzrinstance.stdout, stdout=subprocess.PIPE)
+    (change_in_debian, filter_err) = filterinstance.communicate()
+    (bzr_stdout, bzrerr) = bzrinstance.communicate()
+    if bzrinstance.returncode != 0 or filterinstance.returncode != 0:
+        bzrerror = ""
+        filterdifferror = ""
+        if bzrerr:
+            bzrerror = bzrerr.decode("utf-8").strip()
+        if filter_err:
+            filterdifferror = filter_err.decode("utf-8").strip()
+        raise Exception("Error in bzr diff: {}\nfilterdiff:{}".format(bzrerror, filterdifferror))
     return(change_in_debian != "")
 
 

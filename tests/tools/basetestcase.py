@@ -54,19 +54,34 @@ class BaseTestCase(unittest.TestCase):
                 pass
 
     def get_a_temp_workdir(self):
-        '''Create a temporary work directory and cd in it'''
+        '''Create a temporary work directory and cd in it.'''
         tempdir = tempfile.mkdtemp()
         self._dirs_to_remove.append(tempdir)
         os.chdir(tempdir)
 
-    def get_data_branch(self, target_branch):
-        '''Return a temporary data branch directory from target_branch.
+    def get_data_branch(self, target_branch_name, dest_in_dir='', cd_in_branch=True):
+        '''Return a temporary data branch directory from target_branch_name.
 
         This will perform the rename of 'bzr' dir in a .bzr one
         (can't do that in bzr itself for obvious reasons)
-        The dir will be removed as part of tearDown.'''
-        tempdir = tempfile.mktemp()
-        self._dirs_to_remove.append(tempdir)
-        shutil.copytree(os.path.join(self.data_dir, 'branches', target_branch), tempdir)
-        os.rename(os.path.join(tempdir, 'bzr'), os.path.join(tempdir, '.bzr'))
-        return tempdir
+        The dir will be removed as part of tearDown.
+
+        if dest_in_dir is empty, note that the branch will then be in a subdir of
+        a french temporary dir that we cd into.
+
+        We can optionally cd into the dest branch'''
+        if not dest_in_dir:
+            tempdir = tempfile.mkdtemp()
+            self._dirs_to_remove.append(tempdir)
+            dest_in_dir = tempdir
+        os.chdir(dest_in_dir)
+        dest_branch_path = os.path.join(dest_in_dir, target_branch_name)
+        shutil.copytree(os.path.join(self.data_dir, 'branches', target_branch_name), dest_branch_path)
+        os.rename(os.path.join(target_branch_name, 'bzr'), os.path.join(dest_branch_path, '.bzr'))
+        if cd_in_branch:
+            os.chdir(os.path.join(dest_in_dir, dest_branch_path))
+        return dest_branch_path
+
+    def are_files_identicals(self, filename1, filename2):
+        '''Return true if filename1 and filename2 are equals'''
+        return (open(filename1).read() == open(filename2).read())
