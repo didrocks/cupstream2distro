@@ -36,15 +36,15 @@ class BaseUnitTestCase(basetestcase.BaseTestCase):
 class BaseUnitTestCaseWithErrors(BaseUnitTestCase):
     '''Base unit test case module, simulating errors in mock objects'''
 
-    @classmethod
-    def setUpClass(cls):
-        super(BaseUnitTestCase, cls).setUpClass()
-        os.environ['SIMULATE_ERROR'] = "TRUE"
+    def setUp(self):
+        '''Reset the error mode to 1'''
+        super(BaseUnitTestCaseWithErrors, self).setUp()
+        os.environ['MOCK_ERROR_MODE'] = "1"
 
     @classmethod
     def tearDownClass(cls):
         super(BaseUnitTestCase, cls).setUpClass()
         try:
-            os.environ.pop('SIMULATE_ERROR')
+            os.environ.pop('MOCK_ERROR_MODE')
         except:
             pass

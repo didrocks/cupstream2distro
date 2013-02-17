@@ -33,6 +33,24 @@ class BranchHandlingTests(BaseUnitTestCase):
         self.assertTrue(os.path.isdir('test_branch'))
         self.assertTrue(os.path.isdir('test_branch/.bzr'))
 
+    def test_get_tip_bzr_revision(self):
+        '''We extract the tip of bzr revision'''
+        os.chdir(self.get_data_branch('basic'))
+        self.assertEqual(branchhandling.get_tip_bzr_revision(), 6)
+
+    def test_detect_packaging_changes_in_branch(self):
+        '''We detect packaging changes in a branch'''
+        os.chdir(self.get_data_branch('basic'))
+        self.assertTrue(branchhandling._packaging_changes_in_branch(3))
+
+    def test_with_changelog_only_change(self):
+        os.chdir(self.get_data_branch('basic'))
+        self.assertFalse(branchhandling._packaging_changes_in_branch(4))
+
+    def test_with_no_packaging_change(self):
+        os.chdir(self.get_data_branch('basic'))
+        self.assertFalse(branchhandling._packaging_changes_in_branch(5))
+
 
 class BranchHandlingTestsWithErrors(BaseUnitTestCaseWithErrors):
 
@@ -42,3 +60,9 @@ class BranchHandlingTestsWithErrors(BaseUnitTestCaseWithErrors):
         self.get_a_temp_workdir()
         with self.assertRaises(Exception):
             branchhandling.get_branch(source_branch, 'test_branch')
+
+    def test_return_exception_when_cant_get_tip(self):
+        '''Return an exception when we can't get the tip of a branch'''
+        os.chdir(self.get_data_branch('basic'))
+        with self.assertRaises(Exception):
+            branchhandling.get_tip_bzr_revision()

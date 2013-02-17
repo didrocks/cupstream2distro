@@ -22,17 +22,53 @@ import os
 import shutil
 import sys
 
+
+def print_to_stdout(filename):
+    '''print filename to stdout'''
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    print(open(os.path.join(data_dir, filename)).read())
+
 if __name__ == '__main__':
 
-    if sys.argv[1] == 'branch':
+    if os.environ.get("MOCK_ERROR_MODE") == "1":
+        sys.exit(1)
 
-        if "SIMULATE_ERROR" in os.environ:
-            sys.exit(1)
-
+    command = sys.argv[1]
+    options = " ".join(sys.argv[1:])
+    if command == 'branch':
         origin_path = sys.argv[2]
         if len(sys.argv) < 4:
             dest_branch = origin_path.split('/')[-1]
         else:
             dest_branch = sys.argv[3]
         shutil.copytree(origin_path, dest_branch)
+        sys.exit(0)
 
+    elif command == "log":
+        if options == "log -c -1 --line":
+            print("6: Didier Roche 2013-02-17 add some upstream changes")
+            sys.exit(0)
+
+    elif command == "diff":
+        if options == "diff -r 5":
+            print_to_stdout("upstream_change.diff")
+            sys.exit(0)
+        elif options == "diff -r 4":
+            print_to_stdout("upstream_and_changelog_change.diff")
+            sys.exit(0)
+        elif options == "diff -r 3":
+            print_to_stdout("packaging_with_upstream_and_changelog_change.diff")
+            sys.exit(0)
+
+        if options == "diff debian/ -r 5":
+            print_to_stdout("upstream_change.debiandironlydiff")
+            sys.exit(0)
+        elif options == "diff debian/ -r 4":
+            print_to_stdout("upstream_and_changelog_change.debiandironlydiff")
+            sys.exit(0)
+        elif options == "diff debian/ -r 3":
+            print_to_stdout("packaging_with_upstream_and_changelog_change.debiandironlydiff")
+            sys.exit(0)            
+
+# unhandled case
+sys.exit(1)

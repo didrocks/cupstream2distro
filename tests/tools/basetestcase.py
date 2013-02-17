@@ -42,9 +42,10 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         self._dirs_to_remove = []
+        os.environ['MOCK_MODE'] = "0"
 
     def tearDown(self):
-        '''remove all temp dirs'''
+        '''remove all temp dirs and return to root test dir'''
         os.chdir(self.root_dir)
         for dir in self._dirs_to_remove:
             try:
