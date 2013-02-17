@@ -17,23 +17,18 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import tools_for_tests
+from ..tools import basetestcase
 import os
-import unittest
 
 from cupstream2distro import branchhandling
 
 
-class BranchHandlingTests(unittest.TestCase):
-
-    def tearDown(self):
-        tools_for_tests.do_cleanup()
+class BranchHandlingTests(basetestcase.BaseTestCase):
 
     def test_branching(self):
-        '''Branch a branch'''
-
-        source_branch = tools_for_tests.get_data_branch('basic')
-        tools_for_tests.create_temp_workdir()
+        '''Test that we correcly branch a branch'''
+        source_branch = self.get_data_branch('basic')
+        self.get_a_temp_workdir()
         branchhandling.get_branch(source_branch, 'test_branch')
         self.assertTrue(os.path.isdir('test_branch'))
         self.assertTrue(os.path.isdir('test_branch/.bzr'))
