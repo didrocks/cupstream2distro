@@ -1,0 +1,8 @@
+tests to reuse:
+
+class BranchHandlingTests(BaseUnitTestCase):
+
+    def test_branching(self):
+
+
+with system bzr

@@ -31,3 +31,20 @@ class BaseUnitTestCase(basetestcase.BaseTestCase):
         super(BaseUnitTestCase, cls).setUpClass()
         cls.addToPath(os.path.join("mocks", "offline"))
         cls.addToPath(os.path.join("mocks", "online"))
+
+
+class BaseUnitTestCaseWithErrors(BaseUnitTestCase):
+    '''Base unit test case module, simulating errors in mock objects'''
+
+    @classmethod
+    def setUpClass(cls):
+        super(BaseUnitTestCase, cls).setUpClass()
+        os.environ['SIMULATE_ERROR'] = "TRUE"
+
+    @classmethod
+    def tearDownClass(cls):
+        super(BaseUnitTestCase, cls).setUpClass()
+        try:
+            os.environ.pop('SIMULATE_ERROR')
+        except:
+            pass

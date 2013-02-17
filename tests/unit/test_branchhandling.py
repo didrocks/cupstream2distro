@@ -17,7 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from . import BaseUnitTestCase
+from . import BaseUnitTestCase, BaseUnitTestCaseWithErrors
 import os
 
 from cupstream2distro import branchhandling
@@ -26,9 +26,19 @@ from cupstream2distro import branchhandling
 class BranchHandlingTests(BaseUnitTestCase):
 
     def test_branching(self):
-        '''Test that we correcly try to branch a branch'''
+        '''We correcly try to branch a branch'''
         source_branch = self.get_data_branch('basic')
         self.get_a_temp_workdir()
         branchhandling.get_branch(source_branch, 'test_branch')
         self.assertTrue(os.path.isdir('test_branch'))
         self.assertTrue(os.path.isdir('test_branch/.bzr'))
+
+
+class BranchHandlingTestsWithErrors(BaseUnitTestCaseWithErrors):
+
+    def test_return_exception_when_cant_branch(self):
+        '''Return an exception when we can't branch'''
+        source_branch = self.get_data_branch('basic')
+        self.get_a_temp_workdir()
+        with self.assertRaises(Exception):
+            branchhandling.get_branch(source_branch, 'test_branch')
