@@ -23,7 +23,7 @@ import os
 import re
 import subprocess
 
-from . import packagemanager
+from packagemanager import collect_bugs_until_latest_bzr_rev
 from .settings import BRANCH_URL, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX, REV_STRING_FORMAT
 from .tools import get_packaging_diff_filename
 
@@ -84,7 +84,7 @@ def collect_author_bugs(starting_rev, source_package_name):
     content_to_parse = _return_log_diff(starting_rev)
     author_bugs = _get_all_bugs_from_content(content_to_parse)
     with open("debian/changelog") as f:
-        alreadyfixed_bugs = packagemanager.collect_bugs_until_latest_bzr_rev(f, source_package_name)
+        alreadyfixed_bugs = collect_bugs_until_latest_bzr_rev(f, source_package_name)
 
     # Remove bugs already fixed, discaring author if needed
     authors_to_remove = set()

@@ -84,4 +84,8 @@ class BaseTestCase(unittest.TestCase):
 
     def are_files_identicals(self, filename1, filename2):
         '''Return true if filename1 and filename2 are equals'''
-        return (open(filename1).read() == open(filename2).read())
+        return self.are_content_indenticals(open(filename1).read(), open(filename2).read())
+
+    def are_content_indenticals(self, content1, content2):
+        '''Return true if content1 and 2 are identicals'''
+        return (content1 == content2)

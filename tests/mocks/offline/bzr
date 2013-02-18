@@ -48,6 +48,10 @@ if __name__ == '__main__':
         if options == "log -c -1 --line":
             print("6: Didier Roche 2013-02-17 add some upstream changes")
             sys.exit(0)
+        elif options == "log -r 3.. --include-merged --forward":
+            print_to_stdout('bzr_log_simple')
+            sys.exit(0)
+
 
     elif command == "diff":
         if options == "diff -r 5":
@@ -68,7 +72,7 @@ if __name__ == '__main__':
             sys.exit(0)
         elif options == "diff debian/ -r 3":
             print_to_stdout("packaging_with_upstream_and_changelog_change.debiandironlydiff")
-            sys.exit(0)            
+            sys.exit(0)
 
 # unhandled case
 sys.exit(1)

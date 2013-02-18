@@ -62,6 +62,20 @@ class BranchHandlingTests(BaseUnitTestCase):
         canonical_filepath = os.path.join(self.data_dir, "results", diff_filename)
         self.assertTrue(self.are_files_identicals(source_filepath, canonical_filepath))
 
+    def test_return_log_diff_simple(self):
+        '''Ensure we return the right log diff since a dedicated revision (simple branch)'''
+        self.get_data_branch('simple')
+        expected_content = open(os.path.join(self.data_dir, "results", "bzr_log_simple")).read()
+        self.assertEquals(branchhandling._return_log_diff(3), "{}\n".format(expected_content))
+
+    def test_return_log_diff_nested(self):
+        '''Ensure we return the right log diff since a dedicated revision (with nested elements)'''
+        pass
+
+    def test_return_log_diff_with_remerge_trunk(self):
+        '''Ensure we return the right log diff but containing some remerge to trunk dating before the previous release'''
+        pass
+
 
 class BranchHandlingTestsWithErrors(BaseUnitTestCaseWithErrors):
 

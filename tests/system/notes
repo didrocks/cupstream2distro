@@ -12,5 +12,7 @@ class BranchHandlingTests(BaseUnitTestCase):
 
     def test_with_no_packaging_change(self):
 
+    test_generate_diff
+
 
 with system bzr
