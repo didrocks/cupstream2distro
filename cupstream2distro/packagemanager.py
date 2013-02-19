@@ -137,6 +137,10 @@ def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, u
     # We can as well having versions pushed to distro that has been backported, each count
     # as one commit. If we only have those, no need to rerelease a newer version.
 
+    # we always released something not yet in ubuntu, no matter criterias are not met.
+    if not ubuntu_version_source:
+        return True
+
     num_uploads = 0
     regex = re.compile(REV_STRING_FORMAT + "(\d+)")
     new_changelog_regexp = re.compile(NEW_CHANGELOG_PATTERN.format(source_package_name))
@@ -154,13 +158,11 @@ def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, u
         return False
 
     # now check the relevance of the committed changes compared to the version in the repository (if any)
-    if ubuntu_version_source:
-        diffinstance = subprocess.Popen(['diff', '-Nrup', '.', ubuntu_version_source], stdout=subprocess.PIPE)
-        filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog', '-x', '*po', '-x', '*pot'], stdin=diffinstance.stdout, stdout=subprocess.PIPE)
-        lsdiffinstance = subprocess.Popen(['lsdiff'], stdin=filterinstance.stdout, stdout=subprocess.PIPE)
-        (relevant_changes, err) = subprocess.Popen(['grep', '-v', '.bzr'], stdin=lsdiffinstance.stdout, stdout=subprocess.PIPE).communicate()
-        return (relevant_changes != '')
-    return True
+    diffinstance = subprocess.Popen(['diff', '-Nrup', '.', ubuntu_version_source], stdout=subprocess.PIPE)
+    filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog', '-x', '*po', '-x', '*pot'], stdin=diffinstance.stdout, stdout=subprocess.PIPE)
+    lsdiffinstance = subprocess.Popen(['lsdiff'], stdin=filterinstance.stdout, stdout=subprocess.PIPE)
+    (relevant_changes, err) = subprocess.Popen(['grep', '-v', '.bzr'], stdin=lsdiffinstance.stdout, stdout=subprocess.PIPE).communicate()
+    return (relevant_changes != '')
 
 
 def create_new_packaging_version(previous_package_version):
