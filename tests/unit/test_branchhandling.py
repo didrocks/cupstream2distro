@@ -28,7 +28,6 @@ class BranchHandlingTests(BaseUnitTestCase):
     def test_branching(self):
         '''We correcly try to branch a branch'''
         source_branch = self.get_data_branch('basic', cd_in_branch=False)
-        print(source_branch)
         branchhandling.get_branch(source_branch, 'test_branch')
         self.assertTrue(os.path.isdir('test_branch'))
         self.assertTrue(os.path.isdir('test_branch/.bzr'))
@@ -82,7 +81,6 @@ class BranchHandlingTestsWithErrors(BaseUnitTestCaseWithErrors):
     def test_return_exception_when_cant_branch(self):
         '''Return an exception when we can't branch'''
         source_branch = self.get_data_branch('basic')
-        self.get_a_temp_workdir()
         with self.assertRaises(Exception):
             branchhandling.get_branch(source_branch, 'test_branch')
 
@@ -103,4 +101,3 @@ class BranchHandlingTestsWithErrors(BaseUnitTestCaseWithErrors):
         os.chdir(self.get_data_branch('basic'))
         with self.assertRaises(Exception):
             branchhandling.generate_diff_in_branch(3, "foo", "42.0daily83.09.13-0ubuntu2")
-

@@ -32,6 +32,10 @@ class BaseUnitTestCase(basetestcase.BaseTestCase):
         cls.addToPath(os.path.join("mocks", "offline"))
         cls.addToPath(os.path.join("mocks", "online"))
 
+    def setUp(self):
+        super(BaseUnitTestCase, self).setUp()
+        self.cd_in_temp_workdir()
+
 
 class BaseUnitTestCaseWithErrors(BaseUnitTestCase):
     '''Base unit test case module, simulating errors in mock objects'''
