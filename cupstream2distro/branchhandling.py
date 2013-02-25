@@ -49,11 +49,11 @@ def _packaging_changes_in_branch(starting_rev):
     '''Return if there has been a packaging change
 
     We ignore the changelog only changes'''
-    bzrinstance = subprocess.Popen(['bzr', 'diff', 'debian/', '-r', str(starting_rev)], stdout=subprocess.PIPE)
+    bzrinstance = subprocess.Popen(['bzr', 'diff', 'debian/', '-r', str(starting_rev)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog'], stdin=bzrinstance.stdout, stdout=subprocess.PIPE)
     (change_in_debian, filter_err) = filterinstance.communicate()
-    (bzr_stdout, bzrerr) = bzrinstance.communicate()
-    if bzrinstance.returncode != 0 or filterinstance.returncode != 0:
+    (bzrout, bzrerr) = bzrinstance.communicate()
+    if bzrerr or filterinstance.returncode != 0:
         bzrerror = ""
         filterdifferror = ""
         if bzrerr:

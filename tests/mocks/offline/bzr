@@ -31,6 +31,7 @@ def print_to_stdout(filename):
 if __name__ == '__main__':
 
     if os.environ.get("MOCK_ERROR_MODE") == "1":
+        sys.stderr.write('error asked for bzr\n')
         sys.exit(1)
 
     command = sys.argv[1]
@@ -52,27 +53,27 @@ if __name__ == '__main__':
             print_to_stdout('bzr_log_simple')
             sys.exit(0)
 
-
     elif command == "diff":
+        # Note that bzr always error with return 1
         if options == "diff -r 5":
             print_to_stdout("upstream_change.diff")
-            sys.exit(0)
+            sys.exit(1)
         elif options == "diff -r 4":
             print_to_stdout("upstream_and_changelog_change.diff")
-            sys.exit(0)
+            sys.exit(1)
         elif options == "diff -r 3":
             print_to_stdout("packaging_with_upstream_and_changelog_change.diff")
-            sys.exit(0)
+            sys.exit(1)
 
         if options == "diff debian/ -r 5":
             print_to_stdout("upstream_change.debiandironlydiff")
-            sys.exit(0)
+            sys.exit(1)
         elif options == "diff debian/ -r 4":
             print_to_stdout("upstream_and_changelog_change.debiandironlydiff")
-            sys.exit(0)
+            sys.exit(1)
         elif options == "diff debian/ -r 3":
             print_to_stdout("packaging_with_upstream_and_changelog_change.debiandironlydiff")
-            sys.exit(0)
+            sys.exit(1)
 
 # unhandled case
 sys.exit(1)
