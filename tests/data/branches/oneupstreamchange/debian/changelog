@@ -1,0 +1,29 @@
+foo (42.0daily83.09.13.2-0ubuntu1) raring; urgency=low
+
+  * Automatic snapshot from revision 10
+
+ -- Didier Roche <didrocks@ubuntu.com>  Mon, 25 Feb 2013 10:33:30 +0100
+
+foo (42.0daily83.09.13.1-0ubuntu1) raring; urgency=low
+
+  [ Didier Roche ]
+  * Add a foo message
+  * Fixed some bug LP: #12345
+  * Some other bug LP: 23456
+  * But don't count bug #98765 nor LP #87654
+  * Finally, you should get those two: (LP: #56789, #67890)
+
+  [ Rocks Did ]
+  * Another bug from another contestant: LP: #34567
+
+  [ Automagic thingy ]
+  * Automatic snapshot from revision 8
+
+ -- Rocks Did <didrocks@ubuntu.com>  Sun, 17 Feb 2013 19:06:09 +0000
+
+foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
+
+  * We snapshotted it for please
+  * Automatic snapshot from revision 1
+
+ -- Automatic Didrocks uploader <did@machine.fr>  Fri, 13 Sep 1983 04:02:00 +0000

@@ -75,6 +75,10 @@ class BaseTestCase(unittest.TestCase):
         self._dirs_to_remove.append(dest_branch_path)
         return dest_branch_path
 
+    def get_ubuntu_source_content_path(self, package_name):
+        '''Return the ubuntu source package path for package_name'''
+        return os.path.join(self.data_dir, 'ubuntu_source_packages', package_name)
+
     def are_files_identicals(self, filename1, filename2):
         '''Return true if filename1 and filename2 are equals'''
         return self.are_content_indenticals(open(filename1).read(), open(filename2).read())

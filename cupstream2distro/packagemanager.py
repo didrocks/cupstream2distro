@@ -131,11 +131,12 @@ def get_source_package_from_distro(source_package_name, distro_version, series):
 def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, ubuntu_version_source):
     '''Return True if a new snapshot is needed
 
-    ubuntu_version_source can be None if no released version was done before'''
+    ubuntu_version_source can be None if no released version was done before.
 
-    # We always at least have +1 revision from last_upstream_rev (automated merge of changelog)
-    # We can as well having versions pushed to distro that has been backported, each count
-    # as one commit. If we only have those, no need to rerelease a newer version.
+    This will assume that backported version in distro are in the current branch and that it's been backported
+    in a single commit'''
+
+    # Note we always at least have +1 revision from last_upstream_rev (automated merge of changelog)
 
     # we always released something not yet in ubuntu, no matter criterias are not met.
     if not ubuntu_version_source:
