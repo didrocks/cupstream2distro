@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+# -*- coding: UTF8 -*-
+# Copyright: (C) 2013 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import os
+import shutil
+import sys
+
+
+def print_to_stdout(filename):
+    '''print filename to stdout'''
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    print(open(os.path.join(data_dir, filename)).read())
+
+if __name__ == '__main__':
+
+    if os.environ.get("MOCK_ERROR_MODE") == "1":
+        sys.exit(1)
+
+    command = sys.argv[1]
+    options = " ".join(sys.argv[1:])
+    if command == 'branch':
+        origin_path = sys.argv[2]
+        if len(sys.argv) < 4:
+            dest_branch = origin_path.split('/')[-1]
+        else:
+            dest_branch = sys.argv[3]
+        shutil.copytree(origin_path, dest_branch)
+        sys.exit(0)
+
+    elif command == "log":
+        if options == "log -c -1 --line":
+            print("6: Didier Roche 2013-02-17 add some upstream changes")
+            sys.exit(0)
+        elif options == "log -r 3.. --include-merged --forward":
+            print_to_stdout('bzr_log_simple')
+            sys.exit(0)
+
+
+    elif command == "diff":
+        if options == "diff -r 5":
+            print_to_stdout("upstream_change.diff")
+            sys.exit(0)
+        elif options == "diff -r 4":
+            print_to_stdout("upstream_and_changelog_change.diff")
+            sys.exit(0)
+        elif options == "diff -r 3":
+            print_to_stdout("packaging_with_upstream_and_changelog_change.diff")
+            sys.exit(0)
+
+        if options == "diff debian/ -r 5":
+            print_to_stdout("upstream_change.debiandironlydiff")
+            sys.exit(0)
+        elif options == "diff debian/ -r 4":
+            print_to_stdout("upstream_and_changelog_change.debiandironlydiff")
+            sys.exit(0)
+        elif options == "diff debian/ -r 3":
+            print_to_stdout("packaging_with_upstream_and_changelog_change.debiandironlydiff")
+            sys.exit(0)
+
+# unhandled case
+sys.exit(1)

@@ -23,7 +23,7 @@ import os
 import re
 import subprocess
 
-from . import packagemanager
+from packagemanager import collect_bugs_until_latest_bzr_rev
 from .settings import BRANCH_URL, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX, REV_STRING_FORMAT
 from .tools import get_packaging_diff_filename
 
@@ -50,7 +50,17 @@ def _packaging_changes_in_branch(starting_rev):
 
     We ignore the changelog only changes'''
     bzrinstance = subprocess.Popen(['bzr', 'diff', 'debian/', '-r', str(starting_rev)], stdout=subprocess.PIPE)
-    (change_in_debian, err) = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog'], stdin=bzrinstance.stdout, stdout=subprocess.PIPE).communicate()
+    filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog'], stdin=bzrinstance.stdout, stdout=subprocess.PIPE)
+    (change_in_debian, filter_err) = filterinstance.communicate()
+    (bzr_stdout, bzrerr) = bzrinstance.communicate()
+    if bzrinstance.returncode != 0 or filterinstance.returncode != 0:
+        bzrerror = ""
+        filterdifferror = ""
+        if bzrerr:
+            bzrerror = bzrerr.decode("utf-8").strip()
+        if filter_err:
+            filterdifferror = filter_err.decode("utf-8").strip()
+        raise Exception("Error in bzr diff: {}\nfilterdiff:{}".format(bzrerror, filterdifferror))
     return(change_in_debian != "")
 
 
@@ -74,7 +84,7 @@ def collect_author_bugs(starting_rev, source_package_name):
     content_to_parse = _return_log_diff(starting_rev)
     author_bugs = _get_all_bugs_from_content(content_to_parse)
     with open("debian/changelog") as f:
-        alreadyfixed_bugs = packagemanager.collect_bugs_until_latest_bzr_rev(f, source_package_name)
+        alreadyfixed_bugs = collect_bugs_until_latest_bzr_rev(f, source_package_name)
 
     # Remove bugs already fixed, discaring author if needed
     authors_to_remove = set()

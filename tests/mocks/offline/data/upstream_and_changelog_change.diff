@@ -1,0 +1,90 @@
+=== modified file 'CMakeLists.txt'
+--- CMakeLists.txt	2013-02-17 16:19:12 +0000
++++ CMakeLists.txt	2013-02-17 16:24:30 +0000
+@@ -1,1 +1,3 @@
+ Fake cmakerie on root dir
++
++Change here
+
+=== modified file 'Makefile.am'
+--- Makefile.am	2013-02-17 16:19:12 +0000
++++ Makefile.am	2013-02-17 16:24:55 +0000
+@@ -1,1 +1,3 @@
+ Fake Makefile in root
++
++Change here
+
+=== added file 'bar'
+--- bar	1970-01-01 00:00:00 +0000
++++ bar	2013-02-17 16:25:00 +0000
+@@ -0,0 +1,1 @@
++New file here
+
+=== modified file 'configure'
+--- configure	2013-02-17 16:19:12 +0000
++++ configure	2013-02-17 16:24:35 +0000
+@@ -1,1 +1,3 @@
+ And a fake configure
++
++Change here
+
+=== modified file 'configure.ac'
+--- configure.ac	2013-02-17 16:19:12 +0000
++++ configure.ac	2013-02-17 16:24:42 +0000
+@@ -1,1 +1,3 @@
+ Fake configure.ac
++
++Change here
+
+=== modified file 'debian/changelog'
+--- debian/changelog	2013-02-17 16:16:54 +0000
++++ debian/changelog	2013-02-17 16:24:09 +0000
+@@ -1,3 +1,9 @@
++foo (42.0daily83.09.13-0ubuntu2) UNRELEASED; urgency=low
++
++  * Add a foo message
++
++ -- Didier Roche <did@rocks.frm>  Sun, 17 Feb 2013 17:23:34 +0100
++
+ foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
+ 
+   * We snapshotted it for please
+
+=== modified file 'foo'
+--- foo	2013-01-07 11:27:37 +0000
++++ foo	2013-02-17 16:24:49 +0000
+@@ -0,0 +1,1 @@
++Change here
+
+=== modified file 'setup.py'
+--- setup.py	2013-02-17 16:19:12 +0000
++++ setup.py	2013-02-17 16:25:05 +0000
+@@ -1,1 +1,3 @@
+ Fake setup
++
++Change here
+
+=== modified file 'src/CMakeLists.txt'
+--- src/CMakeLists.txt	2013-02-17 16:19:12 +0000
++++ src/CMakeLists.txt	2013-02-17 16:25:13 +0000
+@@ -1,1 +1,3 @@
+ Fake cmakerie on src dir
++
++Change here
+
+=== modified file 'src/Makefile.am'
+--- src/Makefile.am	2013-02-17 16:19:12 +0000
++++ src/Makefile.am	2013-02-17 16:25:16 +0000
+@@ -1,1 +1,3 @@
+ Fake Makefile in src
++
++Change here
+
+=== modified file 'src/real_source.c'
+--- src/real_source.c	2013-02-17 16:19:12 +0000
++++ src/real_source.c	2013-02-17 16:25:20 +0000
+@@ -1,1 +1,3 @@
+ A real source file
++
++Change here
+

@@ -1,0 +1,14 @@
+=== modified file 'debian/changelog'
+--- debian/changelog	2013-02-17 16:16:54 +0000
++++ debian/changelog	2013-02-17 16:24:09 +0000
+@@ -1,3 +1,9 @@
++foo (42.0daily83.09.13-0ubuntu2) UNRELEASED; urgency=low
++
++  * Add a foo message
++
++ -- Didier Roche <did@rocks.frm>  Sun, 17 Feb 2013 17:23:34 +0100
++
+ foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
+ 
+   * We snapshotted it for please
+
