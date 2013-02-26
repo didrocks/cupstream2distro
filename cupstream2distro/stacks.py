@@ -23,7 +23,7 @@ import yaml
 import subprocess
 import sys
 
-from .settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN, CONFIG_STACK_DIR, STACK_STATUS_FILENAME
+from .settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN, DEFAULT_CONFIG_STACKS_DIR, STACK_STATUS_FILENAME
 
 
 def get_current_stackname():
@@ -56,23 +56,44 @@ def get_stack_files_to_sync():
             yield file
 
 
+def get_root_stacks_dir():
+    '''Get root stack dir'''
+    return os.environ.get('CONFIG_STACKS_DIR', DEFAULT_CONFIG_STACKS_DIR)
+
+
+def get_stacks_file_path():
+    '''Return an iterator with all path for every discovered stack files'''
+    for root, dirs, files in os.walk(get_root_stacks_dir()):
+        for candidate in files:
+            if candidate.endswith('.cfg'):
+                yield os.path.join(root, candidate)
+
+
+def get_stack_file_path(stackname):
+    '''Get a particular stack file based on stackname'''
+    for stack_file_path in get_stacks_file_path():
+        if stack_file_path.split('/')[-1] == "{}.cfg".format(stackname):
+            return stack_file_path
+    raise Exception("{}.cfg doesn't exist anywhere in {}".format(stackname, get_root_stacks_dir()))
+
+
 def get_allowed_projects():
     '''Get all projects allowed to be upload'''
 
     projects = []
-    for file in os.listdir(CONFIG_STACK_DIR):
-        if not file.endswith(".cfg"):
-            continue
-        with open(os.path.join(CONFIG_STACK_DIR, file), 'r') as f:
+    for file_path in get_stacks_file_path():
+        with open(file_path, 'r') as f:
             cfg = yaml.load(f)
-            if not 'stack' in cfg or not 'projects' in cfg['stack']:
+            try:
+                projects_list = cfg['stack']['projects']
+            except (TypeError, KeyError):
+                logging.warning("{} seems broken in not having stack or projects keys".format(file_path))
                 continue
-            projects_list = cfg['stack']['projects']
             if not projects_list:
+                logging.warning("{} don't have any project list".format(file_path))
                 continue
-            # items of projects_list can be: ["proj1", "proj2"] or ["proj1": "lp:projet1/name", …]
             for project in projects_list:
-                if type(project) is dict:
+                if isinstance(project, dict):
                     projects.append(project.keys()[0])
                 else:
                     projects.append(project)
@@ -82,14 +103,13 @@ def get_allowed_projects():
 def get_depending_stacks(stackname):
     '''Get a list of depending stacks on stackname'''
 
-    file = stackname
-    if not file.endswith(".cfg"):
-        file = "{}.cfg".format(file)
-    with open(os.path.join(CONFIG_STACK_DIR, file), 'r') as f:
+    with open(get_stack_file_path(stackname), 'r') as f:
         cfg = yaml.load(f)
-        if not 'stack' in cfg or not 'dependencies' in cfg['stack']:
+        try:
+            deps_list = cfg['stack']['dependencies']
+            return deps_list if deps_list else []
+        except (TypeError, KeyError):
             return []
-        return cfg['stack']['dependencies']
 
 
 def get_stack_status(stackname):

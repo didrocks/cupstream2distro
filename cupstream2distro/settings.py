@@ -54,5 +54,5 @@ PACKAGE_LIST_RSYNC_FILENAME_FORMAT = PACKAGE_LIST_RSYNC_FILENAME_PREFIX + '_{}'
 RSYNC_PATTERN = "rsync://RSYNCSVR/cu2d_out/{}*".format(PACKAGE_LIST_RSYNC_FILENAME_PREFIX)
 
 ROOT_CU2D = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-CONFIG_STACK_DIR = os.path.join(ROOT_CU2D, 'jenkins', 'etc')
+DEFAULT_CONFIG_STACKS_DIR = os.path.join(os.path.dirname(ROOT_CU2D), 'cupstream2distro-config', 'stacks')
 STACK_STATUS_FILENAME = "stack.status"
