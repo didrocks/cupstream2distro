@@ -23,8 +23,12 @@ import os
 import re
 import subprocess
 
-from ubuntutools.lp.lpapicache import Launchpad
-from ubuntutools.archive import UbuntuSourcePackage
+try:
+    from ubuntutools.lp.lpapicache import Launchpad
+    from ubuntutools.archive import UbuntuSourcePackage
+except ImportError:
+    Launchpad = None
+    UbuntuSourcePackage = None
 
 from .launchpadmanager import get_launchpad, get_series, get_ubuntu_archive, get_ppa
 from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, GNUPG_DIR, REPLACEME_TAG, ROOT_CU2D, NEW_CHANGELOG_PATTERN
@@ -116,6 +120,8 @@ def get_source_package_from_distro(source_package_name, distro_version, series):
         pass
     os.chdir(source_package_download_dir)
 
+    if not Launchpad or not UbuntuSourcePackage:
+        raise Exception("Launchpad tool from ubuntutools doesn't seem to be installed, we won't be able to pull the source and complete the operation")
     Launchpad.login_existing(lp=get_launchpad())
     logging.info('Downloading %s version %s', source_package_name, distro_version)
     srcpkg = UbuntuSourcePackage(source_package_name, distro_version)
