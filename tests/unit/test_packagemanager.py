@@ -73,6 +73,13 @@ class PackageManagerTests(BaseUnitTestCase):
         self.get_data_branch('released_latestsnapshot_included')
         self.assertFalse(packagemanager.is_new_release_needed(12, 11, "foo", ubuntu_version_source='something_we_shouldnt_use'))
 
+    def test_lower_version(self):
+        '''Test that the different cases for lower/upper version matches the expectations'''
+        self.assertTrue(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '1-0ubuntu1'))
+        self.assertTrue(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '2~daily13.10.1-0ubuntu1'))
+        self.assertFalse(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '2daily13.10.1-0ubuntu1'))
+        self.assertTrue(packagemanager.is_version1_higher_than_version2('2dailyrelease13.10.1.1-0ubuntu1', '2dailyrelease13.10.1-0ubuntu1'))
+
     def test_we_fail_if_no_boostrap_message(self):
         pass
 
