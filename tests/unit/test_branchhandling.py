@@ -65,7 +65,7 @@ class BranchHandlingTests(BaseUnitTestCase):
         '''Ensure we return the right log diff since a dedicated revision (simple branch)'''
         self.get_data_branch('simple')
         expected_content = open(os.path.join(self.data_dir, "results", "bzr_log_simple")).read()
-        self.assertEquals(branchhandling._return_log_diff(3), "{}\n".format(expected_content))
+        self.assertEquals(branchhandling._return_log_diff(3).strip(), expected_content.strip())
 
     def test_return_log_diff_nested(self):
         '''Ensure we return the right log diff since a dedicated revision (with nested elements)'''
