@@ -75,5 +75,5 @@ if __name__ == '__main__':
             print_to_stdout("packaging_with_upstream_and_changelog_change.debiandironlydiff")
             sys.exit(1)
 
-# unhandled case
-sys.exit(1)
+    # unhandled case
+    sys.exit(1)

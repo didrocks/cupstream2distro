@@ -107,5 +107,21 @@ class PackageManagerTests(BaseUnitTestCase):
         pass
 
 
+class PackageManagerOnlineTests(BaseUnitTestCase):
+    '''Test that can impact online services (dput)'''
+
+    def test_upload_package(self):
+        '''We upload the right package .changes files to the right ppa'''
+        packagemanager.upload_package('foo', '83.09.13-0ubuntu1', 'didrocks/foo')
+
+    def test_upload_package_with_epoch(self):
+        '''We still upload the same package name than above, even if we have an epoch'''
+        packagemanager.upload_package('foo', '1:83.09.13-0ubuntu1', 'didrocks/foo')
+
+
 class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
-    pass
+    
+    def test_raise_exception_when_upload_fail(self):
+        '''We fail if the dput push failed'''
+        with self.assertRaises(Exception):
+            packagemanager.upload_package('foo', '1:83.09.13-0ubuntu1', 'didrocks/foo')
