@@ -1,0 +1,6 @@
+<testsuite errors="0" failures="1" name="" tests="1" time="0.1">
+  <testcase classname="MarkUnstable" name="Test Name" time="0.0">
+    <failure type="exception">one issue</failure>
+    <failure type="exception">a second issue</failure>
+</testcase>
+</testsuite>

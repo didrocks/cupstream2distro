@@ -25,12 +25,13 @@ import os
 import shutil
 
 
-class BranchHandlingTests(BaseUnitTestCase):
+class ToolsTests(BaseUnitTestCase):
 
     def setUp(self):
         '''add some default files'''
-        super(BranchHandlingTests, self).setUp()
+        super(ToolsTests, self).setUp()
         self.project_file_dir = os.path.join(self.data_dir, 'project_files')
+        self.artefacts_dir = os.path.join(self.data_dir, 'artefacts')
 
     def test_get_previous_distro_version_from_config(self):
         '''We load and return the previous distro version from config'''
@@ -45,9 +46,24 @@ class BranchHandlingTests(BaseUnitTestCase):
     def test_save_correct_project_file(self):
         '''We save the correct profiles file'''
         tools.save_project_config('foo', 'lp:foo', '6.12.0-0ubuntu1', '6.12.0daily13.02.27-0ubuntu1')
-        self.assertEquals(open('foo.project').read(), open(os.path.join(self.project_file_dir, 'foo.project')).read())
+        self.assertFilesAreIdenticals('foo.project', os.path.join(self.project_file_dir, 'foo.project'))
 
     def test_packaging_diff_filename(self):
         '''Return the right packaging diff name'''
         self.assertEquals(tools.get_packaging_diff_filename("foo", "1.0daily~-0ubuntu1"), "packaging_changes_foo_1.0daily~-0ubuntu1.diff")
 
+    def test_generate_xml_artefacts_no_issue(self):
+        '''Generate the xml jenkins artefacts when no issue occured'''
+        tools.generate_xml_artefacts("Test Name", [], 'file.xml')
+        print(open('file.xml').read())
+        self.assertFilesAreIdenticals('file.xml', os.path.join(self.project_file_dir, 'nofailure.xml'))
+
+    def test_generate_xml_artefacts_no_issue(self):
+        '''Generate the xml jenkins artefacts when no issue occured'''
+        tools.generate_xml_artefacts("Test Name", ["one issue"], 'file.xml')
+        self.assertFilesAreIdenticals('file.xml', os.path.join(self.project_file_dir, 'onefailure.xml'))
+
+    def test_generate_xml_artefacts_no_issue(self):
+        '''Generate the xml jenkins artefacts when no issue occured'''
+        tools.generate_xml_artefacts("Test Name", ["one issue", "a second issue"], 'file.xml')
+        self.assertFilesAreIdenticals('file.xml', os.path.join(self.project_file_dir, 'twofailures.xml'))

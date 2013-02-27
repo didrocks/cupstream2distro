@@ -86,3 +86,7 @@ class BaseTestCase(unittest.TestCase):
     def are_content_indenticals(self, content1, content2):
         '''Return true if content1 and 2 are identicals'''
         return (content1 == content2)
+
+    def assertFilesAreIdenticals(self, filename1, filename2):
+        '''assert if the files content are identical'''
+        self.assertEquals(open(filename1).read(), open(filename1).read())
