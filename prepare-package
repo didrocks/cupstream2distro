@@ -140,7 +140,7 @@ if __name__ == '__main__':
     packagemanager.upload_package(source_package_name, packaging_version, ppa)
 
     # Save infos for other jobs
-    save_project_config(source_package_name, branch, packaging_version_in_bzr, packaging_version)
+    save_project_config(source_package_name, branch, distro_version, packaging_version)
 
     # generate artefacts
     os.chdir(source_package_name)

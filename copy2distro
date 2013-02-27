@@ -44,7 +44,7 @@ if __name__ == '__main__':
         logging.info("Found {}".format(file))
         with open(file) as f:
             for line in f.readlines():
-                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, previous_packaging_version) = line.strip().split("\t")
+                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, distro_version_at_prepare_time) = line.strip().split("\t")
                 logging.debug("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version,
                                                                     ppa, from_series, src_pocket, to_series, dest_pocket))
                 if not source in allowed_projects:
@@ -52,9 +52,9 @@ if __name__ == '__main__':
                     continue
 
                 distro_version = packagemanager.get_current_version_for_series(source, to_series)
-                if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
-                    message = ("A manual upload of {} ({}) to distro has been done but is not in trunk which is still at {}. "
-                               "Ignore uploading {}.".format(source, distro_version, previous_packaging_version, version))
+                if distro_version != distro_version_at_prepare_time:
+                    message = ("A manual upload of {} ({}) to distro has been done after the current daily release was prepared (it was at {}) at this time."
+                               "Ignore uploading {}.".format(source, distro_version, distro_version_at_prepare_time, version))
                     logging.error(message)
                     continue
 
