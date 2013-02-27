@@ -19,7 +19,6 @@
 
 from ..unit.test_branchhandling import BranchHandlingTests
 from ..unit import BaseUnitTestCase
-import os
 
 
 class BranchHandlingTests(BranchHandlingTests):

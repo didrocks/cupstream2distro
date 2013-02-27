@@ -60,6 +60,20 @@ def is_version1_higher_than_version2(version1, version2):
     return (subprocess.call(["dpkg", "--compare-versions", version1, 'gt', version2], stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0)
 
 
+def is_version_in_changelog(version, f):
+    '''Return if the version is in the upstream changelog (released)'''
+
+    if version == "0":
+        return True
+
+    desired_changelog_line = re.compile("\({}\) (?!UNRELEASED).*\; urgency=".format(version))
+    for line in f:
+        if desired_changelog_line.search(line):
+            return True
+
+    return False
+
+
 def get_latest_upstream_bzr_rev(f):
     '''Report latest bzr rev in the file'''
     regex = re.compile(REV_STRING_FORMAT + "(\d+)")

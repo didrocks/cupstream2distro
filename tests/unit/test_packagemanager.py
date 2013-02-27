@@ -74,11 +74,34 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertFalse(packagemanager.is_new_release_needed(12, 11, "foo", ubuntu_version_source='something_we_shouldnt_use'))
 
     def test_lower_version(self):
-        '''Test that the different cases for lower/upper version matches the expectations'''
+        '''Matching expectations for different cases for lower/upper version'''
         self.assertTrue(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '1-0ubuntu1'))
         self.assertTrue(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '2~daily13.10.1-0ubuntu1'))
         self.assertFalse(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '2daily13.10.1-0ubuntu1'))
         self.assertTrue(packagemanager.is_version1_higher_than_version2('2dailyrelease13.10.1.1-0ubuntu1', '2dailyrelease13.10.1-0ubuntu1'))
+
+    def test_get_current_version_for_series(self):
+        pass
+
+    def test_is_version_in_changelog_found(self):
+        '''We find the desired version from changelog'''
+        self.get_data_branch('simple')
+        self.assertTrue(packagemanager.is_version_in_changelog('42.0daily83.09.13-0ubuntu1', open('debian/changelog')))
+
+    def test_unknown_version_is_not_in_changelog(self):
+        '''We don't find any unexisting version in changelog'''
+        self.get_data_branch('simple')
+        self.assertFalse(packagemanager.is_version_in_changelog('version_which_dont_exist', open('debian/changelog')))
+
+    def test_unreleased_version_in_changelog(self):
+        '''We return false if the version we pass is UNRELEASED in changelog'''
+        self.get_data_branch('simple')
+        self.assertFalse(packagemanager.is_version_in_changelog('42.0daily83.09.13-0ubuntu2', open('debian/changelog')))
+
+    def test_never_released_version_in_changelog(self):
+        '''We return true if the version we pass is 0'''
+        self.get_data_branch('simple')
+        self.assertTrue(packagemanager.is_version_in_changelog('0', open('debian/changelog')))
 
     def test_we_fail_if_no_boostrap_message(self):
         pass
