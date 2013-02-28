@@ -18,26 +18,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from ..unit.test_packagemanager import PackageManagerOnlineTests, PackageManagerOnlineTestsWithErrors
-from ..unit import BaseUnitTestCase
-
-from cupstream2distro import packagemanager
+from . import BaseSystemTestCase, BaseSystemTestCaseWithErrors
 
 
-class PackageManagerOnlineTests(PackageManagerOnlineTests):
+class SystemPackageManagerOnlineTests(BaseSystemTestCase, PackageManagerOnlineTests):
     '''Same tests than unit PackageManagerOnlineTests, but with system cowbuilder'''
 
-    @classmethod
-    def setUpClass(cls):
-        ## bypass setup from BaseUnitTestCase
-        super(BaseUnitTestCase, cls).setUpClass()
-        cls.original_settings = packagemanager.settings
 
-
-class PackageManagerOnlineTestsWithErrors(PackageManagerOnlineTestsWithErrors):
+class SystemPackageManagerOnlineTestsWithErrors(BaseSystemTestCase, PackageManagerOnlineTestsWithErrors):
     '''Same tests than unit PackageManagerOnlineTestsWithErrors, but with system cowbuilder'''
-
-    @classmethod
-    def setUpClass(cls):
-        ## bypass setup from BaseUnitTestCase
-        super(BaseUnitTestCase, cls).setUpClass()
-        cls.original_settings = packagemanager.settings

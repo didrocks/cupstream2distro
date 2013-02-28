@@ -157,11 +157,16 @@ class PackageManagerOnlineTests(BaseUnitTestCase):
 
 class PackageManagerOnlineTestsWithErrors(BaseUnitTestCaseWithErrors):
 
+    @classmethod
+    def setUpClass(cls):
+        super(PackageManagerOnlineTestsWithErrors, cls).setUpClass()
+        cls.original_settings = packagemanager.settings
+
     def setup_settings_mock(self, settings_mock):
         '''Setup the settings mock for the build source package method.
 
         Ensure that GNUPG_DIR is not a parent dir of the branch directory'''
-        settings_mock.ROOT_CU2D = PackageManagerOnlineTests.original_settings.ROOT_CU2D
+        settings_mock.ROOT_CU2D = self.original_settings.ROOT_CU2D
         # create another temp dir not parent of the branch directory to ensure we don't mix bindmount
         # and fix magically potential code issues ;)
         settings_mock.GNUPG_DIR = self.create_temp_workdir(cd_in_dir=False)

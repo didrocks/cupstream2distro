@@ -18,13 +18,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from ..unit.test_branchhandling import BranchHandlingTests
-from ..unit import BaseUnitTestCase
+from . import BaseSystemTestCase
 
 
-class BranchHandlingTests(BranchHandlingTests):
-    '''Same tests than unit BranchHandlingTests, but with system bzr'''
-
-    @classmethod
-    def setUpClass(cls):
-        ## bypass setup from BaseUnitTestCase
-        super(BaseUnitTestCase, cls).setUpClass()
+class SystemBranchHandlingTests(BaseSystemTestCase, BranchHandlingTests):
+    '''Same tests than unit BranchHandlingTests, but with system bzr.'''

@@ -36,10 +36,20 @@ class BaseTestCase(unittest.TestCase):
     @classmethod
     def addToPath(cls, path):
         '''Prepend some data to path, if path is relative, root_dir is used'''
-        #TODO: check if the path is cleaned when using testnose and going to other tests types.
         if not os.path.isabs(path):
             path = os.path.join(cls.root_dir, path)
         os.environ['PATH'] = "{}:{}".format(path, os.environ["PATH"])
+
+    @classmethod
+    def removeFromPath(cls, path):
+        '''Remove some path from the PATH environment variables. If path is relative, root_dir is used'''
+        if not os.path.isabs(path):
+            path = os.path.join(cls.root_dir, path)
+        elems = []
+        for path_elem in os.environ['PATH'].split(':'):
+            if path_elem != path:
+                elems.append(path_elem)
+        os.environ['PATH'] = ':'.join(elems)
 
     def setUp(self):
         self._dirs_to_remove = []
