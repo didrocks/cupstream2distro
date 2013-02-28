@@ -55,15 +55,14 @@ class ToolsTests(BaseUnitTestCase):
     def test_generate_xml_artefacts_no_issue(self):
         '''Generate the xml jenkins artefacts when no issue occured'''
         tools.generate_xml_artefacts("Test Name", [], 'file.xml')
-        print(open('file.xml').read())
-        self.assertFilesAreIdenticals('file.xml', os.path.join(self.project_file_dir, 'nofailure.xml'))
+        self.assertFilesAreIdenticals('file.xml', os.path.join(self.artefacts_dir, 'nofailure.xml'))
 
-    def test_generate_xml_artefacts_no_issue(self):
-        '''Generate the xml jenkins artefacts when no issue occured'''
+    def test_generate_xml_artefacts_one_failure(self):
+        '''Generate the xml jenkins artefacts when there is one failure'''
         tools.generate_xml_artefacts("Test Name", ["one issue"], 'file.xml')
-        self.assertFilesAreIdenticals('file.xml', os.path.join(self.project_file_dir, 'onefailure.xml'))
+        self.assertFilesAreIdenticals('file.xml', os.path.join(self.artefacts_dir, 'onefailure.xml'))
 
-    def test_generate_xml_artefacts_no_issue(self):
-        '''Generate the xml jenkins artefacts when no issue occured'''
+    def test_generate_xml_artefacts_two_failures(self):
+        '''Generate the xml jenkins artefacts when there is more than one failure'''
         tools.generate_xml_artefacts("Test Name", ["one issue", "a second issue"], 'file.xml')
-        self.assertFilesAreIdenticals('file.xml', os.path.join(self.project_file_dir, 'twofailures.xml'))
+        self.assertFilesAreIdenticals('file.xml', os.path.join(self.artefacts_dir, 'twofailures.xml'))

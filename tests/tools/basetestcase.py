@@ -92,12 +92,12 @@ class BaseTestCase(unittest.TestCase):
 
     def assertFilesAreIdenticals(self, filename1, filename2):
         '''assert if the files content are identical'''
-        self.assertEquals(open(filename1).read(), open(filename2).read())
+        self.assertEquals(open(filename1).read().strip(), open(filename2).read().strip())
 
     def assertChangesFilesAreIdenticals(self, filename1, filename2):
         '''assert if changes files content are identical, filtering the shasums and number of bytes which can differs with the same content'''
         remove_checksums_regexp = ' .* [0-9]+ (.*(gz|dsc))'
-        content1 = re.sub(remove_checksums_regexp, r" \1", open(filename1).read())
-        content2 = re.sub(remove_checksums_regexp, r" \1", open(filename2).read())
+        content1 = re.sub(remove_checksums_regexp, r" \1", open(filename1).read().strip())
+        content2 = re.sub(remove_checksums_regexp, r" \1", open(filename2).read().strip())
         self.assertEquals(content1, content2)
 
