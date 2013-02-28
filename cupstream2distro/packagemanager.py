@@ -66,8 +66,8 @@ def is_version_in_changelog(version, f):
     if version == "0":
         return True
 
-    desired_changelog_line = re.compile("\({}\) (?!UNRELEASED).*\; urgency=".format(version))
-    for line in f:
+    desired_changelog_line = re.compile("\({}\) (?!UNRELEASED).*\; urgency=".format(version.replace('+', '\+')))
+    for line in f.readlines():
         if desired_changelog_line.search(line):
             return True
 

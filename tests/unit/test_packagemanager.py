@@ -105,6 +105,11 @@ class PackageManagerTests(BaseUnitTestCase):
         self.get_data_branch('simple')
         self.assertTrue(packagemanager.is_version_in_changelog('0', open('debian/changelog')))
 
+    def test_is_version_with_symbols_in_changelog_found(self):
+        '''We find the desired version, containing symbols from changelog'''
+        self.get_data_branch('withversionsymbols')
+        self.assertTrue(packagemanager.is_version_in_changelog('42.0+bzr42daily83.09.13-0ubuntu1', open('debian/changelog')))
+
     def test_we_fail_if_no_boostrap_message(self):
         pass
 
