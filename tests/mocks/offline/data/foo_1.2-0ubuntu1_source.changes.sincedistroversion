@@ -19,14 +19,14 @@ Changes:
  .
    * 1.1 release
 Checksums-Sha1: 
- 38d8b93a8c8b3980ebf4d33c1351c68f53570488 764 foo_1.2-0ubuntu1.dsc
- 909e29b7e99b3bd4a6de74bd65dbfbd95087037f 136 foo_1.2.orig.tar.gz
+ f6f8b96417d51d6db3dd39a4d5f7291f0d8b6464 764 foo_1.2-0ubuntu1.dsc
+ 29880ea6e0f27f85187b05198e20df9def2373cf 141 foo_1.2.orig.tar.gz
  bb06a17c9fdc1b88fa020e520ad05a7d99efbf3f 1605 foo_1.2-0ubuntu1.diff.gz
 Checksums-Sha256: 
- c9cec3438687b154de2770bb411622b4f9a098f10b8a43323fb901f6aad0c6c8 764 foo_1.2-0ubuntu1.dsc
- 1d8f8bfd1a0b8ae5cb5989990a8649651a8707d399f01d4734dfd81f093a40ff 136 foo_1.2.orig.tar.gz
+ 2add7df8e4f045154d63161130c1d374c55b30d074070bd00a133872d332c095 764 foo_1.2-0ubuntu1.dsc
+ cfa0a9835a76a4a4b7d533c4ee8bf67ec74bb12ea3dd999382ae17e22c58850b 141 foo_1.2.orig.tar.gz
  9036bad4b88ca5d947933948fc16aa3de2fe76a8f172a865346d3740e107de83 1605 foo_1.2-0ubuntu1.diff.gz
 Files: 
- 705d57fd5133835b8a5710b08cd4664d 764 - optional foo_1.2-0ubuntu1.dsc
- d596f7a8f256201627d0fce6a04f17d8 136 - optional foo_1.2.orig.tar.gz
+ eca56b547abc4f82a04c71c5194fa10b 764 - optional foo_1.2-0ubuntu1.dsc
+ 8790201e3b4e8fd1ca278a3320819e81 141 - optional foo_1.2.orig.tar.gz
  7c2c2856ccea42a47d373d89aeb3e52b 1605 - optional foo_1.2-0ubuntu1.diff.gz

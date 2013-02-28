@@ -21,6 +21,7 @@ from . import BaseUnitTestCase, BaseUnitTestCaseWithErrors
 
 from cupstream2distro import packagemanager
 
+import os
 from mock import patch, Mock
 
 class PackageManagerTests(BaseUnitTestCase):
@@ -124,7 +125,7 @@ class PackageManagerOnlineTests(BaseUnitTestCase):
         # create another temp dir not parent of the branch directory to ensure we don't mix bindmount
         # and fix magically potential code issues ;)
         settings_mock.GNUPG_DIR = self.create_temp_workdir(cd_in_dir=False)
-        settings_mock.BOT_KEY = "testkey"        
+        settings_mock.BOT_KEY = "testkey"
 
     @patch('cupstream2distro.packagemanager.settings')
     def test_build_source_package(self, settings_mock):
@@ -132,16 +133,57 @@ class PackageManagerOnlineTests(BaseUnitTestCase):
         self.setup_settings_mock(settings_mock)
         self.get_data_branch('dummypackage')
         packagemanager.build_source_package("raring", "1.1-0ubuntu1")
-        #self.assertFilesAreIdenticals('file.xml', os.path.join(self.project_file_dir, 'twofailures.xml'))
+        os.chdir('..')
+        self.assertChangesFilesAreIdenticals('foo_1.2-0ubuntu1_source.changes', os.path.join(self.data_dir, "results", 'foo_1.2-0ubuntu1_source.changes.lastcontent'))
 
-    def test_build_and_include_older_version(self):
-        '''Call cowbuilder and build a source package, but the .changes files should contain intermediate version (unsigned for tests)'''
-        #self.get_data_branch('dummypackage')
-        #packagemanager.build_source_package("raring", "1.0-0ubuntu1")
+    @patch('cupstream2distro.packagemanager.settings')
+    def test_build_and_include_older_version(self, settings_mock):
+        '''Call cowbuilder and build a source package (unsigned for tests), but the .changes files should contain intermediate version'''
+        self.setup_settings_mock(settings_mock)
+        self.get_data_branch('dummypackage')
+        packagemanager.build_source_package("raring", "1.0-0ubuntu1")
+        os.chdir('..')
+        self.assertChangesFilesAreIdenticals('foo_1.2-0ubuntu1_source.changes', os.path.join(self.data_dir, "results", 'foo_1.2-0ubuntu1_source.changes.sincedistroversion'))
+
+    @patch('cupstream2distro.packagemanager.settings')
+    def test_build_with_other_distro_version(self, settings_mock):
+        '''Call cowbuilder and build a source package (unsigned for tests) for an older distro'''
+        self.setup_settings_mock(settings_mock)
+        self.get_data_branch('dummypackageprecise')
+        packagemanager.build_source_package("precise", "1.1-0ubuntu1")
+        os.chdir('..')
+        self.assertChangesFilesAreIdenticals('foo_1.2-0ubuntu1_source.changes', os.path.join(self.data_dir, "results", 'foo_1.2-0ubuntu1_source.changes.onprecise'))
+
+
+class PackageManagerOnlineTestsWithErrors(BaseUnitTestCaseWithErrors):
+
+    def setup_settings_mock(self, settings_mock):
+        '''Setup the settings mock for the build source package method.
+
+        Ensure that GNUPG_DIR is not a parent dir of the branch directory'''
+        settings_mock.ROOT_CU2D = PackageManagerOnlineTests.original_settings.ROOT_CU2D
+        # create another temp dir not parent of the branch directory to ensure we don't mix bindmount
+        # and fix magically potential code issues ;)
+        settings_mock.GNUPG_DIR = self.create_temp_workdir(cd_in_dir=False)
+        settings_mock.BOT_KEY = "testkey"
+
+    @patch('cupstream2distro.packagemanager.settings')
+    def test_build_source_package(self, settings_mock):
+        '''Fail if calling with invalid signing key'''
+        self.setup_settings_mock(settings_mock)
+        settings_mock.BOT_KEY = "invalidkey"
+        self.get_data_branch('dummypackage')
+        with self.assertRaises(Exception):
+            packagemanager.build_source_package("raring", "1.1-0ubuntu1")
 
 
 class PackageManagerNotforOnlineTests(BaseUnitTestCase):
     '''Test that can impact online services and we don't have control over them (dput)'''
+
+    @classmethod
+    def setUpClass(cls):
+        super(PackageManagerNotforOnlineTests, cls).setUpClass()
+        cls.original_settings = packagemanager.settings
 
     def test_upload_package(self):
         '''We upload the right package .changes files to the right ppa'''
@@ -153,7 +195,7 @@ class PackageManagerNotforOnlineTests(BaseUnitTestCase):
 
 
 class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
-    
+
     def test_raise_exception_when_upload_fail(self):
         '''We fail if the dput push failed'''
         with self.assertRaises(Exception):

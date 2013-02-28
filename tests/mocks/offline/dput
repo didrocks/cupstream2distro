@@ -25,7 +25,6 @@ import sys
 if __name__ == '__main__':
 
     if os.environ.get("MOCK_ERROR_MODE") == "1":
-        sys.stderr.write('error in dput\n')
         sys.exit(1)
 
     command = " ".join(sys.argv[1:])

@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Wed, 27 Feb 2013 17:52:12 +0100
+Source: foo
+Binary: foo
+Architecture: source
+Version: 1.2-0ubuntu1
+Distribution: precise
+Urgency: low
+Maintainer: Didier Roche <didrocks@ubuntu.com>
+Changed-By: Didier Roche <didrocks@ubuntu.com>
+Description: 
+ foo        - <insert up to 60 chars description>
+Changes: 
+ foo (1.2-0ubuntu1) precise; urgency=low
+ .
+   * 1.2 release
+Checksums-Sha1: 
+ 96b6d8ed8bda558fb32ec331f9f9609f564e5a65 764 foo_1.2-0ubuntu1.dsc
+ 0561c8d5e073ed5e40e163fc7f334561fecbd03c 140 foo_1.2.orig.tar.gz
+ 7e3e9e1e9e3aef8a45645f16e5535533336c21fb 1605 foo_1.2-0ubuntu1.diff.gz
+Checksums-Sha256: 
+ 032953bf11af40eda2eb50524097855790f50e15a9235bddfa040da1fc1427c7 764 foo_1.2-0ubuntu1.dsc
+ 06adb84ce048ce262020bf4994b57d0001b52f02e7fa3d0d916a21469004009b 140 foo_1.2.orig.tar.gz
+ d499c934b47ce076b19d8f4ebc1c368df5cd86668c111fd7822fc862f2769be4 1605 foo_1.2-0ubuntu1.diff.gz
+Files: 
+ c671e47d3b4c51a7c51b56353474d530 764 - optional foo_1.2-0ubuntu1.dsc
+ 8409dc1425b283df556f5296033a6b73 140 - optional foo_1.2.orig.tar.gz
+ 3221fef62d50859f88bd5a855feb63a6 1605 - optional foo_1.2-0ubuntu1.diff.gz
