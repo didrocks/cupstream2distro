@@ -284,12 +284,13 @@ def build_source_package(series, distro_version):
 
     chroot_tool_dir = os.path.join(settings.ROOT_CU2D, "chroot-tools")
     buildsource = os.path.join(chroot_tool_dir, "buildsource-chroot")
-    cur_dir = os.path.abspath('.')
+    branch_dir = os.path.abspath('.')
+    parent_dir = os.path.abspath(os.path.dirname(branch_dir))
     cowbuilder_env = os.environ.copy()
     cowbuilder_env["HOME"] = chroot_tool_dir  # take the internal .pbuilderrc
     cowbuilder_env["DIST"] = series
-    instance = subprocess.Popen(["sudo", "-E", "cowbuilder", "--execute", "--bindmounts", cur_dir, "--bindmounts", settings.GNUPG_DIR,
-                        "--", buildsource, cur_dir, "--gnupg-parentdir", settings.GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
+    instance = subprocess.Popen(["sudo", "-E", "cowbuilder", "--execute", "--bindmounts", parent_dir, "--bindmounts", settings.GNUPG_DIR,
+                        "--", buildsource, branch_dir, "--gnupg-parentdir", settings.GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
                                            "--gnupg-keyid", settings.BOT_KEY, "--distro-version", distro_version], env=cowbuilder_env)
     instance.communicate()
     if instance.returncode != 0:
