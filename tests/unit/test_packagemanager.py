@@ -21,6 +21,7 @@ from . import BaseUnitTestCase, BaseUnitTestCaseWithErrors
 
 from cupstream2distro import packagemanager
 
+from mock import patch, Mock
 
 class PackageManagerTests(BaseUnitTestCase):
 
@@ -108,7 +109,39 @@ class PackageManagerTests(BaseUnitTestCase):
 
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
-    '''Test that can impact online services (dput)'''
+    '''Test that uses online services, but as we just pull from them, we can use them'''
+    
+    @classmethod
+    def setUpClass(cls):
+        super(PackageManagerOnlineTests, cls).setUpClass()
+        cls.original_settings = packagemanager.settings
+
+    def setup_settings_mock(self, settings_mock):
+        '''Setup the settings mock for the build source package method.
+
+        Ensure that GNUPG_DIR is not a parent dir of the branch directory'''
+        settings_mock.ROOT_CU2D = self.original_settings.ROOT_CU2D
+        # create another temp dir not parent of the branch directory to ensure we don't mix bindmount
+        # and fix magically potential code issues ;)
+        settings_mock.GNUPG_DIR = self.create_temp_workdir(cd_in_dir=False)
+        settings_mock.BOT_KEY = "testkey"        
+
+    @patch('cupstream2distro.packagemanager.settings')
+    def test_build_source_package(self, settings_mock):
+        '''Call cowbuilder and build a source package (unsigned for tests)'''
+        self.setup_settings_mock(settings_mock)
+        self.get_data_branch('dummypackage')
+        packagemanager.build_source_package("raring", "1.1-0ubuntu1")
+        #self.assertFilesAreIdenticals('file.xml', os.path.join(self.project_file_dir, 'twofailures.xml'))
+
+    def test_build_and_include_older_version(self):
+        '''Call cowbuilder and build a source package, but the .changes files should contain intermediate version (unsigned for tests)'''
+        #self.get_data_branch('dummypackage')
+        #packagemanager.build_source_package("raring", "1.0-0ubuntu1")
+
+
+class PackageManagerNotforOnlineTests(BaseUnitTestCase):
+    '''Test that can impact online services and we don't have control over them (dput)'''
 
     def test_upload_package(self):
         '''We upload the right package .changes files to the right ppa'''

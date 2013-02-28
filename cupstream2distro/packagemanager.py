@@ -31,7 +31,7 @@ except ImportError:
     UbuntuSourcePackage = None
 
 from .launchpadmanager import get_launchpad, get_series, get_ubuntu_archive, get_ppa
-from .settings import REV_STRING_FORMAT, BOT_DEBFULLNAME, BOT_DEBEMAIL, BOT_KEY, GNUPG_DIR, REPLACEME_TAG, ROOT_CU2D, NEW_CHANGELOG_PATTERN
+import settings
 from .tools import get_packaging_diff_filename
 
 
@@ -76,7 +76,7 @@ def is_version_in_changelog(version, f):
 
 def get_latest_upstream_bzr_rev(f):
     '''Report latest bzr rev in the file'''
-    regex = re.compile(REV_STRING_FORMAT + "(\d+)")
+    regex = re.compile(settings.REV_STRING_FORMAT + "(\d+)")
     last_bzr_rev = None
     for line in f:
         rev = regex.findall(line)
@@ -170,8 +170,8 @@ def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, u
         return True
 
     num_uploads = 0
-    regex = re.compile(REV_STRING_FORMAT + "(\d+)")
-    new_changelog_regexp = re.compile(NEW_CHANGELOG_PATTERN.format(source_package_name))
+    regex = re.compile(settings.REV_STRING_FORMAT + "(\d+)")
+    new_changelog_regexp = re.compile(settings.NEW_CHANGELOG_PATTERN.format(source_package_name))
     for line in open("debian/changelog"):
         if regex.search(line):
             break
@@ -241,8 +241,8 @@ def collect_bugs_until_latest_bzr_rev(f, source_package_name):
     temporary_bugs_set = set()
     # matching only bug format that launchpad accepts
     bug_regexp = re.compile("lp: ?#(\d{5,})", re.IGNORECASE)
-    end_regexp = re.compile(REV_STRING_FORMAT + "(\d+)")
-    new_changelog_regexp = re.compile(NEW_CHANGELOG_PATTERN.format(source_package_name))
+    end_regexp = re.compile(settings.REV_STRING_FORMAT + "(\d+)")
+    new_changelog_regexp = re.compile(settings.NEW_CHANGELOG_PATTERN.format(source_package_name))
     for line in f:
         bug_list = bug_regexp.findall(line)
         for bug in bug_list:
@@ -269,9 +269,9 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with
         for bug_desc in authors_bugs_with_title[author]:
             subprocess.Popen(["dch", bug_desc], env=dch_env).communicate()
 
-    dch_env["DEBFULLNAME"] = BOT_DEBFULLNAME
-    dch_env["DEBEMAIL"] = BOT_DEBEMAIL
-    instance = subprocess.Popen(["dch", "-v{}".format(new_package_version), "{}{}".format(REV_STRING_FORMAT, tip_bzr_rev)],
+    dch_env["DEBFULLNAME"] = settings.BOT_DEBFULLNAME
+    dch_env["DEBEMAIL"] = settings.BOT_DEBEMAIL
+    instance = subprocess.Popen(["dch", "-v{}".format(new_package_version), "{}{}".format(settings.REV_STRING_FORMAT, tip_bzr_rev)],
                                 stderr=subprocess.PIPE, env=dch_env)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
@@ -279,18 +279,18 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with
     subprocess.call(["dch", "-r", "--distribution", series, "--force-distribution", ""], env=dch_env)
 
 
-def build_package(series):
+def build_source_package(series, distro_version):
     '''Build the source package using the internal helper'''
 
-    chroot_tool_dir = os.path.join(ROOT_CU2D, "chroot-tools")
+    chroot_tool_dir = os.path.join(settings.ROOT_CU2D, "chroot-tools")
     buildsource = os.path.join(chroot_tool_dir, "buildsource-chroot")
     cur_dir = os.path.abspath('.')
     cowbuilder_env = os.environ.copy()
     cowbuilder_env["HOME"] = chroot_tool_dir  # take the internal .pbuilderrc
     cowbuilder_env["DIST"] = series
-    instance = subprocess.Popen(["sudo", "-E", "cowbuilder", "--execute", "--bindmounts", cur_dir, "--bindmounts", GNUPG_DIR,
-                        "--", buildsource, cur_dir, "--gnupg-parentdir", GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
-                                           "--gnupg-keyid", BOT_KEY], env=cowbuilder_env)
+    instance = subprocess.Popen(["sudo", "-E", "cowbuilder", "--execute", "--bindmounts", cur_dir, "--bindmounts", settings.GNUPG_DIR,
+                        "--", buildsource, cur_dir, "--gnupg-parentdir", settings.GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
+                                           "--gnupg-keyid", settings.BOT_KEY, "--distro-version", distro_version], env=cowbuilder_env)
     instance.communicate()
     if instance.returncode != 0:
         raise Exception("The above command returned an error.")
@@ -310,12 +310,12 @@ def refresh_symbol_files(packaging_version):
     Add a changelog entry if needed'''
 
     new_upstream_version = packaging_version.split("-")[0]
-    if subprocess.call(['grep -qi {} debian/*symbols'.format(REPLACEME_TAG)], shell=True) == 0:  # shell=True for shell expansion
-        if subprocess.call(["sed -i 's/{}\(.*\)/{}/i' debian/*symbols".format(REPLACEME_TAG, new_upstream_version)], shell=True) != 0:
+    if subprocess.call(['grep -qi {} debian/*symbols'.format(settings.REPLACEME_TAG)], shell=True) == 0:  # shell=True for shell expansion
+        if subprocess.call(["sed -i 's/{}\(.*\)/{}/i' debian/*symbols".format(settings.REPLACEME_TAG, new_upstream_version)], shell=True) != 0:
             raise Exception("The above command returned an error.")
         dch_env = os.environ.copy()
-        dch_env["DEBFULLNAME"] = BOT_DEBFULLNAME
-        dch_env["DEBEMAIL"] = BOT_DEBEMAIL
+        dch_env["DEBFULLNAME"] = settings.BOT_DEBFULLNAME
+        dch_env["DEBEMAIL"] = settings.BOT_DEBEMAIL
         subprocess.Popen(["dch", "debian/*symbols: auto-update new symbols to released version"], env=dch_env).communicate()
         subprocess.call(["bzr", "commit", "-m", "Update symbols"])
 

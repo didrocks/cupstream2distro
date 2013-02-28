@@ -30,6 +30,10 @@ while [ -n "$1" ]; do
             set -x
             shift;
             ;;
+        --distro-version)
+            DISTRO_VERSION=$2
+            shift; shift;
+            ;;
         --gid)
             CHROOT_GID=$2
             shift; shift;
@@ -42,13 +46,14 @@ while [ -n "$1" ]; do
         --help)
             echo "$0: Enable building a source package inside a chroot
 
-    Usage: $0 WORKDIR --uid=UID --gid=GID --gnupg-parentdir=DIR --gnupg-keyid=KEYID
+    Usage: $0 WORKDIR --uid=UID --gid=GID --gnupg-parentdir=DIR --gnupg-keyid=KEYID --distro-version=version_from_distro
     All parameters below are mandatory:
     - WORKDIR is the current package source directory (in tree)
     - uid is the uid owning the current source tree (used so that root don't own the new created files)
     - gid is the gid owning the current source tree (used so that root don't own the new created files)
     - gnupg-parentdir is the directory containing the .gnupg/ directory. Certainly $HOME for you.
     - gnupg-keyid is the keyid with which signing the source package.
+    - distro-version is the latest version published to the distro
 
 
     Note that WORKDIR and gnupg-keyid should be bindmounted into the chroot.
@@ -79,7 +84,7 @@ while [ -n "$1" ]; do
     esac
 done
 
-if [ -z "$CHROOT_HOME" ] || [ -z "$CHROOT_UID" ] || [ -z "$CHROOT_GID" ]  || [ -z "KEYID" ] ; then
+if [ -z "$CHROOT_HOME" ] || [ -z "$CHROOT_UID" ] || [ -z "$CHROOT_GID" ]  || [ -z "KEYID" ]  || [ -z "DISTRO_VERSION" ] ; then
     echo "Every parameters is mandatory to run $0. Use --help for more info."
     exit 1
 fi
@@ -103,6 +108,10 @@ groupadd -g $CHROOT_GID -o pbgroup
 useradd -g pbgroup -u $CHROOT_UID -d "${HOME}" -o pbuser
 
 # build the source in split mode
-CMD="bzr bd -S --split -- -k$KEYID -d"
+if [ "$KEYID" == "testkey" ]; then
+    CMD="bzr bd -S --split -- -us -uc -d -v$DISTRO_VERSION"
+else
+    CMD="bzr bd -S --split -- -k$KEYID -d -v$DISTRO_VERSION"
+fi
 echo "Creating source with $CMD"
-echo "$CMD" | su -p pbuser; 
+echo "$CMD" | su -p pbuser;

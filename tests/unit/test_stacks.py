@@ -58,7 +58,7 @@ class StackTests(BaseUnitTestCase):
         self.assertEquals(list(stacks.get_stacks_file_path()), [os.path.join(stack_path, 'stack1.cfg'),
                                                                 os.path.join(stack_path, 'back', 'stack4.cfg'),
                                                                 os.path.join(stack_path, 'head', 'stack2.cfg'),
-                                                                os.path.join(stack_path, 'head', 'stack3.cfg'),])
+                                                                os.path.join(stack_path, 'head', 'stack3.cfg')])
 
     def test_get_stack_file_path(self):
         '''Return the right file in a nested stack environment'''

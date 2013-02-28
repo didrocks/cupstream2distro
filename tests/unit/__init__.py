@@ -34,7 +34,7 @@ class BaseUnitTestCase(basetestcase.BaseTestCase):
 
     def setUp(self):
         super(BaseUnitTestCase, self).setUp()
-        self.cd_in_temp_workdir()
+        self.create_temp_workdir()
 
 
 class BaseUnitTestCaseWithErrors(BaseUnitTestCase):

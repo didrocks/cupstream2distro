@@ -53,11 +53,13 @@ class BaseTestCase(unittest.TestCase):
             except OSError:
                 pass
 
-    def cd_in_temp_workdir(self):
-        '''Create a temporary work directory and cd in it.'''
+    def create_temp_workdir(self, cd_in_dir=True):
+        '''Create a temporary work directory and cd in it if cd_in_dir is True.'''
         tempdir = tempfile.mkdtemp()
         self._dirs_to_remove.append(tempdir)
-        os.chdir(tempdir)
+        if cd_in_dir:
+            os.chdir(tempdir)
+        return tempdir
 
     def get_data_branch(self, target_branch_name, cd_in_branch=True):
         '''Return data branch directory from target_branch_name created in the current dir.
