@@ -98,7 +98,7 @@ if __name__ == '__main__':
                                          include_binaries=True, to_pocket=dest_pocket, to_series=series,
                                          source_name=source, version=version)
             else:  # generate a file that will be rsynced from another place
-                distro_version = get_distro_version_from_config(source)
+                distro_version = get_previous_distro_version_from_config(source)
                 package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(ppa, src_pocket, series, dest_pocket, series, source, version, distro_version))
         if package_to_copy:
             logging.info("Writing {} for being able to rsync from main machine".format(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname)))
