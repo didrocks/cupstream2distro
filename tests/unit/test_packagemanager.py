@@ -161,6 +161,21 @@ class PackageManagerTests(BaseUnitTestCase):
         with open("debian/changelog") as f:
             self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f), 42)
 
+    def test_list_packages_info_in_str(self):
+        '''We return the packages info in a string'''
+        package1 = Mock()
+        package1.source_name = "foo"
+        package1.version = "42"
+        package2 = Mock()
+        package2.source_name = "bar"
+        package2.version = "44"
+        packages_set = set([package1, package2])
+        self.assertEquals(packagemanager.list_packages_info_in_str(packages_set), "foo (42) bar (44)")
+
+    def test_list_packages_info_in_str_no_package(self):
+        '''We return no packaging info if we get no package parameter'''
+        self.assertEquals(packagemanager.list_packages_info_in_str(set()), "")
+
     def test_is_new_release_needed_with_ubuntu_upload(self):
         '''We always do an ubuntu release if there has been no upload before, even if we break all criterias'''
         self.assertTrue(packagemanager.is_new_release_needed(2, 1, "foo", ubuntu_version_source=None))
