@@ -30,19 +30,19 @@ except ImportError:
     Launchpad = None
     UbuntuSourcePackage = None
 
-from .launchpadmanager import get_launchpad, get_series, get_ubuntu_archive, get_ppa
+import launchpadmanager
 import settings
 from .tools import get_packaging_diff_filename
 
 
 def get_current_version_for_series(source_package_name, series_name, ppa_name=None):
     '''Get current version for a package name in that series'''
-    series = get_series(series_name)
+    series = launchpadmanager.get_series(series_name)
     version = None
     if ppa_name:
-        dest = get_ppa(ppa_name)
+        dest = launchpadmanager.get_ppa(ppa_name)
     else:
-        dest = get_ubuntu_archive()
+        dest = launchpadmanager.get_ubuntu_archive()
     for source in dest.getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=series):
         if version:
             if is_version1_higher_than_version2(source.source_package_version, version):
@@ -136,7 +136,7 @@ def get_source_package_from_distro(source_package_name, distro_version, series):
 
     if not Launchpad or not UbuntuSourcePackage:
         raise Exception("Launchpad tool from ubuntutools doesn't seem to be installed, we won't be able to pull the source and complete the operation")
-    Launchpad.login_existing(lp=get_launchpad())
+    Launchpad.login_existing(lp=launchpadmanager.get_launchpad())
     logging.info('Downloading %s version %s', source_package_name, distro_version)
     srcpkg = UbuntuSourcePackage(source_package_name, distro_version)
     srcpkg.pull()

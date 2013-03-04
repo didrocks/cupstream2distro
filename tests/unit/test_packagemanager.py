@@ -26,6 +26,98 @@ from mock import patch, Mock
 
 class PackageManagerTests(BaseUnitTestCase):
 
+
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_current_version_for_series_distro(self, mocklaunchpadmanager):
+        '''Get the newest version in any pocket'''
+
+        source1 = Mock()
+        source1.source_package_version = "83.09.13-0ubuntu1"
+        source2 = Mock()
+        source2.source_package_version = "83.09.14-0ubuntu1"
+        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.return_value = [source1, source2]
+
+        return_version = packagemanager.get_current_version_for_series("foo", "rolling")
+
+        self.assertEquals(mocklaunchpadmanager.get_ppa.call_count, 0)
+        mocklaunchpadmanager.get_series.assert_called_with("rolling")
+        mocklaunchpadmanager.get_ubuntu_archive.assert_called_once_with()
+        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
+                                                            source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
+        self.assertEquals("83.09.14-0ubuntu1", return_version)
+
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_current_version_for_series_distro_inverse(self, mocklaunchpadmanager):
+        '''Get the newest version in any pocket, inversing them'''
+
+        source1 = Mock()
+        source1.source_package_version = "83.09.13-0ubuntu1"
+        source2 = Mock()
+        source2.source_package_version = "83.09.14-0ubuntu1"
+        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.return_value = [source2, source1]
+
+        return_version = packagemanager.get_current_version_for_series("foo", "rolling")
+
+        self.assertEquals(mocklaunchpadmanager.get_ppa.call_count, 0)
+        mocklaunchpadmanager.get_series.assert_called_with("rolling")
+        mocklaunchpadmanager.get_ubuntu_archive.assert_called_once_with()
+        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
+                                                            source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
+        self.assertEquals("83.09.14-0ubuntu1", return_version)
+
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_current_version_for_series_none_in_distro(self, mocklaunchpadmanager):
+        '''Get the newest version, but was never published in distro'''
+
+        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.return_value = []
+
+        return_version = packagemanager.get_current_version_for_series("foo", "rolling")
+
+        self.assertEquals(mocklaunchpadmanager.get_ppa.call_count, 0)
+        mocklaunchpadmanager.get_series.assert_called_with("rolling")
+        mocklaunchpadmanager.get_ubuntu_archive.assert_called_once_with()
+        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
+                                                            source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
+        self.assertEquals("0", return_version)
+
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_current_version_for_series_ppa(self, mocklaunchpadmanager):
+        '''Get the version from a ppa'''
+        source_in_ppa = Mock()
+        source_in_ppa.source_package_version = "83.09.13-0ubuntu1"
+        mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.return_value = [source_in_ppa]
+
+        return_version = packagemanager.get_current_version_for_series("foo", "rolling", "didppa")
+
+        self.assertEquals(mocklaunchpadmanager.get_ubuntu_archive.call_count, 0)
+        mocklaunchpadmanager.get_series.assert_called_with("rolling")
+        mocklaunchpadmanager.get_ppa.assert_called_once_with("didppa")
+        mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
+                                                            source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
+        self.assertEquals("83.09.13-0ubuntu1", return_version)
+
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_current_version_for_series_none_in_ppa(self, mocklaunchpadmanager):
+        '''Get the newest version, but was never published in ppa'''
+
+        mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.return_value = []
+
+        return_version = packagemanager.get_current_version_for_series("foo", "rolling", "didppa")
+
+        self.assertEquals(mocklaunchpadmanager.get_ubuntu_archive.call_count, 0)
+        mocklaunchpadmanager.get_series.assert_called_with("rolling")
+        mocklaunchpadmanager.get_ppa.assert_called_once_with("didppa")
+        mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
+                                                            source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
+        self.assertEquals("0", return_version)
+        
+    def test_lower_version(self):
+        '''Matching expectations for different cases for lower/upper version'''
+        self.assertTrue(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '1-0ubuntu1'))
+        self.assertTrue(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '2~daily13.10.1-0ubuntu1'))
+        self.assertFalse(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '2daily13.10.1-0ubuntu1'))
+        self.assertTrue(packagemanager.is_version1_higher_than_version2('2dailyrelease13.10.1.1-0ubuntu1', '2dailyrelease13.10.1-0ubuntu1'))
+
     def test_is_new_release_needed_with_ubuntu_upload(self):
         '''We always do an ubuntu release if there has been no upload before, even if we break all criterias'''
         self.assertTrue(packagemanager.is_new_release_needed(2, 1, "foo", ubuntu_version_source=None))
@@ -74,16 +166,6 @@ class PackageManagerTests(BaseUnitTestCase):
         '''We don't release if we don't have anything new as a commit (tip == latestsnapshot + 1 for the latestsnapshot commit)'''
         self.get_data_branch('released_latestsnapshot_included')
         self.assertFalse(packagemanager.is_new_release_needed(12, 11, "foo", ubuntu_version_source='something_we_shouldnt_use'))
-
-    def test_lower_version(self):
-        '''Matching expectations for different cases for lower/upper version'''
-        self.assertTrue(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '1-0ubuntu1'))
-        self.assertTrue(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '2~daily13.10.1-0ubuntu1'))
-        self.assertFalse(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '2daily13.10.1-0ubuntu1'))
-        self.assertTrue(packagemanager.is_version1_higher_than_version2('2dailyrelease13.10.1.1-0ubuntu1', '2dailyrelease13.10.1-0ubuntu1'))
-
-    def test_get_current_version_for_series(self):
-        pass
 
     def test_is_version_in_changelog_found(self):
         '''We find the desired version from changelog'''
