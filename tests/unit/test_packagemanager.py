@@ -170,7 +170,14 @@ class PackageManagerTests(BaseUnitTestCase):
         package2.source_name = "bar"
         package2.version = "44"
         packages_set = set([package1, package2])
-        self.assertEquals(packagemanager.list_packages_info_in_str(packages_set), "foo (42) bar (44)")
+        # sets are accessed randomly, so just ensure we have our strings in it.
+        self.assertTrue("foo (42)" in packagemanager.list_packages_info_in_str(packages_set))
+        self.assertTrue("bar (44)" in packagemanager.list_packages_info_in_str(packages_set))
+
+    def test_get_packaging_version(self):
+        '''Get latest packaging version'''
+        self.get_data_branch('simple')
+        self.assertEquals(packagemanager.get_packaging_version(), "42.0daily83.09.13-0ubuntu2")
 
     def test_list_packages_info_in_str_no_package(self):
         '''We return no packaging info if we get no package parameter'''
