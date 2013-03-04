@@ -1,0 +1,45 @@
+------------------------------------------------------------
+revno: 12
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: onenested
+timestamp: Mon 2013-03-04 10:14:11 +0100
+message:
+  release
+------------------------------------------------------------
+revno: 13
+fixes bug: https://launchpad.net/bugs/1234567
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: onenested
+timestamp: Mon 2013-03-04 10:15:08 +0100
+message:
+  first commit after new release
+------------------------------------------------------------
+revno: 14 [merge]
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: onenested
+timestamp: Mon 2013-03-04 10:18:16 +0100
+message:
+  merge all changes to trunk
+    ------------------------------------------------------------
+    revno: 10.1.1
+    fixes bug: https://launchpad.net/bugs/12345678
+    committer: Didier Roche <didrocks@ubuntu.com>
+    branch nick: fromtrunk
+    timestamp: Mon 2013-03-04 10:16:49 +0100
+    message:
+      a none conflicting change
+    ------------------------------------------------------------
+    revno: 10.1.2 [merge]
+    committer: Didier Roche <didrocks@ubuntu.com>
+    branch nick: fromtrunk
+    timestamp: Mon 2013-03-04 10:17:13 +0100
+    message:
+      remerging against *the* trunk
+    ------------------------------------------------------------
+    revno: 10.1.3
+    fixes bug: https://launchpad.net/bugs/123456789
+    committer: Didier Roche <didrocks@ubuntu.com>
+    branch nick: fromtrunk
+    timestamp: Mon 2013-03-04 10:17:59 +0100
+    message:
+      another way needed change

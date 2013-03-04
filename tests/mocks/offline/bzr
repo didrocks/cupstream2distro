@@ -52,6 +52,12 @@ if __name__ == '__main__':
         elif options == "log -r 3.. --include-merged --forward":
             print_to_stdout('bzr_log_simple')
             sys.exit(0)
+        elif options == "log -r 1.. --include-merged --forward":
+            print_to_stdout('bzr_log_nested')
+            sys.exit(0)
+        elif options == "log -r 12.. --include-merged --forward":
+            print_to_stdout('bzr_log_remerge_trunk')
+            sys.exit(0)
 
     elif command == "diff":
         # Note that bzr always error with return 1

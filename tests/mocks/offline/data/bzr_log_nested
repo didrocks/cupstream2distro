@@ -1,0 +1,85 @@
+------------------------------------------------------------
+revno: 1
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: basic
+timestamp: Mon 2013-01-07 12:27:37 +0100
+message:
+  first commit
+------------------------------------------------------------
+revno: 2
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: foo
+timestamp: Sun 2013-02-17 17:16:54 +0100
+message:
+  adding some initial packaging
+------------------------------------------------------------
+revno: 3
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: foo
+timestamp: Sun 2013-02-17 17:19:12 +0100
+message:
+  add fake code to foo project
+------------------------------------------------------------
+revno: 4
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: foo
+timestamp: Sun 2013-02-17 17:23:30 +0100
+message:
+  add a trivial packaging change
+------------------------------------------------------------
+revno: 5
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: foo
+timestamp: Sun 2013-02-17 17:24:21 +0100
+message:
+  Add a foo message
+------------------------------------------------------------
+revno: 6
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: foo
+timestamp: Sun 2013-02-17 17:25:36 +0100
+message:
+  add some upstream changes
+------------------------------------------------------------
+revno: 7
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: foo
+timestamp: Sun 2013-02-17 19:05:42 +0000
+message:
+  add some bugs to the changelog for one person
+------------------------------------------------------------
+revno: 8
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: foo
+timestamp: Sun 2013-02-17 19:06:42 +0000
+message:
+  another bug added by someone else
+------------------------------------------------------------
+revno: 9 [merge]
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: simple
+timestamp: Mon 2013-03-04 09:55:43 +0100
+message:
+  merge nested content
+    ------------------------------------------------------------
+    revno: 8.1.1
+    fixes bug: https://launchpad.net/bugs/345678
+    committer: Didier Roche <didrocks@ubuntu.com>
+    branch nick: foo
+    timestamp: Mon 2013-03-04 09:54:50 +0100
+    message:
+      change to fix another bug
+    ------------------------------------------------------------
+    revno: 8.1.2
+    committer: Didier Roche <didrocks@ubuntu.com>
+    branch nick: foo
+    timestamp: Mon 2013-03-04 09:55:08 +0100
+    message:
+      fix typo
+------------------------------------------------------------
+revno: 10
+committer: Didier Roche <didrocks@ubuntu.com>
+branch nick: onenested
+timestamp: Mon 2013-03-04 10:10:35 +0100
+message:
+  cheat changing bug #
