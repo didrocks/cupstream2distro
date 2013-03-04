@@ -118,6 +118,49 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertFalse(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '2daily13.10.1-0ubuntu1'))
         self.assertTrue(packagemanager.is_version1_higher_than_version2('2dailyrelease13.10.1.1-0ubuntu1', '2dailyrelease13.10.1-0ubuntu1'))
 
+    def test_is_version_in_changelog_found(self):
+        '''We find the desired version from changelog'''
+        self.get_data_branch('simple')
+        self.assertTrue(packagemanager.is_version_in_changelog('42.0daily83.09.13-0ubuntu1', open('debian/changelog')))
+
+    def test_unknown_version_is_not_in_changelog(self):
+        '''We don't find any unexisting version in changelog'''
+        self.get_data_branch('simple')
+        self.assertFalse(packagemanager.is_version_in_changelog('version_which_dont_exist', open('debian/changelog')))
+
+    def test_unreleased_version_in_changelog(self):
+        '''We return false if the version we pass is UNRELEASED in changelog'''
+        self.get_data_branch('simple')
+        self.assertFalse(packagemanager.is_version_in_changelog('42.0daily83.09.13-0ubuntu2', open('debian/changelog')))
+
+    def test_never_released_version_in_changelog(self):
+        '''We return true if the version we pass is 0'''
+        self.get_data_branch('simple')
+        self.assertTrue(packagemanager.is_version_in_changelog('0', open('debian/changelog')))
+
+    def test_is_version_with_symbols_in_changelog_found(self):
+        '''We find the desired version, containing symbols from changelog'''
+        self.get_data_branch('withversionsymbols')
+        self.assertTrue(packagemanager.is_version_in_changelog('42.0+bzr42daily83.09.13-0ubuntu1', open('debian/changelog')))
+
+    def test_get_latest_upstream_bzr_rev_in_last_changelog(self):
+        '''We always get the latest upstream bzr rev version from a changelog. Marker being in the most recent changelog'''
+        self.get_data_branch('released_latestsnapshot_included')
+        with open("debian/changelog") as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f), 10)
+
+    def test_get_latest_upstream_bzr_rev_in_previous_changelog(self):
+        '''We always get the latest upstream bzr rev version from a changelog. Marker not being in the most recent changelog'''
+        self.get_data_branch('changebetween_manual_uploads')
+        with open("debian/changelog") as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f), 3)
+
+    def test_get_latest_upstream_bzr_rev_with_two_in_changelog(self):
+        '''We always get the latest upstream bzr rev version from a changelog. We have two marker in the changelog, last on is taken'''
+        self.get_data_branch('twosnapshotmarkers')
+        with open("debian/changelog") as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f), 42)
+
     def test_is_new_release_needed_with_ubuntu_upload(self):
         '''We always do an ubuntu release if there has been no upload before, even if we break all criterias'''
         self.assertTrue(packagemanager.is_new_release_needed(2, 1, "foo", ubuntu_version_source=None))
@@ -166,34 +209,6 @@ class PackageManagerTests(BaseUnitTestCase):
         '''We don't release if we don't have anything new as a commit (tip == latestsnapshot + 1 for the latestsnapshot commit)'''
         self.get_data_branch('released_latestsnapshot_included')
         self.assertFalse(packagemanager.is_new_release_needed(12, 11, "foo", ubuntu_version_source='something_we_shouldnt_use'))
-
-    def test_is_version_in_changelog_found(self):
-        '''We find the desired version from changelog'''
-        self.get_data_branch('simple')
-        self.assertTrue(packagemanager.is_version_in_changelog('42.0daily83.09.13-0ubuntu1', open('debian/changelog')))
-
-    def test_unknown_version_is_not_in_changelog(self):
-        '''We don't find any unexisting version in changelog'''
-        self.get_data_branch('simple')
-        self.assertFalse(packagemanager.is_version_in_changelog('version_which_dont_exist', open('debian/changelog')))
-
-    def test_unreleased_version_in_changelog(self):
-        '''We return false if the version we pass is UNRELEASED in changelog'''
-        self.get_data_branch('simple')
-        self.assertFalse(packagemanager.is_version_in_changelog('42.0daily83.09.13-0ubuntu2', open('debian/changelog')))
-
-    def test_never_released_version_in_changelog(self):
-        '''We return true if the version we pass is 0'''
-        self.get_data_branch('simple')
-        self.assertTrue(packagemanager.is_version_in_changelog('0', open('debian/changelog')))
-
-    def test_is_version_with_symbols_in_changelog_found(self):
-        '''We find the desired version, containing symbols from changelog'''
-        self.get_data_branch('withversionsymbols')
-        self.assertTrue(packagemanager.is_version_in_changelog('42.0+bzr42daily83.09.13-0ubuntu1', open('debian/changelog')))
-
-    def test_we_fail_if_no_boostrap_message(self):
-        pass
 
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
@@ -287,6 +302,13 @@ class PackageManagerNotforOnlineTests(BaseUnitTestCase):
 
 
 class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
+
+    def test_we_fail_if_no_boostrap_message(self):
+        '''We raise an exception if no marker in the changelog'''
+        self.get_data_branch('dummypackage')
+        with open("debian/changelog") as f:
+            with self.assertRaises(Exception):
+                packagemanager.get_latest_upstream_bzr_rev(f)
 
     def test_raise_exception_when_upload_fail(self):
         '''We fail if the dput push failed'''
