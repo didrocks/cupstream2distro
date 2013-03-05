@@ -105,7 +105,7 @@ if __name__ == '__main__':
     os.chdir('..')
     distro_source_package = packagemanager.get_source_package_from_distro(source_package_name, distro_version, series)
     os.chdir(source_package_name)
-    if not packagemanager.is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, distro_source_package):
+    if not packagemanager.is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, os.path.join('..', distro_source_package)):
         logging.info("No new useful revision published since last daily push, no need to upload this component")
         generate_xml_artefacts("Prepare",  [], artefacts_file)
         sys.exit(0)

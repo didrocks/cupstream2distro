@@ -23,6 +23,7 @@ from cupstream2distro import packagemanager
 
 import os
 from mock import patch, Mock
+import shutil
 
 class PackageManagerTests(BaseUnitTestCase):
 
@@ -171,8 +172,8 @@ class PackageManagerTests(BaseUnitTestCase):
         package2.version = "44"
         packages_set = set([package1, package2])
         # sets are accessed randomly, so just ensure we have our strings in it.
-        self.assertTrue("foo (42)" in packagemanager.list_packages_info_in_str(packages_set))
-        self.assertTrue("bar (44)" in packagemanager.list_packages_info_in_str(packages_set))
+        self.assertIn("foo (42)", packagemanager.list_packages_info_in_str(packages_set))
+        self.assertIn("bar (44)", packagemanager.list_packages_info_in_str(packages_set))
 
     def test_get_packaging_version(self):
         '''Get latest packaging version'''
@@ -182,6 +183,73 @@ class PackageManagerTests(BaseUnitTestCase):
     def test_list_packages_info_in_str_no_package(self):
         '''We return no packaging info if we get no package parameter'''
         self.assertEquals(packagemanager.list_packages_info_in_str(set()), "")
+
+
+    @patch('cupstream2distro.packagemanager.UbuntuSourcePackage')
+    @patch('cupstream2distro.packagemanager.Launchpad')
+    def test_get_source_package_from_distro(self, launchpadMock, ubuntuSourcePackageMock):
+        '''We grab the correct source from distro'''
+
+        def pull_and_unpack_source():
+            '''Fake pulling and unpacking from launchpad'''
+            ubuntu_version_source = self.get_ubuntu_source_content_path('regular_released_branch')
+            shutil.copytree(ubuntu_version_source, 'foo-42.0daily83.09.13.2')
+        ubuntu_source_mock = ubuntuSourcePackageMock()
+        ubuntu_source_mock.pull.side_effect = pull_and_unpack_source
+
+        source_package_dir = packagemanager.get_source_package_from_distro("foo", "42.0daily83.09.13.2-0ubuntu1", "rolling")
+
+        launchpadMock.login_existing.assert_called_once()
+        ubuntuSourcePackageMock.assert_called_with("foo", "42.0daily83.09.13.2-0ubuntu1")
+        ubuntu_source_mock.pull.assert_called_once()
+        ubuntu_source_mock.unpack.assert_called_once()
+        self.assertTrue(os.path.isdir(source_package_dir))
+
+    @patch('cupstream2distro.packagemanager.UbuntuSourcePackage')
+    @patch('cupstream2distro.packagemanager.Launchpad')
+    def test_get_source_package_from_distro_with_epoc(self, launchpadMock, ubuntuSourcePackageMock):
+        '''We grab the correct source from distro with epoch'''
+
+        def pull_and_unpack_source():
+            '''Fake pulling and unpacking from launchpad'''
+            ubuntu_version_source = self.get_ubuntu_source_content_path('regular_released_branch')
+            shutil.copytree(ubuntu_version_source, 'foo-42.0daily83.09.13.2')
+        ubuntu_source_mock = ubuntuSourcePackageMock()
+        ubuntu_source_mock.pull.side_effect = pull_and_unpack_source
+
+        source_package_dir = packagemanager.get_source_package_from_distro("foo", "1:42.0daily83.09.13.2-0ubuntu1", "rolling")
+
+        launchpadMock.login_existing.assert_called_once()
+        ubuntuSourcePackageMock.assert_called_with("foo", "1:42.0daily83.09.13.2-0ubuntu1")
+        ubuntu_source_mock.pull.assert_called_once()
+        ubuntu_source_mock.unpack.assert_called_once()
+        self.assertTrue(os.path.isdir(source_package_dir))
+        self.assertNotIn(':', source_package_dir)
+
+    @patch('cupstream2distro.packagemanager.UbuntuSourcePackage')
+    @patch('cupstream2distro.packagemanager.Launchpad')
+    def test_get_source_package_from_distro_for_native(self, launchpadMock, ubuntuSourcePackageMock):
+        '''We grab the correct source from distro for native packages'''
+
+        def pull_and_unpack_source():
+            '''Fake pulling and unpacking from launchpad'''
+            ubuntu_version_source = self.get_ubuntu_source_content_path('regular_released_branch')
+            shutil.copytree(ubuntu_version_source, 'foo-42.0daily83.09.13.2')
+        ubuntu_source_mock = ubuntuSourcePackageMock()
+        ubuntu_source_mock.pull.side_effect = pull_and_unpack_source
+
+        source_package_dir = packagemanager.get_source_package_from_distro("foo", "42.0daily83.09.13.2", "rolling")
+
+        launchpadMock.login_existing.assert_called_once()
+        ubuntuSourcePackageMock.assert_called_with("foo", "42.0daily83.09.13.2")
+        ubuntu_source_mock.pull.assert_called_once()
+        ubuntu_source_mock.unpack.assert_called_once()
+        self.assertTrue(os.path.isdir(source_package_dir))
+
+    def test_get_source_package_from_distro_not_published(self):
+        '''We return none if the package was never published into the distro'''
+        self.assertIsNone(packagemanager.get_source_package_from_distro("foo", "0", "rolling"))
+        self.assertEqual(os.listdir('.'), [])
 
     def test_is_new_release_needed_with_ubuntu_upload(self):
         '''We always do an ubuntu release if there has been no upload before, even if we break all criterias'''
@@ -336,3 +404,36 @@ class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
         '''We fail if the dput push failed'''
         with self.assertRaises(Exception):
             packagemanager.upload_package('foo', '1:83.09.13-0ubuntu1', 'didrocks/foo')
+
+
+    @patch('cupstream2distro.packagemanager.UbuntuSourcePackage')
+    @patch('cupstream2distro.packagemanager.Launchpad')
+    def test_no_ubuntu_tools_installed_launchpad(self, launchpadMock, ubuntuSourcePackageMock):
+        '''Test if ubuntu tools are not installed (Launchpad object)'''
+
+        launchpadMock = None
+        with self.assertRaises(Exception):
+            packagemanager.get_source_package_from_distro("foo", "42.0daily83.09.13.2", "rolling")
+
+    @patch('cupstream2distro.packagemanager.UbuntuSourcePackage')
+    @patch('cupstream2distro.packagemanager.Launchpad')
+    def test_no_ubuntu_tools_installed_ubuntusource(self, launchpadMock, ubuntuSourcePackageMock):
+        '''Test if ubuntu tools are not installed (ubuntu source package object)'''
+
+        ubuntuSourcePackageMock = None
+        with self.assertRaises(Exception):
+            packagemanager.get_source_package_from_distro("foo", "42.0daily83.09.13.2", "rolling")
+
+    @patch('cupstream2distro.packagemanager.UbuntuSourcePackage')
+    @patch('cupstream2distro.packagemanager.Launchpad')
+    def test_get_source_package_from_distro_no_source(self, launchpadMock, ubuntuSourcePackageMock):
+        '''Assert when we can't find the correct source in distro we try to download'''
+
+        def pull_and_unpack_source():
+            '''Fake failing pulling and unpacking from launchpad'''
+            pass
+        ubuntu_source_mock = ubuntuSourcePackageMock()
+        ubuntu_source_mock.pull.side_effect = pull_and_unpack_source
+
+        with self.assertRaises(Exception):
+            packagemanager.get_source_package_from_distro("foo", "42.0daily83.09.13.2", "rolling")

@@ -152,7 +152,7 @@ def get_source_package_from_distro(source_package_name, distro_version, series):
     if not os.path.isdir(source_directory_name):
         raise Exception("We tried to download and check that the directory {} is present, but it's not the case".format(source_directory_name))
     os.chdir('../..')
-    return (os.path.join('..', source_package_download_dir, source_directory_name))
+    return (os.path.join(source_package_download_dir, source_directory_name))
 
 
 def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, ubuntu_version_source):
