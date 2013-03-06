@@ -72,8 +72,8 @@ def generate_diff_in_branch(starting_rev, source_package_name, packaging_version
         with open("../{}".format(get_packaging_diff_filename(source_package_name, packaging_version)), "w") as f:
             bzrinstance = subprocess.Popen(['bzr', 'diff', '-r', str(starting_rev)], stdout=subprocess.PIPE)
             (changes_to_publish, err) = subprocess.Popen(['filterdiff', '--clean', '-i', 'setup.py',
-                                        '-i', '*Makefile.am', '-i', 'configure.*', '-i', 'debian/*',
-                                        '-i', '*CMakeLists.txt'], stdin=bzrinstance.stdout, stdout=f).communicate()
+                                                          '-i', '*Makefile.am', '-i', 'configure.*', '-i', 'debian/*',
+                                                          '-i', '*CMakeLists.txt'], stdin=bzrinstance.stdout, stdout=f).communicate()
 
 
 def collect_author_bugs(starting_rev, source_package_name):

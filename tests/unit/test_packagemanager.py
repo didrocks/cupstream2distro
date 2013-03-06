@@ -25,8 +25,8 @@ import os
 from mock import patch, Mock
 import shutil
 
-class PackageManagerTests(BaseUnitTestCase):
 
+class PackageManagerTests(BaseUnitTestCase):
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
     def test_get_current_version_for_series_distro(self, mocklaunchpadmanager):
@@ -44,7 +44,7 @@ class PackageManagerTests(BaseUnitTestCase):
         mocklaunchpadmanager.get_series.assert_called_with("rolling")
         mocklaunchpadmanager.get_ubuntu_archive.assert_called_once_with()
         mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
-                                                            source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
+                                                                                                    source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
         self.assertEquals("83.09.14-0ubuntu1", return_version)
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
@@ -63,7 +63,7 @@ class PackageManagerTests(BaseUnitTestCase):
         mocklaunchpadmanager.get_series.assert_called_with("rolling")
         mocklaunchpadmanager.get_ubuntu_archive.assert_called_once_with()
         mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
-                                                            source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
+                                                                                                    source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
         self.assertEquals("83.09.14-0ubuntu1", return_version)
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
@@ -78,7 +78,7 @@ class PackageManagerTests(BaseUnitTestCase):
         mocklaunchpadmanager.get_series.assert_called_with("rolling")
         mocklaunchpadmanager.get_ubuntu_archive.assert_called_once_with()
         mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
-                                                            source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
+                                                                                                    source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
         self.assertEquals("0", return_version)
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
@@ -94,7 +94,7 @@ class PackageManagerTests(BaseUnitTestCase):
         mocklaunchpadmanager.get_series.assert_called_with("rolling")
         mocklaunchpadmanager.get_ppa.assert_called_once_with("didppa")
         mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
-                                                            source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
+                                                                                         source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
         self.assertEquals("83.09.13-0ubuntu1", return_version)
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
@@ -109,9 +109,9 @@ class PackageManagerTests(BaseUnitTestCase):
         mocklaunchpadmanager.get_series.assert_called_with("rolling")
         mocklaunchpadmanager.get_ppa.assert_called_once_with("didppa")
         mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
-                                                            source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
+                                                                                         source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
         self.assertEquals("0", return_version)
-        
+
     def test_lower_version(self):
         '''Matching expectations for different cases for lower/upper version'''
         self.assertTrue(packagemanager.is_version1_higher_than_version2('2-0ubuntu1', '1-0ubuntu1'))
@@ -183,7 +183,6 @@ class PackageManagerTests(BaseUnitTestCase):
     def test_list_packages_info_in_str_no_package(self):
         '''We return no packaging info if we get no package parameter'''
         self.assertEquals(packagemanager.list_packages_info_in_str(set()), "")
-
 
     @patch('cupstream2distro.packagemanager.UbuntuSourcePackage')
     @patch('cupstream2distro.packagemanager.Launchpad')
@@ -303,7 +302,7 @@ class PackageManagerTests(BaseUnitTestCase):
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
     '''Test that uses online services, but as we just pull from them, we can use them'''
-    
+
     @classmethod
     def setUpClass(cls):
         super(PackageManagerOnlineTests, cls).setUpClass()
@@ -404,7 +403,6 @@ class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
         '''We fail if the dput push failed'''
         with self.assertRaises(Exception):
             packagemanager.upload_package('foo', '1:83.09.13-0ubuntu1', 'didrocks/foo')
-
 
     @patch('cupstream2distro.packagemanager.UbuntuSourcePackage')
     @patch('cupstream2distro.packagemanager.Launchpad')
