@@ -299,6 +299,94 @@ class PackageManagerTests(BaseUnitTestCase):
         self.get_data_branch('released_latestsnapshot_included')
         self.assertFalse(packagemanager.is_new_release_needed(12, 11, "foo", ubuntu_version_source='something_we_shouldnt_use'))
 
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_regular(self, datetimeMock):
+        '''We create a new packaging version after an old regular daily release version'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.12-0ubuntu1'), '42daily83.09.13-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_epoch(self, datetimeMock):
+        '''We create a new packaging version after an old regular daily release version but having an epoch'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('1:42daily83.09.12-0ubuntu1'), '1:42daily83.09.13-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_manual_upload(self, datetimeMock):
+        '''We create a new packaging version after an old regular daily release version but having a previous manual upload'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.12-0ubuntu3'), '42daily83.09.13-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_first_rerelease_sameday(self, datetimeMock):
+        '''We create a new packaging version after an already first released version the same day'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.13-0ubuntu1'), '42daily83.09.13.1-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_continous_rerelease_sameday(self, datetimeMock):
+        '''We create a new packaging version after an already more than one released version the same day'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.13.2-0ubuntu1'), '42daily83.09.13.3-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_manual_upload_same_day(self, datetimeMock):
+        '''We create a new packaging version after an already released version the same day with some manual uploads'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.13.2-0ubuntu3'), '42daily83.09.13.3-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_without_daily(self, datetimeMock):
+        '''We create a new packaging version after a normal (non daily) released version'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42-0ubuntu1'), '42daily83.09.13-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_from_native(self, datetimeMock):
+        '''We create a new packaging version after a native released version'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42'), '42daily83.09.13-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_sync_debian(self, datetimeMock):
+        '''We create a new packaging version after a synced version from debian'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42-1'), '42daily83.09.13-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_debian_based_manual(self, datetimeMock):
+        '''We create a new packaging version after a manual based on a debian version'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42-1ubuntu2'), '42daily83.09.13-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_debian_based_daily(self, datetimeMock):
+        '''We create a new packaging version after a manual based on a debian version'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.12-1ubuntu2'), '42daily83.09.13-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
     '''Test that uses online services, but as we just pull from them, we can use them'''
@@ -435,3 +523,8 @@ class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
 
         with self.assertRaises(Exception):
             packagemanager.get_source_package_from_distro("foo", "42.0daily83.09.13.2", "rolling")
+
+    def test_create_new_packaging_version_with_wrong_daily_format(self):
+        '''We raise an exception if there is "daily" in the previous version with a wrong format'''
+        with self.assertRaises(Exception):
+            packagemanager.create_new_packaging_version('42daily83.0garbage9.12-1ubuntu2')
