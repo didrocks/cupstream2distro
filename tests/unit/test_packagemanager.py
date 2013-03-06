@@ -387,6 +387,11 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.12-1ubuntu2'), '42daily83.09.13-0ubuntu1')
         strftime_call.assert_called_with('%y.%m.%d')
 
+    def test_get_packaging_sourcename(self):
+        '''Get the packaging source name'''
+        self.get_data_branch('onemanualupload')
+        self.assertEqual("foo", packagemanager.get_packaging_sourcename())
+
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
     '''Test that uses online services, but as we just pull from them, we can use them'''
@@ -528,3 +533,9 @@ class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
         '''We raise an exception if there is "daily" in the previous version with a wrong format'''
         with self.assertRaises(Exception):
             packagemanager.create_new_packaging_version('42daily83.0garbage9.12-1ubuntu2')
+
+    def test_get_packaging_sourcename_in_wrong_dir(self):
+        '''Raise an excpetion when we don't find any source package name'''
+        self.create_temp_workdir()
+        with self.assertRaises(Exception):
+            packagemanager.get_packaging_sourcename()
