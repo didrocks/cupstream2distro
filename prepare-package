@@ -86,14 +86,13 @@ if __name__ == '__main__':
     # Check version in distro
     logging.info("Get version available in distro")
     distro_version = packagemanager.get_current_version_for_series(source_package_name, series)
-    artefacts_file = os.path.abspath(os.path.join(
-                        '..', PREPARE_ARTEFACTS_FILENAME_FORMAT.format(
-                            source_package_name, distro_version)))
+    artefacts_file = os.path.abspath(os.path.join('..', PREPARE_ARTEFACTS_FILENAME_FORMAT.format(
+                                                  source_package_name, distro_version)))
 
     with open("debian/changelog") as changelog:
         if not packagemanager.is_version_in_changelog(distro_version, changelog):
             message = ("A manual upload to distro ({}) has been done for that component but is not in trunk which is still at {}. "
-                       "Ignoring that component {}.".format(distro_version, previous_packaging_version, instance_info))
+                       "Ignoring that component {}.".format(distro_version, packaging_version_in_bzr, instance_info))
             logging.info(message)
             generate_xml_artefacts("Prepare",  [message], artefacts_file)
             # TODO: open a merge proposal with the diff from distro and approve.
