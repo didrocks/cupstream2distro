@@ -1,0 +1,31 @@
+foo (42.0daily83.09.13-0ubuntu4) UNRELEASED; urgency=low
+
+  * And fixed bug LP: #23456
+
+ -- Rocks Did <didrocks@ubuntu.com>  Sun, 17 Feb 2013 19:06:09 +0000
+
+foo (42.0daily83.09.13-0ubuntu3) UNRELEASED; urgency=low
+
+  * No fix on that one
+
+ -- Rocks Did <didrocks@ubuntu.com>  Sun, 17 Feb 2013 19:06:09 +0000
+
+foo (42.0daily83.09.13-0ubuntu2) UNRELEASED; urgency=low
+
+  [ Didier Roche ]
+  * Add a foo message
+  * Fixed some bug LP: #12345
+
+  [ Rocks Did ]
+  * Another bug from another contestant: LP: #34567
+
+ -- Rocks Did <didrocks@ubuntu.com>  Sun, 17 Feb 2013 19:06:09 +0000
+
+foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
+
+  * We snapshotted it for please
+  * We don't want to take LP: #98765
+  * Automatic snapshot from revision 1
+
+ -- Automatic Didrocks uploader <did@machine.fr>  Fri, 13 Sep 1983 04:02:00 +0000
+

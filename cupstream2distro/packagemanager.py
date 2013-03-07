@@ -235,29 +235,23 @@ def get_packaging_sourcename():
     raise Exception("Didn't find any source name in the package: {}".format(stdout))
 
 
-def collect_bugs_until_latest_bzr_rev(f, source_package_name):
-    '''Collect all bugs until latest bzr rev in the file'''
+def collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name):
+    '''Collect all bugs in the changelog until latest snapshot'''
     bugs = set()
-    temporary_bugs_set = set()
     # matching only bug format that launchpad accepts
-    bug_regexp = re.compile("lp: ?#(\d{5,})", re.IGNORECASE)
-    end_regexp = re.compile(settings.REV_STRING_FORMAT + "(\d+)")
-    new_changelog_regexp = re.compile(settings.NEW_CHANGELOG_PATTERN.format(source_package_name))
+    group_bugs_regexp = re.compile("lp: ?(.*\d{5,})", re.IGNORECASE)
+    bug_decipher_regexp = re.compile("(#\d{5,})+")
+    new_upload_changelog_regexp = re.compile(settings.NEW_CHANGELOG_PATTERN.format(source_package_name))
     for line in f:
-        bug_list = bug_regexp.findall(line)
-        for bug in bug_list:
-            temporary_bugs_set.add(bug)
-        # new cherry-pick upload, put the temporary set in the final bugs set
-        if new_changelog_regexp.match(line) and temporary_bugs_set:
-            bugs = bugs.union(temporary_bugs_set)
-            temporary_bugs_set = set()
-        if end_regexp.findall(line):
-            # don't add the last temporary_bugs_set as it's all the bugs part of the previous automated upload
-            # (the REV_STRING_FORMAT is not assured to be the first line):
-            # those bugs maybe weren't completely fixed after all and a new fix was needed.
+        grouped_bugs_list = group_bugs_regexp.findall(line)
+        for grouped_bugs in grouped_bugs_list:
+            for bug in map(lambda bug_with_hash: bug_with_hash.replace('#', ''), bug_decipher_regexp.findall(grouped_bugs)):
+                bugs.add(bug)
+        #  a released upload to distro (automated or manual)n exit as bugs before were already covered
+        if new_upload_changelog_regexp.match(line):
             return bugs
 
-    raise Exception("Didn't find any string in debian/changelog of the form: \"{}\". Bootstrapping issue?".format(end_regexp.pattern))
+    return bugs
 
 
 def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with_title):

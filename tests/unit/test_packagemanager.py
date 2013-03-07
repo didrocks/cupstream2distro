@@ -392,6 +392,49 @@ class PackageManagerTests(BaseUnitTestCase):
         self.get_data_branch('onemanualupload')
         self.assertEqual("foo", packagemanager.get_packaging_sourcename())
 
+    def test_collect_bugs_in_changelog_until_latest_snapshot_simple(self):
+        '''We collect bugs in the changelog file until latest snapshot. Simple case: some bugs in an unreleased changelog'''
+        source_branch = self.get_origin_branch_path("simple")
+        with open(os.path.join(source_branch, 'debian', 'changelog')) as f:
+            self.assertEquals(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['56789', '67890', '34567', '12345']))
+
+    def test_collect_bugs_in_changelog_until_latest_snapshot_extras(self):
+        '''We collect bugs in the changelog file until latest snapshot. Extras syntax cases: some bugs in an unreleased changelog'''
+        with open(os.path.join(self.data_dir, 'changelogs', 'different_bugs_pattern')) as f:
+            self.assertEquals(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['56789', '67890', '34567', '12345',
+                                                                                                             '567890', '678901', '123456', '1234567']))
+
+    def test_collect_bugs_in_changelog_until_latest_snapshot_no_bugs(self):
+        '''We collect bugs in the changelog file until latest snapshot. No bugs, but an unreleased changelog'''
+        source_branch = self.get_origin_branch_path("basic")
+        with open(os.path.join(source_branch, 'debian', 'changelog')) as f:
+            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set())
+
+    def test_collect_bugs_in_changelog_until_latest_snapshot_no_unrelease_no_manual(self):
+        '''We collect bugs in the changelog file until latest snapshot. No manual upload, no unreleased changelog'''
+        with open(os.path.join(self.data_dir, 'changelogs', 'no_unrelease_no_manual')) as f:
+            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set())
+
+    def test_collect_bugs_in_changelog_until_latest_snapshot_multiple_unrelease(self):
+        '''We collect bugs in the changelog file until latest snapshot, but no bug from it the first snapshot. Only multiple unreleased changelog content'''
+        with open(os.path.join(self.data_dir, 'changelogs', 'multiple_unrelease')) as f:
+            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['34567', '12345', '23456']))
+
+    def test_collect_bugs_in_changelog_until_latest_snapshot_multiple_unrelease_manual_upload(self):
+        '''Test that we collect bugs in the changelog file until latest snapshot. We only collect bugs until the last manual upload'''
+        with open(os.path.join(self.data_dir, 'changelogs', 'multiple_unrelease_with_release')) as f:
+            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['23456']))
+
+    def test_collect_bugs_in_changelog_until_latest_snapshot_only_one_unreleased_changelog(self):
+        '''Test that we collect bugs in the changelog file until latest snapshot. We collect the bugs from the one unreleased changelog'''
+        with open(os.path.join(self.data_dir, 'changelogs', 'one_unreleased')) as f:
+            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['12345']))
+
+    def test_collect_bugs_in_changelog_until_latest_snapshot_only_one_unreleased_changelog_no_bug(self):
+        '''Test that we collect bugs in the changelog file until latest snapshot. We have no bug from the only one unreleased changelog'''
+        with open(os.path.join(self.data_dir, 'changelogs', 'one_unreleased_no_bug')) as f:
+            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set())
+
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
     '''Test that uses online services, but as we just pull from them, we can use them'''

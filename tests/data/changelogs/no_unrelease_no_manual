@@ -1,0 +1,8 @@
+foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
+
+  * We snapshotted it for please
+  * At the time, we fixed bug #12345
+  * Automatic snapshot from revision 1
+
+ -- Automatic Didrocks uploader <did@machine.fr>  Fri, 13 Sep 1983 04:02:00 +0000
+

@@ -72,6 +72,10 @@ class BaseTestCase(unittest.TestCase):
             os.chdir(tempdir)
         return tempdir
 
+    def get_origin_branch_path(self, target_branch_name):
+        '''Return the branch url in the data directory, don't make any other change'''
+        return os.path.join(self.data_dir, 'branches', target_branch_name)
+
     def get_data_branch(self, target_branch_name, cd_in_branch=True):
         '''Return data branch directory from target_branch_name created in the current dir.
 
@@ -81,7 +85,7 @@ class BaseTestCase(unittest.TestCase):
 
         We can optionally cd into the dest branch'''
         dest_branch_path = os.path.abspath(target_branch_name)
-        shutil.copytree(os.path.join(self.data_dir, 'branches', target_branch_name), dest_branch_path)
+        shutil.copytree(self.get_origin_branch_path(target_branch_name), dest_branch_path)
         os.rename(os.path.join(target_branch_name, 'bzr'), os.path.join(dest_branch_path, '.bzr'))
         if cd_in_branch:
             os.chdir(dest_branch_path)
