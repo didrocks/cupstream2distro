@@ -1,0 +1,25 @@
+foo (42.0daily83.09.14-0ubuntu1) raring; urgency=low
+
+  [ Didier Roche ]
+  * Add a foo message
+  * One fix for LP: #12345
+  * Another fix for LP: #23456
+
+  [ Bar ]
+  * Add a bar message
+  * Another fix for LP: #23456
+
+  [ Baz baz ]
+  * and another Fix on LP: #34567
+
+  [ Automatic PS uploader ]
+  * Automatic snapshot from revision 42
+
+ -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Fri, 08 Mar 2013 13:44:51 +0100
+
+foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
+
+  * We snapshotted it for please
+  * Automatic snapshot from revision 1
+
+ -- Automatic Didrocks uploader <did@machine.fr>  Fri, 13 Sep 1983 04:02:00 +0000

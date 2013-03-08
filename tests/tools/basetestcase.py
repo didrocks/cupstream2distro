@@ -32,6 +32,7 @@ class BaseTestCase(unittest.TestCase):
     def setUpClass(cls):
         cls.root_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
         cls.data_dir = os.path.join(cls.root_dir, 'data')
+        cls.result_dir = os.path.join(cls.data_dir, 'results')
 
     @classmethod
     def addToPath(cls, path):
@@ -115,3 +116,12 @@ class BaseTestCase(unittest.TestCase):
         content2 = re.sub(remove_checksums_regexp, r" \1", open(filename2).read().strip())
         self.assertEquals(content1, content2)
 
+    def assertChangelogFilesAreIdenticals(self, filename1, filename2):
+        '''assert that the changelog files are identicals, removing days/hours'''
+        file2 = open(filename2)
+        for linefile1 in open(filename1).readlines():
+            linefile2 = file2.readline()
+            if linefile1.startswith(" -- "):
+                linefile1 = linefile1.split(">  ")[0]
+                linefile2 = linefile2.split(">  ")[0]
+            self.assertEquals(linefile1, linefile2)

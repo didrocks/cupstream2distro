@@ -435,6 +435,61 @@ class PackageManagerTests(BaseUnitTestCase):
         with open(os.path.join(self.data_dir, 'changelogs', 'one_unreleased_no_bug')) as f:
             self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set())
 
+    def test_update_changelog_simple(self):
+        '''Update a changelog from a list of one author with a known bug and bzr rev'''
+        self.get_data_branch('dummypackage')
+        authors = {"Foo": ["One fix for LP: #12345"]}
+        packagemanager.update_changelog("1.2daily83.09.14-0ubuntu1", "raring", 42, authors)
+        result_file = os.path.join(self.result_dir, "simple_changelog_update")
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+
+    def test_update_changelog_simple_no_author(self):
+        '''Update a changelog from a list with no bug fix'''
+        self.get_data_branch('dummypackage')
+        packagemanager.update_changelog("1.2daily83.09.14-0ubuntu1", "raring", 42, {})
+        result_file = os.path.join(self.result_dir, "no_bug_changelog_update")
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+
+    def test_update_changelog_one_author_multiple_bugs(self):
+        '''Update a changelog from a list of one author with multiple bugs'''
+        self.get_data_branch('dummypackage')
+        authors = {"Foo": ["One fix for LP: #12345", "Another fix for LP: #23456"]}
+        packagemanager.update_changelog("1.2daily83.09.14-0ubuntu1", "raring", 42, authors)
+        result_file = os.path.join(self.result_dir, "multiple_bugs_one_author_changelog_update")
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+
+    def test_update_changelog_multiple_authors(self):
+        '''Update a changelog from a list of multiple authors with multiple bugs'''
+        self.get_data_branch('dummypackage')
+        authors = {"Foo": ["One fix for LP: #12345", "Another fix for LP: #23456"], "Bar": ["Another fix for LP: #23456"], "Baz baz": ["and another Fix on LP: #34567"]}
+        packagemanager.update_changelog("1.2daily83.09.14-0ubuntu1", "raring", 42, authors)
+        result_file = os.path.join(self.result_dir, "multiple_authors_bugs_changelog_update")
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+
+    def test_update_changelog_with_existing_content(self):
+        '''Update a changelog when we already have existing content'''
+        self.get_data_branch('basic')
+        authors = {"Foo": ["One fix for LP: #12345", "Another fix for LP: #23456"], "Bar": ["Another fix for LP: #23456"], "Baz baz": ["and another Fix on LP: #34567"]}
+        packagemanager.update_changelog("42.0daily83.09.14-0ubuntu1", "raring", 42, authors)
+        result_file = os.path.join(self.result_dir, "existing_content_changelog_update")
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+
+    def test_update_changelog_with_existing_content_existing_author(self):
+        '''Update a changelog when we already have existing content and author'''
+        self.get_data_branch('basic')
+        authors = {"Didier Roche": ["One fix for LP: #12345", "Another fix for LP: #23456"], "Bar": ["Another fix for LP: #23456"], "Baz baz": ["and another Fix on LP: #34567"]}
+        packagemanager.update_changelog("42.0daily83.09.14-0ubuntu1", "raring", 42, authors)
+        result_file = os.path.join(self.result_dir, "existing_content_author_changelog_update")
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+
+    def test_update_changelog_with_existing_content_existing_multiple_authors(self):
+        '''Update a changelog when we already have existing content and multiple existing authors'''
+        self.get_data_branch('basic_multiple_contents')
+        authors = {"Didier Roche": ["One fix for LP: #12345", "Another fix for LP: #23456"], "Bar": ["Another fix for LP: #23456"], "Baz baz": ["and another Fix on LP: #34567"]}
+        packagemanager.update_changelog("42.0daily83.09.14-0ubuntu1", "raring", 42, authors)
+        result_file = os.path.join(self.result_dir, "existing_content_multiple_authors_changelog_update")
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
     '''Test that uses online services, but as we just pull from them, we can use them'''
@@ -582,3 +637,9 @@ class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
         self.create_temp_workdir()
         with self.assertRaises(Exception):
             packagemanager.get_packaging_sourcename()
+
+    def test_update_changelog_simple_lower(self):
+        '''Raise an exception if we try to update a changelog from a list with a lower version'''
+        self.get_data_branch('dummypackage')
+        with self.assertRaises(Exception):
+            packagemanager.update_changelog("1.1daily83.09.13-0ubuntu1", "rolling", 42, {})
