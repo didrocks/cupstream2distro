@@ -27,7 +27,7 @@ BRANCH_URL = "lp:~ps-jenkins/{}/latestsnapshot"
 
 PROJECT_CONFIG_SUFFIX = "project"
 
-BOT_DEBFULLNAME = "Automatic PS uploader"
+BOT_DEBFULLNAME = "Ubuntu daily release"
 BOT_DEBEMAIL = "ps-jenkins@lists.canonical.com"
 home_dir = os.path.expanduser("~")
 CU2D_DIR = os.path.join(home_dir, "cu2d")

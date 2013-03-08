@@ -13,10 +13,10 @@ foo (42.0daily83.09.14-0ubuntu1) raring; urgency=low
   [ Baz baz ]
   * and another Fix on LP: #34567
 
-  [ Automatic PS uploader ]
+  [ Ubuntu daily release ]
   * Automatic snapshot from revision 42
 
- -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Fri, 08 Mar 2013 13:36:07 +0100
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 08 Mar 2013 13:36:07 +0100
 
 foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
 

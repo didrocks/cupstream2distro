@@ -3,10 +3,10 @@ foo (1.2daily83.09.14-0ubuntu1) raring; urgency=low
   [ Foo ]
   * One fix for LP: #12345
 
-  [ Automatic PS uploader ]
+  [ Ubuntu daily release ]
   * Automatic snapshot from revision 42
 
- -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Thu, 07 Mar 2013 18:49:01 +0100
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thue 07 Mar 2013 18:49:01 +0100
 
 foo (1.2-0ubuntu1) raring; urgency=low
 
