@@ -18,9 +18,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import datetime
+import fileinput
 import logging
 import os
 import re
+import sys
 import subprocess
 
 try:
@@ -305,9 +307,16 @@ def refresh_symbol_files(packaging_version):
     Add a changelog entry if needed'''
 
     new_upstream_version = packaging_version.split("-")[0]
-    if subprocess.call(['grep -qi {} debian/*symbols'.format(settings.REPLACEME_TAG)], shell=True) == 0:  # shell=True for shell expansion
-        if subprocess.call(["sed -i 's/{}\(.*\)/{}/i' debian/*symbols".format(settings.REPLACEME_TAG, new_upstream_version)], shell=True) != 0:
-            raise Exception("The above command returned an error.")
+    replacement_done = False
+    for filename in os.listdir("debian"):
+        if filename.endswith("symbols"):
+            for line in fileinput.input(os.path.join('debian', filename), inplace=1):
+                if settings.REPLACEME_TAG in line:
+                    replacement_done = True
+                    line = line.replace(settings.REPLACEME_TAG, new_upstream_version)
+                sys.stdout.write(line)
+
+    if replacement_done:
         dch_env = os.environ.copy()
         dch_env["DEBFULLNAME"] = settings.BOT_DEBFULLNAME
         dch_env["DEBEMAIL"] = settings.BOT_DEBEMAIL
