@@ -555,7 +555,6 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
         result_symbols = os.path.join(self.result_dir, "multiplesymbols_update.symbols")
         result_changelog = os.path.join(self.result_dir, "simple_update.changelog")
-        #shutil.copy("debian/changelog", result_changelog)
         self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
         self.assertFilesAreIdenticals("debian/bar.symbols", result_symbols)
         self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
@@ -568,6 +567,17 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
         original_install_file = os.path.join(self.data_dir, "branches", "multiple_symbols_with_changelog", "debian", "install")
         self.assertChangelogFilesAreIdenticals("debian/install", original_install_file)
+
+    def test_refresh_symbols_files_alone_symbol(self):
+        '''Update a symbols (not <package>.symbols) file'''
+        self.get_data_branch('basic_alone_symbols')
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        result_symbols = os.path.join(self.result_dir, "simple_update.symbols")
+        result_changelog = os.path.join(self.result_dir, "simple_update.changelog")
+        self.assertFilesAreIdenticals("debian/symbols", result_symbols)
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        os.environ["MOCK_MODE"] = "1"
+        self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
 
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
