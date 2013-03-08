@@ -81,5 +81,15 @@ if __name__ == '__main__':
             print_to_stdout("packaging_with_upstream_and_changelog_change.debiandironlydiff")
             sys.exit(1)
 
+    elif command == "revno":
+        if os.environ.get("MOCK_MODE") == "1":
+            print(8)
+        elif os.environ.get("MOCK_MODE") == "2":
+            print(7)
+
+    elif command == "commit":
+        # we ack the commit
+        sys.exit(0)
+
     # unhandled case
     sys.exit(1)

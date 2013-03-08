@@ -24,6 +24,7 @@ from cupstream2distro import packagemanager
 import os
 from mock import patch, Mock
 import shutil
+import subprocess
 
 
 class PackageManagerTests(BaseUnitTestCase):
@@ -489,6 +490,84 @@ class PackageManagerTests(BaseUnitTestCase):
         packagemanager.update_changelog("42.0daily83.09.14-0ubuntu1", "raring", 42, authors)
         result_file = os.path.join(self.result_dir, "existing_content_multiple_authors_changelog_update")
         self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+
+
+class PackageManagerOfflineTests(BaseUnitTestCase):
+    '''Test that can be used for system test, but not depending on online service'''
+
+    def test_refresh_symbols_files_simple(self):
+        '''Update the symbols file with the new version'''
+        self.get_data_branch('basic_symbols')
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        result_symbols = os.path.join(self.result_dir, "simple_update.symbols")
+        result_changelog = os.path.join(self.result_dir, "simple_update.changelog")
+        self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        os.environ["MOCK_MODE"] = "1"
+        self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
+
+    def test_refresh_symbols_files_multiple_replace_tag_in_symbol(self):
+        '''Update the symbols file having multiple replace tag with the new version'''
+        self.get_data_branch('symbols_with_multiple_replace')
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        result_symbols = os.path.join(self.result_dir, "multiplesymbols_update.symbols")
+        result_changelog = os.path.join(self.result_dir, "simple_update.changelog")
+        self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        os.environ["MOCK_MODE"] = "1"
+        self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
+
+    def test_refresh_symbols_files_simple_with_existing_changelog(self):
+        '''Update the symbols file with the new version having an existing changelog'''
+        self.get_data_branch('basic_symbols_with_changelog')
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        result_symbols = os.path.join(self.result_dir, "simple_update.symbols")
+        result_changelog = os.path.join(self.result_dir, "simple_update_with_existing_content.changelog")
+        self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        os.environ["MOCK_MODE"] = "1"
+        self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
+
+    def test_refresh_symbols_files_with_no_symbol_files(self):
+        '''Update the symbols file with the new version having no symbol file'''
+        self.get_data_branch('simple')
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        result_changelog = os.path.join(self.data_dir, "branches", "simple", "debian", "changelog")
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        os.environ["MOCK_MODE"] = "1"
+        # 8 is tip on "simple branch" means no commit done
+        self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
+
+    def test_refresh_symbols_files_with_no_symbol_files_to_update(self):
+        '''No update for symbols files having nothing to be updated for'''
+        self.get_data_branch('no_symbols_to_update')
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        result_changelog = os.path.join(self.data_dir, "branches", "no_symbols_to_update", "debian", "changelog")
+        result_symbols = os.path.join(self.data_dir, "branches", "no_symbols_to_update", "debian", "foo.symbols")
+        self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        os.environ["MOCK_MODE"] = "2"
+        self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "7\n")
+
+    def test_refresh_symbols_files_with_multiple_symbol_files(self):
+        '''Update all the symbols file with the new version'''
+        self.get_data_branch('multiple_symbols_with_changelog')
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        result_symbols = os.path.join(self.result_dir, "multiplesymbols_update.symbols")
+        result_changelog = os.path.join(self.result_dir, "simple_update.changelog")
+        #shutil.copy("debian/changelog", result_changelog)
+        self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
+        self.assertFilesAreIdenticals("debian/bar.symbols", result_symbols)
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        os.environ["MOCK_MODE"] = "1"
+        self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
+
+    def test_dont_refresh_symbols_files_for_random_file(self):
+        '''We don't update random files having the magic replace stenza'''
+        self.get_data_branch('multiple_symbols_with_changelog')
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        original_install_file = os.path.join(self.data_dir, "branches", "multiple_symbols_with_changelog", "debian", "install")
+        self.assertChangelogFilesAreIdenticals("debian/install", original_install_file)
 
 
 class PackageManagerOnlineTests(BaseUnitTestCase):

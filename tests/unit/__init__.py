@@ -35,6 +35,7 @@ class BaseUnitTestCase(basetestcase.BaseTestCase):
     def setUp(self):
         super(BaseUnitTestCase, self).setUp()
         self.create_temp_workdir()
+        os.environ['MOCK_MODE'] = "0"
 
 
 class BaseUnitTestCaseWithErrors(BaseUnitTestCase):

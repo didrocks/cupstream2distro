@@ -17,7 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from ..unit.test_packagemanager import PackageManagerOnlineTests, PackageManagerOnlineTestsWithErrors
+from ..unit.test_packagemanager import PackageManagerOnlineTests, PackageManagerOnlineTestsWithErrors, PackageManagerOfflineTests
 from . import BaseSystemTestCase
 
 
@@ -27,3 +27,7 @@ class SystemPackageManagerOnlineTests(BaseSystemTestCase, PackageManagerOnlineTe
 
 class SystemPackageManagerOnlineTestsWithErrors(BaseSystemTestCase, PackageManagerOnlineTestsWithErrors):
     '''Same tests than unit PackageManagerOnlineTestsWithErrors, but with system cowbuilder'''
+
+
+class SystemPackageManagerOfflineTests(BaseSystemTestCase, PackageManagerOfflineTests):
+    '''Same tests than unit ackageManagerOfflineTests, but with system components'''

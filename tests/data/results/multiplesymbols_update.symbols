@@ -1,0 +1,6 @@
+foo.so.9 foo9 #MINVER#
+ unity_activation_response_construct@Base 4.0.0
+ unity_activation_response_construct_with_preview@Base 5.90.0
+ unity_annotated_icon_set_size_hint@Base 42.0daily83.09.14
+ unity_mpris_gateway_ensure_playlist_interface_is_raised@Base 4.0.0
+ unity_annotated2_icon_set_size_hint@Base 42.0daily83.09.14
