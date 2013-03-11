@@ -63,9 +63,9 @@ def get_root_stacks_dir():
     return os.environ.get('CONFIG_STACKS_DIR', DEFAULT_CONFIG_STACKS_DIR)
 
 
-def get_stacks_file_path():
+def get_stacks_file_path(release):
     '''Return an iterator with all path for every discovered stack files'''
-    for root, dirs, files in os.walk(get_root_stacks_dir()):
+    for root, dirs, files in os.walk(os.path.join(get_root_stacks_dir(), release)):
         for candidate in files:
             if candidate.endswith('.cfg'):
                 yield os.path.join(root, candidate)
@@ -73,18 +73,17 @@ def get_stacks_file_path():
 
 def get_stack_file_path(stackname, release):
     '''Get a particular stack file based on stack infos'''
-    for stack_file_path in get_stacks_file_path():
+    for stack_file_path in get_stacks_file_path(release):
         if stack_file_path.split(os.path.sep)[-1] == "{}.cfg".format(stackname):
-            if yaml.load(open(stack_file_path, 'r'))['stack']['release'] == release:
-                return stack_file_path
+            return stack_file_path
     raise Exception("{}.cfg for {} doesn't exist anywhere in {}".format(stackname, release, get_root_stacks_dir()))
 
 
-def get_allowed_projects():
-    '''Get all projects allowed to be upload'''
+def get_allowed_projects(release):
+    '''Get all projects allowed to be uploaded for this release'''
 
     projects = []
-    for file_path in get_stacks_file_path():
+    for file_path in get_stacks_file_path(release):
         with open(file_path, 'r') as f:
             cfg = yaml.load(f)
             try:
@@ -112,7 +111,6 @@ def get_depending_stacks(stackname, release):
         cfg = yaml.load(f)
         try:
             deps_list = cfg['stack']['dependencies']
-            current_release = cfg['stack']['release']
             return_list = []
             if not deps_list:
                 return return_list
@@ -120,7 +118,7 @@ def get_depending_stacks(stackname, release):
                 if isinstance(item, dict):
                     return_list.append((item["name"], item["release"]))
                 else:
-                    return_list.append((item, current_release))
+                    return_list.append((item, release))
             print 'list is:', return_list
             return return_list
         except (TypeError, KeyError):

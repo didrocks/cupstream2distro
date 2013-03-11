@@ -54,22 +54,22 @@ class StackTests(BaseUnitTestCase):
         '''Detect stack files a simple directory structure filtering the none cfg ones'''
         simple_path = os.path.join(self.data_dir, 'stack_configs', 'simple')
         os.environ['CONFIG_STACKS_DIR'] = simple_path
-        self.assertEquals(list(stacks.get_stacks_file_path()), [os.path.join(simple_path, 'webapp.cfg'),
-                                                                os.path.join(simple_path, 'unity.cfg')])
+        self.assertEquals(list(stacks.get_stacks_file_path('foo')), [os.path.join(simple_path, 'foo', 'webapp.cfg'),
+                                                                     os.path.join(simple_path, 'foo', 'unity.cfg')])
 
     def test_give_empty_list_for_empty_or_non_existing_path(self):
         '''Return an empty list if we give a non existing path for configuration'''
         os.environ['CONFIG_STACKS_DIR'] = "/nope"
-        self.assertEquals(list(stacks.get_stacks_file_path()), [])
+        self.assertEquals(list(stacks.get_stacks_file_path('foo')), [])
 
     def test_detect_stack_files_regular(self):
         '''Return the expected stack files in a nested environment'''
         stack_path = os.environ['CONFIG_STACKS_DIR']
-        self.assertEquals(list(stacks.get_stacks_file_path()), [os.path.join(stack_path, 'stack1.cfg'),
-                                                                os.path.join(stack_path, 'back', 'stack4.cfg'),
-                                                                os.path.join(stack_path, 'head', 'stack2.cfg'),
-                                                                os.path.join(stack_path, 'head', 'stack3.cfg'),
-                                                                os.path.join(stack_path, 'head', 'stack1.cfg')])
+        self.assertEquals(list(stacks.get_stacks_file_path('front')), [os.path.join(stack_path, 'front', 'stack1.cfg')])
+        self.assertEquals(list(stacks.get_stacks_file_path('back')), [os.path.join(stack_path, 'back', 'stack4.cfg')])
+        self.assertEquals(list(stacks.get_stacks_file_path('head')), [os.path.join(stack_path, 'head', 'stack2.cfg'),
+                                                                      os.path.join(stack_path, 'head', 'stack3.cfg'),
+                                                                      os.path.join(stack_path, 'head', 'stack1.cfg')])
 
     def test_get_stack_file_path(self):
         '''Return the right file in a nested stack environment'''
@@ -79,17 +79,17 @@ class StackTests(BaseUnitTestCase):
     def test_get_stack_file_path_duplicated(self):
         '''Return the right file corresponding to the right release for duplicated filename'''
         stack_path = os.environ['CONFIG_STACKS_DIR']
-        self.assertEquals(stacks.get_stack_file_path('stack1', 'front'), os.path.join(stack_path, 'stack1.cfg'))
+        self.assertEquals(stacks.get_stack_file_path('stack1', 'front'), os.path.join(stack_path, 'front', 'stack1.cfg'))
         self.assertEquals(stacks.get_stack_file_path('stack1', 'head'), os.path.join(stack_path, 'head', 'stack1.cfg'))
 
     def test_get_allowed_projects(self):
         '''Return a list of allowed projects to be uploaded from the stack files. Ignore invalid files and duplicates'''
-        self.assertEquals(stacks.get_allowed_projects(), set(['toto', 'foo', 'bar', 'baz', 'titi', 'tata']))
+        self.assertEquals(stacks.get_allowed_projects("head"), set(['toto', 'foo', 'baz', 'titi', 'tata']))
 
     def test_get_allowed_with_broken_stack(self):
         '''Don't break on broken stack config files (no stack key, no projects key, or no project list)'''
         os.environ['CONFIG_STACKS_DIR'] = os.path.join(self.data_dir, 'stack_configs', 'broken')
-        self.assertEquals(stacks.get_allowed_projects(), set())
+        self.assertEquals(stacks.get_allowed_projects("foo"), set())
 
     def test_get_depending_stacks(self):
         '''Get stack dependencies if they exist'''
