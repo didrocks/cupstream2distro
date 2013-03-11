@@ -143,20 +143,6 @@ def get_stack_status(stackname, release):
         return(int(f.read()))
 
 
-def get_stack_packaging_change_status(source_version_list):
-    '''Return global package change status list
-
-    source_version_list is a list of couples (source, version)'''
-
-    packaging_change_status = []
-    for (source, version) in source_version_list:
-        if os.path.exists(get_packaging_diff_filename(source, version)):
-            message = "Packaging change for {} ({}).".format(source, version)
-            logging.warning(message)
-            packaging_change_status.append(message)
-    return packaging_change_status
-
-
 def generate_dep_status_message(stackname, release):
     '''Return a list of potential problems from others stack which should block current publication'''
 
@@ -196,3 +182,17 @@ What's need to be done:
             logging.warning(message)
             global_dep_status_info.append(message)
     return global_dep_status_info
+
+
+def get_stack_packaging_change_status(source_version_list):
+    '''Return global package change status list
+
+    source_version_list is a list of couples (source, version)'''
+
+    packaging_change_status = []
+    for (source, version) in source_version_list:
+        if os.path.exists(get_packaging_diff_filename(source, version)):
+            message = "Packaging change for {} ({}).".format(source, version)
+            logging.warning(message)
+            packaging_change_status.append(message)
+    return packaging_change_status
