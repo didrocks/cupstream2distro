@@ -24,12 +24,14 @@ import subprocess
 import sys
 
 from .settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN, DEFAULT_CONFIG_STACKS_DIR, STACK_STATUS_FILENAME
+from .tools import get_packaging_diff_filename
 
 
-def get_current_stackname():
-    '''Return current stackname based on current path'''
+def get_current_stack_infos():
+    '''Return current a tuple (stackname, release) based on current path (release/stackname)'''
+    path = os.getcwd().split(os.path.sep)
 
-    return os.getcwd().split(os.path.sep)[-1]
+    return (path[-1], path[-2])
 
 
 def _rsync_stack_files():
@@ -69,12 +71,13 @@ def get_stacks_file_path():
                 yield os.path.join(root, candidate)
 
 
-def get_stack_file_path(stackname):
-    '''Get a particular stack file based on stackname'''
+def get_stack_file_path(stackname, release):
+    '''Get a particular stack file based on stack infos'''
     for stack_file_path in get_stacks_file_path():
-        if stack_file_path.split('/')[-1] == "{}.cfg".format(stackname):
-            return stack_file_path
-    raise Exception("{}.cfg doesn't exist anywhere in {}".format(stackname, get_root_stacks_dir()))
+        if stack_file_path.split(os.path.sep)[-1] == "{}.cfg".format(stackname):
+            if yaml.load(open(stack_file_path, 'r'))['stack']['release'] == release:
+                return stack_file_path
+    raise Exception("{}.cfg for {} doesn't exist anywhere in {}".format(stackname, release, get_root_stacks_dir()))
 
 
 def get_allowed_projects():
@@ -100,19 +103,31 @@ def get_allowed_projects():
     return set(projects)
 
 
-def get_depending_stacks(stackname):
-    '''Get a list of depending stacks on stackname'''
+def get_depending_stacks(stackname, release):
+    '''Get a list of depending stacks infos (stackname, release) on stack infos
 
-    with open(get_stack_file_path(stackname), 'r') as f:
+    If no release is specified, the current release is taken'''
+
+    with open(get_stack_file_path(stackname, release), 'r') as f:
         cfg = yaml.load(f)
         try:
             deps_list = cfg['stack']['dependencies']
-            return deps_list if deps_list else []
+            current_release = cfg['stack']['release']
+            return_list = []
+            if not deps_list:
+                return return_list
+            for item in deps_list:
+                if isinstance(item, dict):
+                    return_list.append((item["name"], item["release"]))
+                else:
+                    return_list.append((item, current_release))
+            print 'list is:', return_list
+            return return_list
         except (TypeError, KeyError):
             return []
 
 
-def get_stack_status(stackname):
+def get_stack_status(stackname, release):
     '''Return a stack status
 
     0 is everything is fine and published
@@ -121,47 +136,61 @@ def get_stack_status(stackname):
 
     Return None if the status is not available yet'''
 
-    statusfile = os.path.join('..', stackname, STACK_STATUS_FILENAME)
+    statusfile = os.path.join('..', '..', release, stackname, STACK_STATUS_FILENAME)
     if not os.path.isfile(statusfile):
         return None
     with open(statusfile, 'r') as f:
         return(int(f.read()))
 
 
-def generate_dep_status_message(stackname):
+def get_stack_packaging_change_status(source_version_list):
+    '''Return global package change status list
+
+    source_version_list is a list of couples (source, version)'''
+
+    packaging_change_status = []
+    for (source, version) in source_version_list:
+        if os.path.exists(get_packaging_diff_filename(source, version)):
+            message = "Packaging change for {} ({}).".format(source, version)
+            logging.warning(message)
+            packaging_change_status.append(message)
+    return packaging_change_status
+
+
+def generate_dep_status_message(stackname, release):
     '''Return a list of potential problems from others stack which should block current publication'''
 
     global_dep_status_info = []
-    for stack in get_depending_stacks(stackname):
-        logging.info("Check status for {}".format(stack))
-        status = get_stack_status(stack)
+    for (stack, rel) in get_depending_stacks(stackname, release):
+        logging.info("Check status for {} ({})".format(stack, rel))
+        status = get_stack_status(stack, rel)
         message = None
         # We should have a status for every stack
         if status is None:
-            message = "Can't find status for {}. This shouldn't happen apart if the stack is currently running. If this is the case, it means that current stack shouldn't be uploaded as the state is unknown.".format(stack)
+            message = "Can't find status for {depstack} ({deprel}). This shouldn't happen apart if the stack is currently running. If this is the case, it means that current stack shouldn't be uploaded as the state is unknown.".format(depstack=stack, deprel=rel)
         elif status == 1:
-            message = '''{depstack} failed to publish. Possible cause are:
+            message = '''{depstack} ({deprel}) failed to publish. Possible cause are:
     * the stack really didn't build/can be prepared at all.
     * the stack have integration tests not working with this previous stack.
 
 What's need to be done:
-    * The integration tests for {depstack} may be rerolled with current dependant stack. If they works, both stacks should be published at the same time.
-    * If we only want to publish this stack, ensure as the integration tests were maybe run from a build against {depstack}, that we can publish the current stack only safely.'''.format(depstack=stack)
+    * The integration tests for {depstack} ({deprel}) may be rerolled with current dependant stack. If they works, both stacks should be published at the same time.
+    * If we only want to publish this stack, ensure as the integration tests were maybe run from a build against {depstack}, that we can publish the current stack only safely.'''.format(depstack=stack, deprel=rel)
         elif status == 2:
-            message = '''{depstack} is in manually publish mode. Possible cause are:
+            message = '''{depstack} ({deprel}) is in manually publish mode. Possible cause are:
     * Some part of the stack has packaging changes
     * This stack is depending on another stack not being published
 
 What's need to be done:
     * The other stack can be published and we want to publish both stacks at the same time.
-    * If we only want to publish this stack, ensure as the integration tests were run from a build against {depstack}, that we can publish the current stack only safely.'''.format(depstack=stack)
+    * If we only want to publish this stack, ensure as the integration tests were run from a build against {depstack} ({deprel}), that we can publish the current stack only safely.'''.format(depstack=stack, deprel=rel)
         elif status == 3 or status == -1:
-            message = '''{depstack} has been manually aborted or failed for an unknown reason. Possible cause are:
+            message = '''{depstack} ({deprel}) has been manually aborted or failed for an unknown reason. Possible cause are:
     * A job of this stack was stopped manually
     * Jenkins had an internal error/shutdown
 
 What's need to be done:
-    * If we want to publish this stack, ensure as the integration tests were maybe run from a build against {depstack}, that we can publish the current stack only safely.'''.format(depstack=stack)
+    * If we want to publish this stack, ensure as the integration tests were maybe run from a build against {depstack} ({deprel}), that we can publish the current stack only safely.'''.format(depstack=stack, deprel=rel)
 
         if message:
             logging.warning(message)

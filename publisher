@@ -25,8 +25,7 @@ import sys
 
 from cupstream2distro import launchpadmanager, packageinppamanager
 from cupstream2distro.branchhandling import propose_branch_for_merging
-from cupstream2distro.packagemanager import get_global_packaging_change_status
-from cupstream2distro.stacks import generate_dep_status_message, get_current_stackname
+from cupstream2distro.stacks import generate_dep_status_message, get_current_stack_infos, get_stack_packaging_change_status
 from cupstream2distro.tools import generate_xml_artefacts, get_previous_distro_version_from_config
 from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT
 
@@ -74,16 +73,16 @@ if __name__ == '__main__':
     src_pocket = 'Release'
 
     logging.info("Copying from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series".format(
-          src_archive=src_ppa, src_pocket=src_pocket, dest_archive=dest_archive, dest_pocket=dest_pocket,
-          series=series))
+                 src_archive=src_ppa, src_pocket=src_pocket, dest_archive=dest_archive, dest_pocket=dest_pocket,
+                 series=series))
     manual_publish_cause_list = []
 
     # Generate global packaging change status
-    manual_publish_cause_list.extend(get_global_packaging_change_status(packageinppamanager.get_all_packages_uploaded()))
+    manual_publish_cause_list.extend(get_stack_packaging_change_status(packageinppamanager.get_all_packages_uploaded()))
 
     # Generate global stack status based on rdepends
-    stackname = get_current_stackname()
-    manual_publish_cause_list.extend(generate_dep_status_message(stackname))
+    (stackname, release) = get_current_stack_infos()
+    manual_publish_cause_list.extend(generate_dep_status_message(stackname, release))
 
     if manual_publish_cause_list and not args.force:
         logging.info("Don't upload the stack automatically.")

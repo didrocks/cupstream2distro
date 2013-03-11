@@ -17,8 +17,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from . import BaseUnitTestCase
+from . import BaseUnitTestCase, BaseUnitTestCaseWithErrors
 import os
+import shutil
 
 from cupstream2distro import stacks, settings
 
@@ -30,6 +31,15 @@ class StackTests(BaseUnitTestCase):
         '''set default stack test dir'''
         super(BaseUnitTestCase, self).setUp()
         os.environ['CONFIG_STACKS_DIR'] = os.path.join(self.data_dir, 'stack_configs', 'default')
+        self.workdir = os.path.join(self.data_dir, 'workdir', 'default')
+
+    def test_get_current_stack_infos(self):
+        '''Get stack infos based on current workdir path'''
+        self.create_temp_workdir()
+        path_to_create = os.path.join('head', 'foo')
+        os.makedirs(path_to_create)
+        os.chdir(path_to_create)
+        self.assertEquals(stacks.get_current_stack_infos(), ('foo', 'head'))
 
     def test_get_root_stacks_dir_default(self):
         '''Default root stacks dir is the expected one'''
@@ -44,8 +54,8 @@ class StackTests(BaseUnitTestCase):
         '''Detect stack files a simple directory structure filtering the none cfg ones'''
         simple_path = os.path.join(self.data_dir, 'stack_configs', 'simple')
         os.environ['CONFIG_STACKS_DIR'] = simple_path
-        self.assertEquals(list(stacks.get_stacks_file_path()), [os.path.join(simple_path, 'webapp-head.cfg'),
-                                                                os.path.join(simple_path, 'unity-first.cfg')])
+        self.assertEquals(list(stacks.get_stacks_file_path()), [os.path.join(simple_path, 'webapp.cfg'),
+                                                                os.path.join(simple_path, 'unity.cfg')])
 
     def test_give_empty_list_for_empty_or_non_existing_path(self):
         '''Return an empty list if we give a non existing path for configuration'''
@@ -58,17 +68,19 @@ class StackTests(BaseUnitTestCase):
         self.assertEquals(list(stacks.get_stacks_file_path()), [os.path.join(stack_path, 'stack1.cfg'),
                                                                 os.path.join(stack_path, 'back', 'stack4.cfg'),
                                                                 os.path.join(stack_path, 'head', 'stack2.cfg'),
-                                                                os.path.join(stack_path, 'head', 'stack3.cfg')])
+                                                                os.path.join(stack_path, 'head', 'stack3.cfg'),
+                                                                os.path.join(stack_path, 'head', 'stack1.cfg')])
 
     def test_get_stack_file_path(self):
         '''Return the right file in a nested stack environment'''
         stack_path = os.environ['CONFIG_STACKS_DIR']
-        self.assertEquals(stacks.get_stack_file_path('stack4'), os.path.join(stack_path, 'back', 'stack4.cfg'))
+        self.assertEquals(stacks.get_stack_file_path('stack4', 'back'), os.path.join(stack_path, 'back', 'stack4.cfg'))
 
-    def test_get_exception_for_unexisting_file(self):
-        '''Return an exception if the file doesn't exist'''
-        with self.assertRaises(Exception):
-            stacks.get_stack_file_path('foo')
+    def test_get_stack_file_path_duplicated(self):
+        '''Return the right file corresponding to the right release for duplicated filename'''
+        stack_path = os.environ['CONFIG_STACKS_DIR']
+        self.assertEquals(stacks.get_stack_file_path('stack1', 'front'), os.path.join(stack_path, 'stack1.cfg'))
+        self.assertEquals(stacks.get_stack_file_path('stack1', 'head'), os.path.join(stack_path, 'head', 'stack1.cfg'))
 
     def test_get_allowed_projects(self):
         '''Return a list of allowed projects to be uploaded from the stack files. Ignore invalid files and duplicates'''
@@ -81,12 +93,39 @@ class StackTests(BaseUnitTestCase):
 
     def test_get_depending_stacks(self):
         '''Get stack dependencies if they exist'''
-        self.assertEquals(stacks.get_depending_stacks('stack1'), ['stack0', 'stackneg'])
+        self.assertEquals(stacks.get_depending_stacks('stack1', 'front'), [('stack0', 'front'), ('stackneg', 'back')])
 
     def test_ignore_if_no_dependencies(self):
         '''Return nothing if there is no dependencies'''
-        self.assertEquals(stacks.get_depending_stacks('stack3'), [])
+        self.assertEquals(stacks.get_depending_stacks('stack3', 'head'), [])
 
     def test_ignore_if_dependencies_empty(self):
         '''Return an empty array if there is no dependencies'''
-        self.assertEquals(stacks.get_depending_stacks('stack2'), [])
+        self.assertEquals(stacks.get_depending_stacks('stack2', 'head'), [])
+
+    def test_get_depending_stacks_if_no_release(self):
+        '''Get stack dependencies if there is no release specified'''
+        self.assertEquals(stacks.get_depending_stacks('stack1', 'head'), [('foo', 'head'), ('bar', 'front')])
+
+    def test_get_stack_status(self):
+        '''Return stack status from the reverse dependency stack'''
+        self.create_temp_workdir()
+        shutil.copytree(self.workdir, 'workdir')
+        current_workdir = os.path.join('workdir', 'head', 'stack2')
+        os.makedirs(current_workdir)
+        os.chdir(current_workdir)
+        self.assertEquals(stacks.get_stack_status("stack1", "head"), 0)
+        self.assertEquals(stacks.get_stack_status("stack3", "head"), 1)
+
+
+class StackTestsErrors(BaseUnitTestCaseWithErrors):
+
+    def test_get_exception_for_unexisting_file(self):
+        '''Return an exception if the file doesn't exist'''
+        with self.assertRaises(Exception):
+            stacks.get_stack_file_path('foo', 'back')
+
+    def test_get_exception_for_existing_file_but_wrong_release(self):
+        '''Return an exception if the file doesn't exist for the current release'''
+        with self.assertRaises(Exception):
+            stacks.get_stack_file_path('stack4', 'front')

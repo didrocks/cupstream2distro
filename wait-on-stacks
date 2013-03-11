@@ -23,7 +23,7 @@ import logging
 import sys
 import time
 
-from cupstream2distro.stacks import get_depending_stacks, get_stack_status, get_current_stackname
+from cupstream2distro.stacks import get_depending_stacks, get_stack_status, get_current_stack_infos
 from cupstream2distro.settings import TIME_BETWEEN_STACK_CHECKS
 
 
@@ -35,8 +35,8 @@ if __name__ == '__main__':
                                      epilog="Stack should be in a directory matching their current stack name stacks and all should have the same parent dir.")
     args = parser.parse_args()
 
-    stackname = get_current_stackname()
-    waiting_on_stacks = get_depending_stacks(stackname)
+    (stackname, release) = get_current_stack_infos()
+    waiting_on_stacks = get_depending_stacks(stackname, release)
 
     if not waiting_on_stacks:
         logging.info("No depending stacks were found. This steps should even not be called.")
@@ -44,11 +44,11 @@ if __name__ == '__main__':
 
     while(True):
         logging.info("Waiting on {}".format(', '.join(waiting_on_stacks)))
-        for stack in waiting_on_stacks[:]:  # as we modify the list, makes a copy first
-            status = get_stack_status(stack)
+        for (stackname, release) in waiting_on_stacks[:]:  # as we modify the list, makes a copy first
+            status = get_stack_status(stackname, release)
             if status is not None:
-                logging.info("Stack {} has now finished".format(stack))
-                waiting_on_stacks.remove(stack)
+                logging.info("Stack {} ({}) has now finished".format(stackname, release))
+                waiting_on_stacks.remove((stackname, release))
         if not waiting_on_stacks:
             break
         time.sleep(TIME_BETWEEN_STACK_CHECKS)

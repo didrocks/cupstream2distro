@@ -49,8 +49,8 @@ class CU2DStackStatus(object):
         self.job_name = os.getenv('JOB_NAME')
         self.stack_status = -1
 
-        self.outputfile = os.path.join(self.jenkinsdir, 'cu2d/work',
-                                       '%s-%s' % (self.stack, self.release),
+        self.outputfile = os.path.join(self.jenkinsdir, 'cu2d', 'work',
+                                       self.release, self.stack,
                                        'stack.status')
 
     def __parse_args(self):

@@ -34,7 +34,6 @@ except ImportError:
 
 import launchpadmanager
 import settings
-from .tools import get_packaging_diff_filename
 
 
 def get_current_version_for_series(source_package_name, series_name, ppa_name=None):
@@ -322,17 +321,3 @@ def refresh_symbol_files(packaging_version):
         dch_env["DEBEMAIL"] = settings.BOT_DEBEMAIL
         subprocess.Popen(["dch", "debian/*symbols: auto-update new symbols to released version"], env=dch_env).communicate()
         subprocess.call(["bzr", "commit", "-m", "Update symbols"])
-
-
-def get_global_packaging_change_status(source_version_list):
-    '''Return global package change status list
-
-    source_version_list is a list of couples (source, version)'''
-
-    packaging_change_status = []
-    for (source, version) in source_version_list:
-        if os.path.exists(get_packaging_diff_filename(source, version)):
-            message = "Packaging change for {} ({}).".format(source, version)
-            logging.warning(message)
-            packaging_change_status.append(message)
-    return packaging_change_status
