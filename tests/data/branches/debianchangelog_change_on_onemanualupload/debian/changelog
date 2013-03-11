@@ -1,0 +1,18 @@
+foo (42.1-0ubuntu1) UNRELEASED; urgency=low
+
+  * Manual change in changelog, like for build-dep bump
+
+ -- Didier Roche <didrocks@ubuntu.com>  Mon, 11 Mar 2013 12:23:32 +0100
+
+foo (42.0daily83.09.13-0ubuntu2) raring; urgency=low
+
+  * New great manual upload!
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 20 Feb 2013 15:53:52 +0000
+
+foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
+
+  * New awesome app
+  * Automatic snapshot from revision 3
+
+ -- Rocks Did <didrocks@ubuntu.com>  Sun, 17 Feb 2013 19:06:09 +0000

@@ -290,6 +290,12 @@ class PackageManagerTests(BaseUnitTestCase):
         ubuntu_version_source = self.get_ubuntu_source_content_path('onemanualupload')
         self.assertFalse(packagemanager.is_new_release_needed(999, 1, "foo", ubuntu_version_source=ubuntu_version_source))
 
+    def test_release_even_if_changelog_change(self):
+        '''We release even if the only change is a debian/changelog change'''
+        self.get_data_branch('debianchangelog_change_on_onemanualupload')
+        ubuntu_version_source = self.get_ubuntu_source_content_path('onemanualupload')
+        self.assertTrue(packagemanager.is_new_release_needed(6, 3, "foo", ubuntu_version_source=ubuntu_version_source))
+
     def test_dont_release_if_no_commit(self):
         '''We don't release if we don't have anything new as a commit (tip == latestsnapshot)'''
         self.get_data_branch('released_latestsnapshot_included')
