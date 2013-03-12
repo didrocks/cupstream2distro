@@ -2,6 +2,6 @@
 branch = lp:foo
 
 [Package]
-distro_version = 6.12.0-0ubuntu1
+dest_current_version = 6.12.0-0ubuntu1
 packaging_version = 6.12.0daily13.02.27-0ubuntu1
 

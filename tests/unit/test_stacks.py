@@ -124,6 +124,11 @@ class StackTestsWithOnline(BaseUnitTestCase):
         super(StackTestsWithOnline, self).setUp()
         os.environ['CU2D_RSYNCSVR'] = "default"
 
+    @classmethod
+    def tearDownClass(cls):
+        super(StackTestsWithOnline, cls).setUpClass()
+        os.environ.pop('CU2D_RSYNCSVR')
+
     def test_rsync_file(self):
         '''We rsync multiple files from the network'''
         stacks._rsync_stack_files()
@@ -162,16 +167,26 @@ class StackTestsErrors(BaseUnitTestCaseWithErrors):
 
 class StackTestsWithOnlineErrors(BaseUnitTestCaseWithErrors):
 
+    def setUp(self):
+        '''set default rsync env var'''
+        super(StackTestsWithOnlineErrors, self).setUp()
+        os.environ['CU2D_RSYNCSVR'] = "default"
+
+    @classmethod
+    def tearDownClass(cls):
+        super(StackTestsWithOnlineErrors, cls).setUpClass()
+        os.environ.pop('CU2D_RSYNCSVR')
+
     def test_rsync_file_no_env_var(self):
         '''We error efficiently if there is no rsync environment variable'''
         os.environ['MOCK_ERROR_MODE'] = "0"
+        os.environ.pop('CU2D_RSYNCSVR')
         with self.assertRaises(Exception):
             stacks._rsync_stack_files()
         self.assertEquals(os.listdir('.'), [])
 
     def test_rsync_file_with_rsync_error(self):
         '''We raise an exception if there is an error in rsync'''
-        os.environ['CU2D_RSYNCSVR'] = "default"
         with self.assertRaises(Exception):
             stacks._rsync_stack_files()
         self.assertEquals(os.listdir('.'), [])

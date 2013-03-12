@@ -39,6 +39,7 @@ if __name__ == '__main__':
     parser.add_argument("-b", "--branch", help="Branch to use as the upstream source")
     parser.add_argument("-s", "--series", help="Serie used to build the package")
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
+    parser.add_argument("-d", "--destppa", help="Consider this destppa instead of only the distro for finale destination", default='')
     args = parser.parse_args()
 
     source_package_name = args.sourcename
@@ -86,30 +87,50 @@ if __name__ == '__main__':
     # Check version in distro
     logging.info("Get version available in distro")
     distro_version = packagemanager.get_current_version_for_series(source_package_name, series)
-    artefacts_file = os.path.abspath(os.path.join('..', PREPARE_ARTEFACTS_FILENAME_FORMAT.format(
-                                                  source_package_name, distro_version)))
+    artefacts_file = os.path.abspath(os.path.join('..', PREPARE_ARTEFACTS_FILENAME_FORMAT.format(source_package_name)))
 
+    # if the target is the distro, we ensure we have all releases in trunk
+    if not args.destppa:
+        previous_finaledest_version = distro_version
+    # target is a ppa
+    else:
+        ##dest_archive = launchpadmanager.get_ppa(args.destppa)
+        ##dest_pocket = 'Release'
+        previous_finaledest_version = packagemanager.get_current_version_for_series(source_package_name, series, args.destppa)
+
+    # ensure that the previous release (in distro or in dest ppa) ended up in the vcs
     with open("debian/changelog") as changelog:
-        if not packagemanager.is_version_in_changelog(distro_version, changelog):
-            message = ("A manual upload to distro ({}) has been done for that component but is not in trunk which is still at {}. "
-                       "Ignoring that component {}.".format(distro_version, packaging_version_in_bzr, instance_info))
+        if not packagemanager.is_version_in_changelog(previous_finaledest_version, changelog):
+            message = ("A version ({}) is available at the destination for that component but is not in trunk which is still at {}. "
+                       "Ignoring that component {}.".format(previous_finaledest_version, packaging_version_in_bzr, instance_info))
             logging.info(message)
             generate_xml_artefacts("Prepare",  [message], artefacts_file)
-            # TODO: open a merge proposal with the diff from distro and approve.
             sys.exit(0)
 
-    # Check if new revision to publish
-    logging.info("Check if new revision were published")
-    tip_bzr_rev = branchhandling.get_tip_bzr_revision()
-    os.chdir('..')
-    distro_source_package = packagemanager.get_source_package_from_distro(source_package_name, distro_version, series)
-    os.chdir(source_package_name)
-    if not packagemanager.is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, os.path.join('..', distro_source_package)):
-        logging.info("No new useful revision published since last daily push, no need to upload this component")
-        generate_xml_artefacts("Prepare",  [], artefacts_file)
-        sys.exit(0)
+    force_release = False
+    if args.destppa:
+        # if the version in the distro is higher than the previous packaging version (either the version in intermediate ppa or packaging bzr version
+        # We are going to force releasing, but basing on this version
+        if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
+            logging.info("The version in distro ({}) is higher than our latest automated snapshot ({}). Basing on that one.".format(distro_version, previous_packaging_version))
+            previous_packaging_version = distro_version
+            logging.info("Forcing release mode as the version in distro ({}) is higher than current destination ppa ({})".format(distro_version, previous_packaging_version))
+            force_release = True
 
-    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version)
+    # Check if we need to republish
+    if not force_release:
+        logging.info("Check if we need to release a new package")
+        tip_bzr_rev = branchhandling.get_tip_bzr_revision()
+        os.chdir('..')
+        # TODO: should be last dev
+        distro_source_package = packagemanager.get_source_package_from_distro(source_package_name, distro_version, series)
+        os.chdir(source_package_name)
+        if not packagemanager.is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, os.path.join('..', distro_source_package)):
+            logging.info("No new useful revision published since last daily push, no need to upload this component")
+            generate_xml_artefacts("Prepare",  [], artefacts_file)
+            sys.exit(0)
+
+    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=args.destppa)
 
     # Refresh symbol files
     logging.info("Update symbol files version if needed")
@@ -134,12 +155,12 @@ if __name__ == '__main__':
     launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series)
 
     logging.info("Build source package and upload to the ppa")
-    packagemanager.build_source_package(series, distro_version)
+    packagemanager.build_source_package(series, previous_finaledest_version)
     os.chdir('..')
     packagemanager.upload_package(source_package_name, packaging_version, ppa)
 
     # Save infos for other jobs
-    save_project_config(source_package_name, branch, distro_version, packaging_version)
+    save_project_config(source_package_name, branch, previous_finaledest_version, packaging_version)
 
     # generate artefacts
     os.chdir(source_package_name)

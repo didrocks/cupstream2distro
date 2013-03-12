@@ -394,6 +394,30 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.12-1ubuntu2'), '42daily83.09.13-0ubuntu1')
         strftime_call.assert_called_with('%y.%m.%d')
 
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_with_ppa_dest(self, datetimeMock):
+        '''We create a new packaging version after with a ppa destination not being distro'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.12-0ubuntu1', 'didrocks/my-ppa_mine'), '42daily83.09.13didrocks.my.ppa.mine-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_with_ppa_dest_after_a_ppa_dest(self, datetimeMock):
+        '''We create a new packaging version after with a ppa destination not being distro after another ppa_dest'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.12didrocks.my.ppa.mine-0ubuntu1', 'didrocks/my-ppa_mine'), '42daily83.09.13didrocks.my.ppa.mine-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_with_ppa_dest_after_a_ppa_dest_with_intermediate_version(self, datetimeMock):
+        '''We create a new packaging version after with a ppa destination not being distro after another ppa_dest released the same day'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.13didrocks.my.ppa.mine-0ubuntu1', 'didrocks/my-ppa_mine'), '42daily83.09.13.1didrocks.my.ppa.mine-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
     def test_get_packaging_sourcename(self):
         '''Get the packaging source name'''
         self.get_data_branch('onemanualupload')

@@ -46,12 +46,12 @@ class CU2DStackStatus(object):
         self.statuses = ('NA', 'SUCCESS', 'UNSTABLE', 'ABORTED', 'FAILURE')
         self.jobformat = 'cu2d-{}-{}-{}'
         self.jobsdir = os.path.join(self.jenkinsdir, 'jobs')
-        self.job_name = os.getenv('JOB_NAME')
         self.stack_status = -1
 
         self.outputfile = os.path.join(self.jenkinsdir, 'cu2d', 'work',
                                        self.release, self.stack,
                                        'stack.status')
+        print (self.outputfile)
 
     def __parse_args(self):
         ''' Argument parser '''

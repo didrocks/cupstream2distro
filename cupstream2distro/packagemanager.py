@@ -170,6 +170,7 @@ def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, u
     if not ubuntu_version_source:
         return True
 
+    # we only consider the number of commits if we don't have a finale dest ppa
     num_uploads = 0
     regex = re.compile(settings.REV_STRING_FORMAT + "(\d+)")
     new_changelog_regexp = re.compile(settings.NEW_CHANGELOG_PATTERN.format(source_package_name))
@@ -194,22 +195,24 @@ def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, u
     return (relevant_changes != '')
 
 
-def create_new_packaging_version(previous_package_version):
+def create_new_packaging_version(base_package_version, destppa=''):
     '''Deliver a new packaging version, based on simple rules:
 
     Version would be <upstream_version>daily<yy.mm.dd(.minor)>-0ubuntu1
-    if we already have something delivered today, it will be .minor, then, .minor+1…'''
+    if we already have something delivered today, it will be .minor, then, .minor+1…
+
+    We append the destination ppa name if we target a dest ppa and not distro'''
 
     today_version = datetime.date.today().strftime('%y.%m.%d')
     # bootstrapping mode or direct upload or UNRELEASED for bumping to a new series
-    if not "daily" in previous_package_version:
-        upstream_version = previous_package_version.split('-')[0]
+    if not "daily" in base_package_version:
+        upstream_version = base_package_version.split('-')[0]
     else:
         # extract the day of previous daily upload and bump if already uploaded today
-        regexp = re.compile("(.*)daily([\d\.]{8})([.\d]*)-.*")
-        previous_day = regexp.findall(previous_package_version)
+        regexp = re.compile("(.*)daily([\d\.]{8})([.\d]*).*-.*")
+        previous_day = regexp.findall(base_package_version)
         if not previous_day:
-            raise Exception("Didn't find a correct versioning in the current package: {}".format(previous_package_version))
+            raise Exception("Didn't find a correct versioning in the current package: {}".format(base_package_version))
         previous_day = previous_day[0]
         upstream_version = previous_day[0]
         if previous_day[1] == today_version:
@@ -218,7 +221,8 @@ def create_new_packaging_version(previous_package_version):
                 minor = int(previous_day[2][1:]) + 1
             today_version = "{}.{}".format(today_version, minor)
 
-    return "{}daily{}-0ubuntu1".format(upstream_version, today_version)
+    destppa = destppa.replace("-", '.').replace("_", ".").replace("/", ".")
+    return "{}daily{}{}-0ubuntu1".format(upstream_version, today_version, destppa)
 
 
 def get_packaging_sourcename():
