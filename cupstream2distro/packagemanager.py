@@ -24,13 +24,7 @@ import os
 import re
 import sys
 import subprocess
-
-try:
-    from ubuntutools.lp.lpapicache import Launchpad
-    from ubuntutools.archive import UbuntuSourcePackage
-except ImportError:
-    Launchpad = None
-    UbuntuSourcePackage = None
+import urllib
 
 import launchpadmanager
 import settings
@@ -118,16 +112,16 @@ def get_packaging_version():
     raise Exception("Didn't find any Version in the package: {}".format(stdout))
 
 
-def get_source_package_from_distro(source_package_name, distro_version, series):
-    '''Download and return a path containing a checkout of the current distro version.
+def get_source_package_from_dest(source_package_name, dest_archive, dest_version, series):
+    '''Download and return a path containing a checkout of the current dest version.
 
-    None if this package was never published to distro'''
+    None if this package was never published to dest archive'''
 
-    if distro_version == "0":
-        logging.info("This package was never released to the distro, don't return downloaded source")
+    if dest_version == "0":
+        logging.info("This package was never released to the destination archive, don't return downloaded source")
         return None
 
-    logging.info("Grab code for {} ({}) from {}".format(source_package_name, distro_version, series))
+    logging.info("Grab code for {} ({}) from {}".format(source_package_name, dest_version, series))
     source_package_download_dir = os.path.join('ubuntu', source_package_name)
     try:
         os.makedirs(source_package_download_dir)
@@ -135,16 +129,21 @@ def get_source_package_from_distro(source_package_name, distro_version, series):
         pass
     os.chdir(source_package_download_dir)
 
-    if not Launchpad or not UbuntuSourcePackage:
-        raise Exception("Launchpad tool from ubuntutools doesn't seem to be installed, we won't be able to pull the source and complete the operation")
-    Launchpad.login_existing(lp=launchpadmanager.get_launchpad())
-    logging.info('Downloading %s version %s', source_package_name, distro_version)
-    srcpkg = UbuntuSourcePackage(source_package_name, distro_version)
-    srcpkg.pull()
-    srcpkg.unpack()
+    # will raise an exception if can't find
+    try:
+        sourcepkg = dest_archive.getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=series, version=dest_version)[0]
+    except IndexError:
+        raise Exception("Couldn't get in the destination the expected version")
+    logging.info('Downloading %s version %s', source_package_name, dest_version)
+    for url in sourcepkg.sourceFileUrls():
+        urllib.urlretrieve(url, url.split('/')[-1])
+    instance = subprocess.Popen("dpkg-source -x *dsc", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = instance.communicate()
+    if instance.returncode != 0:
+        raise Exception(stderr.decode("utf-8").strip())
 
     # check the dir exist
-    splitted_version = distro_version.split(':')[-1].split('-')  # remove epoch is there is one
+    splitted_version = dest_version.split(':')[-1].split('-')  # remove epoch is there is one
     # TODO: debian version (like -3) is not handled here.
     if "ubuntu" in splitted_version[-1]:  # don't remove last item for the case where we had a native version (-0.35.2) without ubuntu in it
         splitted_version = splitted_version[:-1]

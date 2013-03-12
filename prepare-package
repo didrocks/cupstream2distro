@@ -91,11 +91,11 @@ if __name__ == '__main__':
 
     # if the target is the distro, we ensure we have all releases in trunk
     if not args.destppa:
+        dest_archive = launchpadmanager.get_ubuntu_archive()
         previous_finaledest_version = distro_version
     # target is a ppa
     else:
-        ##dest_archive = launchpadmanager.get_ppa(args.destppa)
-        ##dest_pocket = 'Release'
+        dest_archive = launchpadmanager.get_ppa(args.destppa)
         previous_finaledest_version = packagemanager.get_current_version_for_series(source_package_name, series, args.destppa)
 
     # ensure that the previous release (in distro or in dest ppa) ended up in the vcs
@@ -122,10 +122,9 @@ if __name__ == '__main__':
         logging.info("Check if we need to release a new package")
         tip_bzr_rev = branchhandling.get_tip_bzr_revision()
         os.chdir('..')
-        # TODO: should be last dev
-        distro_source_package = packagemanager.get_source_package_from_distro(source_package_name, distro_version, series)
+        dest_source_package = packagemanager.get_source_package_from_dest(source_package_name, dest_archive, previous_finaledest_version, series)
         os.chdir(source_package_name)
-        if not packagemanager.is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, os.path.join('..', distro_source_package)):
+        if not packagemanager.is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, os.path.join('..', dest_source_package)):
             logging.info("No new useful revision published since last daily push, no need to upload this component")
             generate_xml_artefacts("Prepare",  [], artefacts_file)
             sys.exit(0)
