@@ -109,13 +109,43 @@ class StackTests(BaseUnitTestCase):
 
     def test_get_stack_status(self):
         '''Return stack status from the reverse dependency stack'''
-        self.create_temp_workdir()
         shutil.copytree(self.workdir, 'workdir')
         current_workdir = os.path.join('workdir', 'head', 'stack2')
         os.makedirs(current_workdir)
         os.chdir(current_workdir)
         self.assertEquals(stacks.get_stack_status("stack1", "head"), 0)
         self.assertEquals(stacks.get_stack_status("stack3", "head"), 1)
+
+
+class StackTestsWithOnline(BaseUnitTestCase):
+
+    def setUp(self):
+        '''set default rsync env var'''
+        super(StackTestsWithOnline, self).setUp()
+        os.environ['CU2D_RSYNCSVR'] = "default"
+
+    def test_rsync_file(self):
+        '''We rsync multiple files from the network'''
+        stacks._rsync_stack_files()
+        self.assertEquals(os.listdir('.'), ['packagelist_rsync_foo-front', 'packagelist_rsync_oif-head'])
+
+    def test_rsync_file_nothing_to_rsync(self):
+        '''We get nothing through rsync'''
+        os.environ['CU2D_RSYNCSVR'] = "nothing"
+        # FAIL, but why?
+        stacks._rsync_stack_files()
+        self.assertEquals(os.listdir('.'), [])
+
+    def test_get_stack_files_to_sync(self):
+        '''We get the default tuple for stack files to sync'''
+        self.assertEquals(list(stacks.get_stack_files_to_sync()), [('packagelist_rsync_foo-front', 'front'),
+                                                                   ('packagelist_rsync_oif-head', 'head')])
+
+    def test_get_stack_files_to_sync_nothing_to_sync(self):
+        '''Empty result if nothing to sync'''
+        os.environ['CU2D_RSYNCSVR'] = "nothing"
+        stacks._rsync_stack_files()
+        self.assertEquals(list(stacks.get_stack_files_to_sync()), [])
 
 
 class StackTestsErrors(BaseUnitTestCaseWithErrors):
@@ -129,3 +159,20 @@ class StackTestsErrors(BaseUnitTestCaseWithErrors):
         '''Return an exception if the file doesn't exist for the current release'''
         with self.assertRaises(Exception):
             stacks.get_stack_file_path('stack4', 'front')
+
+
+class StackTestsWithOnlineErrors(BaseUnitTestCaseWithErrors):
+
+    def test_rsync_file_no_env_var(self):
+        '''We error efficiently if there is no rsync environment variable'''
+        os.environ['MOCK_ERROR_MODE'] = "0"
+        with self.assertRaises(Exception):
+            stacks._rsync_stack_files()
+        self.assertEquals(os.listdir('.'), [])
+
+    def test_rsync_file_with_rsync_error(self):
+        '''We raise an exception if there is an error in rsync'''
+        os.environ['CU2D_RSYNCSVR'] = "default"
+        with self.assertRaises(Exception):
+            stacks._rsync_stack_files()
+        self.assertEquals(os.listdir('.'), [])

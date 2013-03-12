@@ -40,8 +40,7 @@ def _rsync_stack_files():
     if server:
         remoteaddr = RSYNC_PATTERN.replace('RSYNCSVR', server)
     else:
-        logging.error('Please set environment variable CU2D_RSYNCSVR')
-        sys.exit(1)
+        raise Exception('Please set environment variable CU2D_RSYNCSVR')
 
     cmd = ["rsync", '--remove-source-files', remoteaddr, '.']
     instance = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -51,11 +50,11 @@ def _rsync_stack_files():
 
 
 def get_stack_files_to_sync():
-    '''Return a list of file'''
+    '''Return a list of tuple: (file, release)'''
     _rsync_stack_files()
     for file in os.listdir('.'):
         if file.startswith(PACKAGE_LIST_RSYNC_FILENAME_PREFIX):
-            yield file
+            yield (file, file.split('-')[-1])
 
 
 def get_root_stacks_dir():

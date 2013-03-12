@@ -41,19 +41,15 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--series", help="Serie used to build the package")
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
     parser.add_argument("-d", "--destppa", help="Consider this destppa instead of {series}-proposed")
-    parser.add_argument("-j", "--JOB_NAME", help="Set this JOB_NAME for generating an unique id for the file to rsync")
 
     args = parser.parse_args()
 
     series = args.series
     ppa = args.ppa
-    jobname = args.JOB_NAME
     if not series:
         series = os.getenv("series")
     if not ppa:
         ppa = os.getenv("ppa")
-    if not jobname:
-        jobname = os.getenv("JOB_NAME")
 
     if not ppa or not series:
         logging.info("ppa and series parameters are mandatory.")
@@ -66,9 +62,6 @@ if __name__ == '__main__':
     else:
         dest_archive = launchpadmanager.get_ubuntu_archive()
         dest_pocket = 'Proposed'
-        if not jobname:
-            logging.info("JOB_NAME is mandatory if you want to release to the main ubuntu archive")
-            sys.exit(1)
     src_ppa = launchpadmanager.get_ppa(ppa)
     src_pocket = 'Release'
 
@@ -100,7 +93,8 @@ if __name__ == '__main__':
                 distro_version = get_previous_distro_version_from_config(source)
                 package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(ppa, src_pocket, series, dest_pocket, series, source, version, distro_version))
         if package_to_copy:
-            logging.info("Writing {} for being able to rsync from main machine".format(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname)))
-            with open(PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(jobname), 'w') as f:
+            package_list_rsync_file = PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(stackname, release)
+            logging.info("Writing {} for being able to rsync from main machine".format(package_list_rsync_file))
+            with open(package_list_rsync_file, 'w') as f:
                 f.write("\n".join(package_to_copy))
         generate_xml_artefacts("Publisher", [], PUBLISHER_ARTEFACTS_FILENAME)
