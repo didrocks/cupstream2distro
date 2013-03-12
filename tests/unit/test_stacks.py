@@ -29,7 +29,7 @@ class StackTests(BaseUnitTestCase):
 
     def setUp(self):
         '''set default stack test dir'''
-        super(BaseUnitTestCase, self).setUp()
+        super(StackTests, self).setUp()
         os.environ['CONFIG_STACKS_DIR'] = os.path.join(self.data_dir, 'stack_configs', 'default')
         self.workdir = os.path.join(self.data_dir, 'workdir', 'default')
 
