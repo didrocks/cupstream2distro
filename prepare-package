@@ -118,9 +118,9 @@ if __name__ == '__main__':
             force_release = True
 
     # Check if we need to republish
+    tip_bzr_rev = branchhandling.get_tip_bzr_revision()
     if not force_release:
         logging.info("Check if we need to release a new package")
-        tip_bzr_rev = branchhandling.get_tip_bzr_revision()
         os.chdir('..')
         dest_source_package = packagemanager.get_source_package_from_dest(source_package_name, dest_archive, previous_finaledest_version, series)
         os.chdir(source_package_name)
