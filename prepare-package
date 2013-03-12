@@ -113,8 +113,8 @@ if __name__ == '__main__':
         # We are going to force releasing, but basing on this version
         if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
             logging.info("The version in distro ({}) is higher than what is proposed in the bzr version for that branch ({}). Basing on the distro version.".format(distro_version, previous_packaging_version))
-            previous_packaging_version = distro_version
             logging.info("Forcing release mode as the version in distro ({}) is higher than current destination ppa ({})".format(distro_version, previous_packaging_version))
+            previous_packaging_version = distro_version
             force_release = True
 
     # Check if we need to republish
