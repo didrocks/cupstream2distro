@@ -112,7 +112,7 @@ def get_packaging_version():
     raise Exception("Didn't find any Version in the package: {}".format(stdout))
 
 
-def get_source_package_from_dest(source_package_name, dest_archive, dest_version, series):
+def get_source_package_from_dest(source_package_name, dest_archive, dest_version, series_name):
     '''Download and return a path containing a checkout of the current dest version.
 
     None if this package was never published to dest archive'''
@@ -121,15 +121,15 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_version
         logging.info("This package was never released to the destination archive, don't return downloaded source")
         return None
 
-    logging.info("Grab code for {} ({}) from {}".format(source_package_name, dest_version, series))
+    logging.info("Grab code for {} ({}) from {}".format(source_package_name, dest_version, series_name))
     source_package_download_dir = os.path.join('ubuntu', source_package_name)
+    series = launchpadmanager.get_series(series_name)
     try:
         os.makedirs(source_package_download_dir)
     except OSError:
         pass
     os.chdir(source_package_download_dir)
 
-    # will raise an exception if can't find
     try:
         sourcepkg = dest_archive.getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=series, version=dest_version)[0]
     except IndexError:

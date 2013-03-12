@@ -193,7 +193,8 @@ class PackageManagerTests(BaseUnitTestCase):
             result_files_path.append(os.path.join(package_source_dir, filename))
         return result_files_path
 
-    def test_get_source_package_from_dest(self):
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_source_package_from_dest(self, launchpadmanagerMock):
         '''We grab the correct source from dest'''
 
         dest_archive = Mock()
@@ -203,11 +204,13 @@ class PackageManagerTests(BaseUnitTestCase):
 
         source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "42.0daily83.09.13.2-0ubuntu1", "rolling")
 
-        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series="rolling", version="42.0daily83.09.13.2-0ubuntu1")
+        launchpadmanagerMock.get_series.assert_called_once_with("rolling")
+        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series=launchpadmanagerMock.get_series.return_value, version="42.0daily83.09.13.2-0ubuntu1")
         source1.sourceFileUrls.assert_called_once()
         self.assertTrue(os.path.isdir(source_package_dir))
 
-    def test_get_source_package_from_dest_having_multiple_candidates(self):
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_source_package_from_dest_having_multiple_candidates(self, launchpadmanagerMock):
         '''We grab the correct source from dest, even if we have more than once'''
 
         dest_archive = Mock()
@@ -218,12 +221,14 @@ class PackageManagerTests(BaseUnitTestCase):
 
         source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "42.0daily83.09.13.2-0ubuntu1", "rolling")
 
-        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series="rolling", version="42.0daily83.09.13.2-0ubuntu1")
+        launchpadmanagerMock.get_series.assert_called_once_with("rolling")
+        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series=launchpadmanagerMock.get_series.return_value, version="42.0daily83.09.13.2-0ubuntu1")
         source1.sourceFileUrls.assert_called_once()
         self.assertFalse(source2.sourceFileUrls.called)
         self.assertTrue(os.path.isdir(source_package_dir))
 
-    def test_get_source_package_from_dest_with_epoc(self):
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_source_package_from_dest_with_epoc(self, launchpadmanagerMock):
         '''We grab the correct source from dest with epoch'''
 
         dest_archive = Mock()
@@ -233,12 +238,14 @@ class PackageManagerTests(BaseUnitTestCase):
 
         source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "1:42.0daily83.09.13.2-0ubuntu1", "rolling")
 
-        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series="rolling", version="1:42.0daily83.09.13.2-0ubuntu1")
+        launchpadmanagerMock.get_series.assert_called_once_with("rolling")
+        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series=launchpadmanagerMock.get_series.return_value, version="1:42.0daily83.09.13.2-0ubuntu1")
         source1.sourceFileUrls.assert_called_once()
         self.assertTrue(os.path.isdir(source_package_dir))
         self.assertNotIn(':', source_package_dir)
 
-    def test_get_source_package_from_dest_for_native(self):
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_source_package_from_dest_for_native(self, launchpadmanagerMock):
         '''We grab the correct source from dest for native packages'''
 
         dest_archive = Mock()
@@ -248,14 +255,17 @@ class PackageManagerTests(BaseUnitTestCase):
 
         source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "42.0daily83.09.13.2", "rolling")
 
-        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series="rolling", version="42.0daily83.09.13.2")
+        launchpadmanagerMock.get_series.assert_called_once_with("rolling")
+        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series=launchpadmanagerMock.get_series.return_value, version="42.0daily83.09.13.2")
         source1.sourceFileUrls.assert_called_once()
         self.assertTrue(os.path.isdir(source_package_dir))
 
-    def test_get_source_package_from_dest_not_published(self):
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_source_package_from_dest_not_published(self, launchpadmanagerMock):
         '''We return none if the package was never published into the dest'''
         self.assertIsNone(packagemanager.get_source_package_from_dest("foo", None, "0", "rolling"))
         self.assertEqual(os.listdir('.'), [])
+        self.assertFalse(launchpadmanagerMock.get_series.called)
 
     def test_is_new_release_needed_with_ubuntu_upload(self):
         '''We always do an ubuntu release if there has been no upload before, even if we break all criterias'''
@@ -728,7 +738,8 @@ class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
         with self.assertRaises(Exception):
             packagemanager.upload_package('foo', '1:83.09.13-0ubuntu1', 'didrocks/foo')
 
-    def test_get_source_package_from_dest_no_source(self):
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_source_package_from_dest_no_source(self, launchpadmanagerMock):
         '''Assert when we can't find the correct source in dest we try to download'''
 
         dest_archive = Mock()
@@ -736,7 +747,8 @@ class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
         with self.assertRaises(Exception):
             packagemanager.get_source_package_from_dest("foo", dest_archive, "42.0daily83.09.13.2", "rolling")
 
-    def test_get_source_package_from_dest_wrong_content_source(self):
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_source_package_from_dest_wrong_content_source(self, launchpadmanagerMock):
         '''Assert when we didn't download properly expected source (in this case, no .dsc file)'''
 
         def get_source_files_for_package_but_dsc(package_name):
@@ -756,7 +768,7 @@ class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
         with self.assertRaises(Exception):
             packagemanager.get_source_package_from_dest("foo", dest_archive, "42.0daily83.09.13.2-0ubuntu1", "rolling")
 
-        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series="rolling", version="42.0daily83.09.13.2-0ubuntu1")
+        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series=launchpadmanagerMock.get_series.return_value, version="42.0daily83.09.13.2-0ubuntu1")
         source1.sourceFileUrls.assert_called_once()
 
     def test_create_new_packaging_version_with_wrong_daily_format(self):
