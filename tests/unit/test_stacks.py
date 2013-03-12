@@ -132,7 +132,6 @@ class StackTestsWithOnline(BaseUnitTestCase):
     def test_rsync_file_nothing_to_rsync(self):
         '''We get nothing through rsync'''
         os.environ['CU2D_RSYNCSVR'] = "nothing"
-        # FAIL, but why?
         stacks._rsync_stack_files()
         self.assertEquals(os.listdir('.'), [])
 

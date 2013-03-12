@@ -37,17 +37,15 @@ if __name__ == '__main__':
     launchpadmanager.get_launchpad(use_cred_file=None)
     dest_archive = launchpadmanager.get_ubuntu_archive()
 
-    allowed_projects = get_allowed_projects()
-
     logging.debug("Check if there are some stacks to synchronize")
-    for file in get_stack_files_to_sync():
+    for (file, release) in get_stack_files_to_sync():
         logging.info("Found {}".format(file))
         with open(file) as f:
             for line in f.readlines():
                 (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, distro_version_at_prepare_time) = line.strip().split("\t")
-                logging.debug("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version,
-                                                                    ppa, from_series, src_pocket, to_series, dest_pocket))
-                if not source in allowed_projects:
+                logging.debug("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version, ppa, from_series,
+                                                                                                               src_pocket, to_series, dest_pocket))
+                if not source in get_allowed_projects(release):
                     logging.error("The project {} is not in the allowed stack to be copied to distro. Rejecting.".format(source))
                     continue
 
