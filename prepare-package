@@ -149,7 +149,9 @@ if __name__ == '__main__':
 
     # Prepare if a packaging change is part of the diff
     logging.info("Generate a diff if meaningfull packaging changes")
-    branchhandling.generate_diff_in_branch(last_upstream_rev, source_package_name, packaging_version)
+    # FIXME: same issue with commit not being in feature branch
+    if not args.destppa:
+        branchhandling.generate_diff_in_branch(last_upstream_rev, source_package_name, packaging_version)
 
     # opens bugs
     logging.info("Sync launchpad with current proposed work")
