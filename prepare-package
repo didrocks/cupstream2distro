@@ -140,8 +140,11 @@ if __name__ == '__main__':
 
     # Prepare changelog
     logging.info("Prepare changelog content")
-    authors_bugs = branchhandling.collect_author_bugs(last_upstream_rev + 1, source_package_name)
-    authors_bugs_with_title = launchpadmanager.get_bugs_titles(authors_bugs)
+    authors_bugs_with_title = {}
+    # for a feature branch, we don't care about the fixed bugs
+    if not args.destppa:
+        authors_bugs = branchhandling.collect_author_bugs(last_upstream_rev + 1, source_package_name)
+        authors_bugs_with_title = launchpadmanager.get_bugs_titles(authors_bugs)
     packagemanager.update_changelog(packaging_version, series, tip_bzr_rev, authors_bugs_with_title)
 
     # Prepare if a packaging change is part of the diff
