@@ -153,13 +153,14 @@ if __name__ == '__main__':
     if not args.destppa:
         branchhandling.generate_diff_in_branch(last_upstream_rev, source_package_name, packaging_version)
 
-    # opens bugs
-    logging.info("Sync launchpad with current proposed work")
-    branchhandling.commit_release(packaging_version, tip_bzr_rev)
-    bugs_set = set()
-    for author in authors_bugs:
-        bugs_set = bugs_set.union(authors_bugs[author])
-    launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series)
+    # opens bugs if we are going to release
+    if not args.destppa:
+        logging.info("Sync launchpad with current proposed work")
+        branchhandling.commit_release(packaging_version, tip_bzr_rev)
+        bugs_set = set()
+        for author in authors_bugs:
+            bugs_set = bugs_set.union(authors_bugs[author])
+        launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series)
 
     logging.info("Build source package and upload to the ppa")
     packagemanager.build_source_package(series, previous_finaledest_version)
