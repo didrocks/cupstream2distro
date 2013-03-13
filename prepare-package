@@ -123,8 +123,11 @@ if __name__ == '__main__':
         logging.info("Check if we need to release a new package")
         os.chdir('..')
         dest_source_package = packagemanager.get_source_package_from_dest(source_package_name, dest_archive, previous_finaledest_version, series)
+        # TODO: all paths, on all projects, should have the stack dir as root, and only chdir in the script, not the functions.
+        if dest_source_package:
+            dest_source_package = os.path.abspath(dest_source_package)
         os.chdir(source_package_name)
-        if not packagemanager.is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, os.path.join('..', dest_source_package)):
+        if not packagemanager.is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, dest_source_package):
             logging.info("No new useful revision published since last daily push, no need to upload this component")
             generate_xml_artefacts("Prepare",  [], artefacts_file)
             sys.exit(0)
