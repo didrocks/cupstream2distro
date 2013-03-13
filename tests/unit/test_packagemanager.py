@@ -23,8 +23,8 @@ from cupstream2distro import packagemanager
 
 import os
 from mock import patch, Mock
-import shutil
 import subprocess
+import urllib
 
 
 class PackageManagerTests(BaseUnitTestCase):
@@ -190,7 +190,7 @@ class PackageManagerTests(BaseUnitTestCase):
         result_files_path = []
         package_source_dir = self.get_ubuntu_source_content_path(package_name)
         for filename in os.listdir(package_source_dir):
-            result_files_path.append(os.path.join(package_source_dir, filename))
+            result_files_path.append(os.path.join(package_source_dir, urllib.quote(filename)))
         return result_files_path
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
@@ -257,6 +257,22 @@ class PackageManagerTests(BaseUnitTestCase):
 
         launchpadmanagerMock.get_series.assert_called_once_with("rolling")
         dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series=launchpadmanagerMock.get_series.return_value, version="42.0daily83.09.13.2")
+        source1.sourceFileUrls.assert_called_once()
+        self.assertTrue(os.path.isdir(source_package_dir))
+
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_source_package_from_dest_with_special_chars(self, launchpadmanagerMock):
+        '''We grab the correct source from dest with special chars like ~ and +'''
+
+        dest_archive = Mock()
+        source1 = Mock()
+        dest_archive.getPublishedSources.return_value = [source1]
+        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_specialchars_package')
+
+        source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "42.0~daily83.09.13.2+0-0ubuntu1", "rolling")
+
+        launchpadmanagerMock.get_series.assert_called_once_with("rolling")
+        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series=launchpadmanagerMock.get_series.return_value, version="42.0~daily83.09.13.2+0-0ubuntu1")
         source1.sourceFileUrls.assert_called_once()
         self.assertTrue(os.path.isdir(source_package_dir))
 

@@ -112,16 +112,16 @@ def get_packaging_version():
     raise Exception("Didn't find any Version in the package: {}".format(stdout))
 
 
-def get_source_package_from_dest(source_package_name, dest_archive, dest_version, series_name):
+def get_source_package_from_dest(source_package_name, dest_archive, dest_current_version, series_name):
     '''Download and return a path containing a checkout of the current dest version.
 
     None if this package was never published to dest archive'''
 
-    if dest_version == "0":
+    if dest_current_version == "0":
         logging.info("This package was never released to the destination archive, don't return downloaded source")
         return None
 
-    logging.info("Grab code for {} ({}) from {}".format(source_package_name, dest_version, series_name))
+    logging.info("Grab code for {} ({}) from {}".format(source_package_name, dest_current_version, series_name))
     source_package_download_dir = os.path.join('ubuntu', source_package_name)
     series = launchpadmanager.get_series(series_name)
     try:
@@ -131,19 +131,19 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_version
     os.chdir(source_package_download_dir)
 
     try:
-        sourcepkg = dest_archive.getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=series, version=dest_version)[0]
+        sourcepkg = dest_archive.getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=series, version=dest_current_version)[0]
     except IndexError:
         raise Exception("Couldn't get in the destination the expected version")
-    logging.info('Downloading %s version %s', source_package_name, dest_version)
+    logging.info('Downloading %s version %s', source_package_name, dest_current_version)
     for url in sourcepkg.sourceFileUrls():
-        urllib.urlretrieve(url, url.split('/')[-1])
+        urllib.urlretrieve(url, urllib.unquote(url.split('/')[-1]))
     instance = subprocess.Popen("dpkg-source -x *dsc", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8").strip())
 
     # check the dir exist
-    splitted_version = dest_version.split(':')[-1].split('-')  # remove epoch is there is one
+    splitted_version = dest_current_version.split(':')[-1].split('-')  # remove epoch is there is one
     # TODO: debian version (like -3) is not handled here.
     if "ubuntu" in splitted_version[-1]:  # don't remove last item for the case where we had a native version (-0.35.2) without ubuntu in it
         splitted_version = splitted_version[:-1]
