@@ -152,8 +152,14 @@ class PackageInPPA():
                         logging.error("{} marked as FAILED because {} build FAILED and we may miss arch:all packages".format(arch, self.arch_all_arch))
 
         # If arch_all_arch is built and we only have arch:all packages, sync the published state
+        # FIXME: why at_least_one_published_binary, status[self.arch_all_arch] == self.PUBLISHED should cover it, isn't it?
         if status[self.arch_all_arch] == self.PUBLISHED and only_arch_all_packages and at_least_one_published_binary:
             for arch in self.archs:
                 status[arch] = self.PUBLISHED
+
+        # FIXME: if at_least_one_published_binary isn't necessary, we can factorize that with the above part
+        if status[self.arch_all_arch] == self.FAILED and only_arch_all_packages:
+            for arch in self.archs:
+                status[arch] = self.FAILED
 
         return status
