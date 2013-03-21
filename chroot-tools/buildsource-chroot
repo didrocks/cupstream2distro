@@ -1,5 +1,5 @@
 #! /bin/bash
-# Copyright (C) 2012 Canonical
+# Copyright (C) 2012-2013 Canonical
 #
 # Authors:
 #  Didier Roche
@@ -104,8 +104,24 @@ export PBCURRENTCOMMANDLINEOPERATION="pdebuild"
 "$PBUILDERSATISFYDEPENDSCMD"-classic --force-version --continue-fail
 
 # create the user similar to that used outside.
-groupadd -g $CHROOT_GID -o pbgroup
-useradd -g pbgroup -u $CHROOT_UID -d "${HOME}" -o pbuser
+cmd_retry_exec () {
+    # Tries to execute $@ $loop times with a delay of $delay between retries
+    # before aborting
+    loop=10
+    delay=1
+    set +e
+    while [ $loop -gt 0 ]; do
+        $@ && break
+        loop=$((loop - 1))
+        sleep $delay
+    done
+    set -e
+}
+
+# Workaround a bug where /etc/group or /etc/passwd are locked when several
+# jobs run in parallel (LP: #1155510)
+cmd_retry_exec groupadd -g $CHROOT_GID -o pbgroup
+cmd_retry_exec useradd -g pbgroup -u $CHROOT_UID -d "${HOME}" -o pbuser
 
 # build the source in split mode
 if [ "$KEYID" == "testkey" ]; then
