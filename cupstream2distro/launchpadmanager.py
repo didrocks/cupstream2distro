@@ -110,7 +110,7 @@ def get_all_available_archs_and_all_arch(series, ppa=None):
     '''Return a set of available arch for a ppa eventually'''
     available_arch = set()
     if ppa and ppa.require_virtualized:
-        available_arch = VIRTUALIZED_PPA_ARCH
+        available_arch = set(VIRTUALIZED_PPA_ARCH)
         arch_all_arch = VIRTUALIZED_PPA_ARCH[0]
     else:
         for arch in series.architectures:
