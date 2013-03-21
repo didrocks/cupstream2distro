@@ -1,7 +1,7 @@
 #! /usr/bin/python
 """ Calculate autopilot pass rate
 """
-# Copyright (C) 2012, Canonical Ltd (http://www.canonical.com/)
+# Copyright (C) 2012-2013, Canonical Ltd (http://www.canonical.com/)
 #
 # Author: Jean-Baptiste Lallement <jean-baptiste.lallement@canonical.com>
 #
@@ -38,6 +38,7 @@ DEFAULT_CFG = {
     'skip': '3%',
     'removal': '0'
 }
+DEFAULT_SYSID = ''
 
 EFAILURE = 1 << 1
 EREGRESS = 1 << 2
@@ -89,8 +90,7 @@ def set_logging(debugmode=False):
     """Initialize logging"""
     logging.basicConfig(
         level=logging.DEBUG if debugmode else logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s"
-        )
+        format="%(asctime)s %(levelname)s %(message)s")
     logging.debug('Debug mode enabled')
 
 
@@ -135,7 +135,13 @@ def archive_log(histdir, lognew):
 
     histdir = os.path.abspath(os.path.expanduser(histdir))
     if not os.path.exists(histdir):
-        os.makedirs(histdir)
+        logging.debug('Creating archive directory %s', histdir)
+        try:
+            os.makedirs(histdir)
+        except OSError as exc:
+            logging.error('Failed to create directory: %s . %s. Exiting!',
+                          histdir, exc)
+            sys.exit(1)
     elif not os.path.isdir(histdir):
         logging.error('\'%s\' exists and is not a directory. Aborting!',
                       histdir)
@@ -258,6 +264,11 @@ def main():
                         help='enable debug mode')
     parser.add_argument('logfile', help='autopilot result file in Junit '
                         'format')
+    parser.add_argument('systemid', default=DEFAULT_SYSID,
+                        help='Unique ID. This id is used to archive the '
+                        'results in a unique location when the same testsuite '
+                        'is run for several configurations (default: \'%s\')' %
+                        DEFAULT_SYSID)
 
     args = parser.parse_args()
     set_logging(args.debug)
@@ -269,7 +280,8 @@ def main():
 
     prevlog = currlog = None
     if not args.no_archive:
-        (prevlog, currlog) = archive_log(config['history'], args.logfile)
+        (prevlog, currlog) = archive_log(
+            os.path.join(config['history'], args.systemid), args.logfile)
     else:
         currlog = args.logfile
 
