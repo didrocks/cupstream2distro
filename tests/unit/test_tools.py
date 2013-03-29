@@ -30,7 +30,6 @@ class ToolsTests(BaseUnitTestCase):
     def setUp(self):
         '''add some default files'''
         super(ToolsTests, self).setUp()
-        self.project_file_dir = os.path.join(self.data_dir, 'project_files')
         self.artefacts_dir = os.path.join(self.data_dir, 'artefacts')
 
     def test_get_previous_distro_version_from_config(self):

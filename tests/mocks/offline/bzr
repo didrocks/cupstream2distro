@@ -30,16 +30,17 @@ def print_to_stdout(filename):
 
 if __name__ == '__main__':
 
-    if os.environ.get("MOCK_ERROR_MODE") == "1":
+    command = sys.argv[1]
+    options = " ".join(sys.argv[1:])
+
+    if os.environ.get("MOCK_ERROR_MODE") == "1" or os.environ.get("MOCK_ERROR_MODE") == command or os.environ.get("MOCK_ERROR_MODE") == options:
         sys.stderr.write('error asked for bzr\n')
         sys.exit(1)
 
-    command = sys.argv[1]
-    options = " ".join(sys.argv[1:])
     if command == 'branch':
         origin_path = sys.argv[2]
         if len(sys.argv) < 4:
-            dest_branch = origin_path.split('/')[-1]
+            dest_branch = origin_path.splti('/')[-1]
         else:
             dest_branch = sys.argv[3]
         shutil.copytree(origin_path, dest_branch)
@@ -90,6 +91,14 @@ if __name__ == '__main__':
     elif command == "commit":
         # we ack the commit
         sys.exit(0)
+
+    elif command == "push":
+        if options == "push lp:~ps-jenkins/basic/latestsnapshot-6.12.0daily13.02.27.in.special.ppa-0ubuntu1 --overwrite":
+            sys.exit(0)
+
+    elif command == "lp-propose-merge":
+        if options == "lp-propose-merge lp:foo -m Releasing 6.12.0daily13.02.27.in.special.ppa-0ubuntu1 to ubuntu --approve":
+            sys.exit(0)
 
     # unhandled case
     sys.exit(1)

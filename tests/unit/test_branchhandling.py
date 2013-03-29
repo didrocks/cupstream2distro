@@ -19,6 +19,7 @@
 
 from . import BaseUnitTestCase, BaseUnitTestCaseWithErrors
 import os
+import shutil
 
 from cupstream2distro import branchhandling
 
@@ -79,7 +80,6 @@ class BranchHandlingTests(BaseUnitTestCase):
         expected_content = open(os.path.join(self.data_dir, "results", "bzr_log_remerge_trunk")).read()
         self.assertEquals(branchhandling._return_log_diff(12).strip(), expected_content.strip())
 
-
 class BranchHandlingTestsWithErrors(BaseUnitTestCaseWithErrors):
 
     def test_return_exception_when_cant_branch(self):
@@ -105,3 +105,40 @@ class BranchHandlingTestsWithErrors(BaseUnitTestCaseWithErrors):
         os.chdir(self.get_data_branch('basic'))
         with self.assertRaises(Exception):
             branchhandling.generate_diff_in_branch(3, "foo", "42.0daily83.09.13-0ubuntu2")
+
+
+class BranchHandlingTestForOfflineOnly(BaseUnitTestCase):
+    '''We don't rely on system tools for those or we shouldn't use online (making merge proposal and so on)'''
+
+    def test_get_parent_branch_from_config(self):
+        '''We load and return the parent branch we should target for from config'''
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), '.')
+        self.assertEquals(branchhandling._get_parent_branch('foo'), 'lp:foo')
+
+    def test_propose_branch_for_merging(self):
+        '''We do propose a branch depending on the packaging version (and so depending on the destination)'''
+        self.get_data_branch('basic')
+        os.chdir('..')
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'basic.project')
+        branchhandling.propose_branch_for_merging('basic', '6.12.0daily13.02.27.in.special.ppa-0ubuntu1')
+
+
+class BranchHandlingTestForOfflineOnlyWithErrors(BaseUnitTestCaseWithErrors):
+
+    def test_propose_branch_for_merging_push_failed(self):
+        '''We raise an exception is push failed'''
+        self.get_data_branch('basic')
+        os.chdir('..')
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'basic.project')
+        os.environ['MOCK_ERROR_MODE'] = "push"
+        with self.assertRaises(Exception):
+            branchhandling.propose_branch_for_merging('basic', '6.12.0daily13.02.27.in.special.ppa-0ubuntu1')
+
+    def test_propose_branch_for_merging_propose_failed(self):
+        '''We raise an exception is lp-propose-merge failed'''
+        self.get_data_branch('basic')
+        os.chdir('..')
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'basic.project')
+        os.environ['MOCK_ERROR_MODE'] = "lp-propose-merge"
+        with self.assertRaises(Exception):
+            branchhandling.propose_branch_for_merging('basic', '6.12.0daily13.02.27.in.special.ppa-0ubuntu1')
