@@ -283,60 +283,39 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertEqual(os.listdir('.'), [])
         self.assertFalse(launchpadmanagerMock.get_series.called)
 
-    def test_is_new_release_needed_with_ubuntu_upload(self):
-        '''We always do an ubuntu release if there has been no upload before, even if we break all criterias'''
-        self.assertTrue(packagemanager.is_new_release_needed(2, 1, "foo", ubuntu_version_source=None))
+    def test_release_with_no_ubuntu_upload(self):
+        '''We release if there has been no upload before'''
+        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=None))
 
-    def test_release_if_at_least_one_commit(self):
-        '''We release if there is at least one commit (not including latestsnapshot commit) , including an upstream change'''
-        self.get_data_branch('oneupstreamchange')
-        ubuntu_version_source = self.get_ubuntu_source_content_path('regular_released_branch')
-        self.assertTrue(packagemanager.is_new_release_needed(12, 10, "foo", ubuntu_version_source=ubuntu_version_source))
-
-    def test_release_if_at_least_one_commit_even_committed_before_snapshot_commit(self):
-        '''We release if there is at least one commit (not including latestsnapshot commit) , including an upstream change, even if committed before the latest snapshot commit'''
+    def test_release_if_content_committed_before_snapshot_commit(self):
+        '''We release if there is at least one change including an upstream change'''
         self.get_data_branch('oneupstreamchange_before_snapshot_committed')
-        ubuntu_version_source = self.get_ubuntu_source_content_path('oneupstreamchange_before_snapshot_committed')
-        self.assertTrue(packagemanager.is_new_release_needed(10, 8, "foo", ubuntu_version_source=ubuntu_version_source))
+        dest_version_source = self.get_ubuntu_source_content_path('oneupstreamchange_before_snapshot_committed')
+        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
 
-    def test_release_if_at_least_one_commit_and_changelog_unreleased_content(self):
-        '''We release if there is at least one commit (not including latestsnapshot commit), including an upstream change, with a changelog content (UNRELEASED)'''
+    def test_release_if_content_committed_and_changelog_unreleased_content(self):
+        '''We release if there is at least one change including an upstream change, with a changelog content (UNRELEASED)'''
         self.get_data_branch('oneupstreamchange_with_unreleased_changelog_change')
-        ubuntu_version_source = self.get_ubuntu_source_content_path('regular_released_branch')
-        self.assertTrue(packagemanager.is_new_release_needed(12, 10, "foo", ubuntu_version_source=ubuntu_version_source))
+        dest_version_source = self.get_ubuntu_source_content_path('regular_released_branch')
+        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
 
     def test_release_if_new_content_with_manual_uploads(self):
         '''We release if there has been some manual uploads backported, but we still have at least one content difference'''
         self.get_data_branch('changebetween_manual_uploads')
-        ubuntu_version_source = self.get_ubuntu_source_content_path('2manualuploads')
-        self.assertTrue(packagemanager.is_new_release_needed(7, 3, "foo", ubuntu_version_source=ubuntu_version_source))
-
-    def test_dont_release_if_only_manual_uploads(self):
-        '''We don't release if we only have manual uploads, each one backported in one commit. We shouldn't need the diff as a second safety bet in this case'''
-        self.get_data_branch('onlymanualuploads')
-        self.assertFalse(packagemanager.is_new_release_needed(6, 3, "foo", ubuntu_version_source='something_we_shouldnt_use'))
+        dest_version_source = self.get_ubuntu_source_content_path('2manualuploads')
+        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
 
     def test_dont_release_if_content_matches(self):
         '''We don't release if the upstream and downstream content matches, even if we had a manual upload to distro'''
         self.get_data_branch('onemanualupload')
-        ubuntu_version_source = self.get_ubuntu_source_content_path('onemanualupload')
-        self.assertFalse(packagemanager.is_new_release_needed(999, 1, "foo", ubuntu_version_source=ubuntu_version_source))
+        dest_version_source = self.get_ubuntu_source_content_path('onemanualupload')
+        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
 
     def test_release_even_if_changelog_change(self):
         '''We release even if the only change is a debian/changelog change'''
         self.get_data_branch('debianchangelog_change_on_onemanualupload')
-        ubuntu_version_source = self.get_ubuntu_source_content_path('onemanualupload')
-        self.assertTrue(packagemanager.is_new_release_needed(6, 3, "foo", ubuntu_version_source=ubuntu_version_source))
-
-    def test_dont_release_if_no_commit(self):
-        '''We don't release if we don't have anything new as a commit (tip == latestsnapshot)'''
-        self.get_data_branch('released_latestsnapshot_included')
-        self.assertFalse(packagemanager.is_new_release_needed(11, 11, "foo", ubuntu_version_source='something_we_shouldnt_use'))
-
-    def test_dont_release_if_only_one_commit(self):
-        '''We don't release if we don't have anything new as a commit (tip == latestsnapshot + 1 for the latestsnapshot commit)'''
-        self.get_data_branch('released_latestsnapshot_included')
-        self.assertFalse(packagemanager.is_new_release_needed(12, 11, "foo", ubuntu_version_source='something_we_shouldnt_use'))
+        dest_version_source = self.get_ubuntu_source_content_path('onemanualupload')
+        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
 
     @patch('cupstream2distro.packagemanager.datetime')
     def test_create_new_packaging_version_regular(self, datetimeMock):

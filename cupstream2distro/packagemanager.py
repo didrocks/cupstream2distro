@@ -155,39 +155,17 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
     return (os.path.join(source_package_download_dir, source_directory_name))
 
 
-def is_new_release_needed(tip_bzr_rev, last_upstream_rev, source_package_name, ubuntu_version_source):
+def is_new_content_relevant_since_old_published_source(source_package_name, dest_version_source):
     '''Return True if a new snapshot is needed
 
-    ubuntu_version_source can be None if no released version was done before.
-
-    This will assume that backported version in distro are in the current branch and that it's been backported
-    in a single commit'''
-
-    # Note we always at least have +1 revision from last_upstream_rev (automated merge of changelog)
+    dest_version_source can be None if no released version was done before.'''
 
     # we always released something not yet in ubuntu, no matter criterias are not met.
-    if not ubuntu_version_source:
+    if not dest_version_source:
         return True
 
-    # we only consider the number of commits if we don't have a finale dest ppa
-    num_uploads = 0
-    regex = re.compile(settings.REV_STRING_FORMAT + "(\d+)")
-    new_changelog_regexp = re.compile(settings.NEW_CHANGELOG_PATTERN.format(source_package_name))
-    for line in open("debian/changelog"):
-        if regex.search(line):
-            break
-        # end of a changelog stenza (without getting the automated tag) means a manual upload
-        if new_changelog_regexp.match(line):
-            num_uploads += 1
-
-    # num_uploads will at least be 1 for the last automated release merge in changelog
-    # + the number of manual uploads, relying on the fact that a manual upload backported
-    # is done in one commit.
-    if not tip_bzr_rev > last_upstream_rev + num_uploads:
-        return False
-
     # now check the relevance of the committed changes compared to the version in the repository (if any)
-    diffinstance = subprocess.Popen(['diff', '-Nrup', '.', ubuntu_version_source], stdout=subprocess.PIPE)
+    diffinstance = subprocess.Popen(['diff', '-Nrup', '.', dest_version_source], stdout=subprocess.PIPE)
     filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*po', '-x', '*pot'], stdin=diffinstance.stdout, stdout=subprocess.PIPE)
     lsdiffinstance = subprocess.Popen(['lsdiff'], stdin=filterinstance.stdout, stdout=subprocess.PIPE)
     (relevant_changes, err) = subprocess.Popen(['grep', '-v', '.bzr'], stdin=lsdiffinstance.stdout, stdout=subprocess.PIPE).communicate()
