@@ -188,7 +188,7 @@ def propose_branch_for_merging(source_package_name, version):
     env["BZR_EDITOR"] = "echo"
 
     os.chdir(source_package_name)
-    if subprocess.call(["bzr", "push", BRANCH_URL.format(source_package_name, version), "--overwrite"]) != 0:
+    if subprocess.call(["bzr", "push", BRANCH_URL.format(source_package_name, version.replace("~", "").replace(":", "")), "--overwrite"]) != 0:
         raise Exception("The push command returned an error.")
     mergeinstance = subprocess.Popen(["bzr", "lp-propose-merge", parent_branch, "-m", PACKAGING_MERGE_COMMIT_MESSAGE.format(version), "--approve"], stdin=subprocess.PIPE, env=env)
     mergeinstance.communicate(input="y")
