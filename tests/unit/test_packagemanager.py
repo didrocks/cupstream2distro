@@ -189,7 +189,7 @@ class PackageManagerTests(BaseUnitTestCase):
             self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 42)
 
     def test_get_latest_upstream_bzr_rev_with_dest_ppa_with_2_versions(self):
-        '''We always get the latest upstream bzr rev version when we have a dest with 2 distros version in the same changelog'''
+        '''We always get the latest upstream bzr rev version when we have a dest ppa with 2 marker version in the same changelog'''
         with open(os.path.join(self.changelogs_file_dir, 'destppa_with_2_versions')) as f:
             self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 43)
 
@@ -198,6 +198,16 @@ class PackageManagerTests(BaseUnitTestCase):
         self.get_data_branch('dummypackage')
         with open("debian/changelog") as f:
             self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 1)
+
+    def test_get_latest_upstream_bzr_rev_with_dest_ppa_with_marker_on_two_lines(self):
+        '''We always get the latest upstream bzr rev version when we have a dest ppa with a marker shown on 2 lines'''
+        with open(os.path.join(self.changelogs_file_dir, 'destppa_with_marker_two_lines')) as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/experimental-certified'), 42)
+
+    def test_get_latest_upstream_bzr_rev_with_dest_ppa_with_another_ppa_marker(self):
+        '''We always get the latest upstream bzr rev version when we have a dest ppa with another dest ppa marker'''
+        with open(os.path.join(self.changelogs_file_dir, 'destppa_with_another_dest_ppa')) as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 8)
 
     def test_list_packages_info_in_str(self):
         '''We return the packages info in a string'''

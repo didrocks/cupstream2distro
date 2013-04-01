@@ -78,18 +78,37 @@ def get_latest_upstream_bzr_rev(f, dest_ppa=None):
     distro_rev = None
     candidate_destppa_rev = None
     candidate_distro_rev = None
+
+    # handle marker spread on two lines
+    end_of_line_regexp = re.compile(" *(.*\))")
+    previous_line = None
+
     for line in f:
         line = line[:-1]
+
+        if previous_line:
+            try:
+                line = previous_line + end_of_line_regexp.findall(line)[0]
+            except IndexError:
+                None
+            previous_line = None
+
         if dest_ppa:
             try:
                 candidate_destppa_rev = int(destppa_regexp.findall(line)[0][0])
+                destppa_element_found = True
             except IndexError:
-                pass
+                destppa_element_found = False
         if not distro_rev:
             try:
                 candidate_distro_rev = int(distro_regex.findall(line)[0][0])
+                distro_element_found = True
             except IndexError:
-                pass
+                distro_element_found = False
+
+        # try to catchup next line if we have a marker start without anything found
+        if settings.REV_STRING_FORMAT in line and (dest_ppa and not destppa_element_found) and not distro_element_found:
+            previous_line = line
 
         if line.startswith(" -- "):
             # first grab the dest ppa
