@@ -68,7 +68,6 @@ if __name__ == '__main__':
     # Get changelog informations
     logging.info("Get changelog info")
     with open("debian/changelog") as changelog:
-        # FIXME: take last_upstream_rev from feature ppa related thing first " MESSAGE_COMMIT (ppa_name)", and then distro " MESSAGE_COMMIT" or " MESSAGE_COMMIT (boostrap)"
         last_upstream_rev = packagemanager.get_latest_upstream_bzr_rev(changelog, args.destppa)
     packaging_version_in_bzr = packagemanager.get_packaging_version()
 
@@ -142,6 +141,7 @@ if __name__ == '__main__':
 
     # Prepare changelog
     logging.info("Prepare changelog content")
+    authors_bugs = {}
     authors_bugs_with_title = {}
     # for a feature branch, we don't care (for now) about the fixed bugs
     if not args.destppa:
