@@ -26,7 +26,7 @@ import sys
 from cupstream2distro import launchpadmanager, packageinppamanager
 from cupstream2distro.branchhandling import propose_branch_for_merging
 from cupstream2distro.stacks import generate_dep_status_message, get_current_stack_infos, get_stack_packaging_change_status
-from cupstream2distro.tools import generate_xml_artefacts, get_previous_distro_version_from_config
+from cupstream2distro.tools import generate_xml_artefacts, get_previous_distro_version_from_config, mark_project_as_published
 from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT
 
 
@@ -88,6 +88,7 @@ if __name__ == '__main__':
         for (source, version) in all_packages_uploaded:
             logging.info("Copying {} ({})".format(source, version))
             propose_branch_for_merging(source, version)
+            mark_project_as_published(source, version)
             if args.destppa:  # direct upload
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=series,
                                          include_binaries=True, to_pocket=dest_pocket, to_series=series,

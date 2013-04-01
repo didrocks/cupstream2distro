@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import ConfigParser
+import os
 from xml.sax.saxutils import quoteattr, escape
 
 from .settings import PROJECT_CONFIG_SUFFIX
@@ -65,3 +66,8 @@ def get_packaging_diff_filename(source_package_name, packaging_version):
 
     return "packaging_changes_{}_{}.diff".format(source_package_name, packaging_version)
 
+
+def mark_project_as_published(source_package_name, packaging_version):
+    '''Rename .project file so that if we do a partial rebuild, we don't try to republish it'''
+    project_filename = "{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX)
+    os.rename(project_filename, "{}_{}".format(project_filename, packaging_version))

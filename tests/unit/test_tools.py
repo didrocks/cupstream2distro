@@ -65,3 +65,9 @@ class ToolsTests(BaseUnitTestCase):
         '''Generate the xml jenkins artefacts when there is more than one failure'''
         tools.generate_xml_artefacts("Test Name", ["one issue", "a second issue"], 'file.xml')
         self.assertFilesAreIdenticals('file.xml', os.path.join(self.artefacts_dir, 'twofailures.xml'))
+
+    def test_mark_project_as_published(self):
+        '''Rename current project filename once published to the unique project file to not republish it'''
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), '.')
+        tools.mark_project_as_published('foo', '4.2dailysomething-0ubuntu1')
+        self.assertTrue(os.path.isfile('foo.project_4.2dailysomething-0ubuntu1'))
