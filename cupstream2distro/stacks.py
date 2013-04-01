@@ -21,7 +21,6 @@ import logging
 import os
 import yaml
 import subprocess
-import sys
 
 from .settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN, DEFAULT_CONFIG_STACKS_DIR, STACK_STATUS_FILENAME
 from .tools import get_packaging_diff_filename
@@ -122,6 +121,16 @@ def get_depending_stacks(stackname, release):
             return return_list
         except (TypeError, KeyError):
             return []
+
+
+def is_stack_in_always_manual_publishing_mode(stackname, release):
+    '''Get if a stack is always in manual publishing mode'''
+    with open(get_stack_file_path(stackname, release), 'r') as f:
+        cfg = yaml.load(f)
+        try:
+            return cfg['stack']['manualpublish']
+        except (TypeError, KeyError):
+            return False
 
 
 def get_stack_status(stackname, release):
