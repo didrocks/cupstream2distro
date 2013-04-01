@@ -92,7 +92,6 @@ if __name__ == '__main__':
         for (source, version) in all_packages_uploaded:
             logging.info("Copying {} ({})".format(source, version))
             propose_branch_for_merging(source, version)
-            mark_project_as_published(source, version)
             if args.destppa:  # direct upload
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=series,
                                          include_binaries=True, to_pocket=dest_pocket, to_series=series,
@@ -100,6 +99,7 @@ if __name__ == '__main__':
             else:  # generate a file that will be rsynced from another place
                 distro_version = get_previous_distro_version_from_config(source)
                 package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(ppa, src_pocket, series, dest_pocket, series, source, version, distro_version))
+            mark_project_as_published(source, version)
         if package_to_copy:
             package_list_rsync_file = PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(stackname, release)
             logging.info("Writing {} for being able to rsync from main machine".format(package_list_rsync_file))
