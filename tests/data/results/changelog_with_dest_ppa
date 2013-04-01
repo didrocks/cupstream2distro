@@ -1,0 +1,23 @@
+foo (1.2daily83.09.14.ubuntu.unity.next-0ubuntu1) raring; urgency=low
+
+  * Automatic snapshot from revision 42 (ubuntu-unity/next)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 07 Mar 2013 18:49:01 +0100
+
+foo (1.2-0ubuntu1) raring; urgency=low
+
+  * 1.2 release
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 27 Feb 2013 17:52:12 +0100
+
+foo (1.1-0ubuntu1) raring; urgency=low
+
+  * 1.1 release
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 27 Feb 2013 17:51:53 +0100
+
+foo (1.0-0ubuntu1) raring; urgency=low
+
+  * Initial release
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 27 Feb 2013 17:47:52 +0100

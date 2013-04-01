@@ -151,6 +151,11 @@ class PackageManagerTests(BaseUnitTestCase):
         with open("debian/changelog") as f:
             self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f), 10)
 
+    def test_get_latest_upstream_bzr_rev_with_only_bootstrap(self):
+        '''We always get the latest upstream bzr rev version from a changelog. We only have the bootstrap version.'''
+        with open(os.path.join(self.changelogs_file_dir, 'distro_with_only_bootstrap')) as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f), 42)
+
     def test_get_latest_upstream_bzr_rev_in_previous_changelog(self):
         '''We always get the latest upstream bzr rev version from a changelog. Marker not being in the most recent changelog'''
         self.get_data_branch('changebetween_manual_uploads')
@@ -158,10 +163,35 @@ class PackageManagerTests(BaseUnitTestCase):
             self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f), 3)
 
     def test_get_latest_upstream_bzr_rev_with_two_in_changelog(self):
-        '''We always get the latest upstream bzr rev version from a changelog. We have two marker in the changelog, last on is taken'''
+        '''We always get the latest upstream bzr rev version from a changelog. We have two marker in the changelog, last one is taken'''
         self.get_data_branch('twosnapshotmarkers')
         with open("debian/changelog") as f:
             self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f), 42)
+
+    def test_get_latest_upstream_bzr_rev_with_dest_ppa_without_distro(self):
+        '''We always get the latest upstream bzr rev version when we have a dest ppa without a distro version'''
+        with open(os.path.join(self.changelogs_file_dir, 'destppa_without_distro')) as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 8)
+
+    def test_get_latest_upstream_bzr_rev_with_dest_ppa_and_distro(self):
+        '''We always get the latest upstream bzr rev version when we have a dest ppa and a distro version'''
+        with open(os.path.join(self.changelogs_file_dir, 'destppa_with_distro')) as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 42)
+
+    def test_get_latest_upstream_bzr_rev_with_dest_ppa_and_distro_first(self):
+        '''We always get the latest upstream bzr rev version when we have a dest ppa and a distro version appearing first in the result'''
+        with open(os.path.join(self.changelogs_file_dir, 'destppa_with_distro_first')) as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 8)
+
+    def test_get_latest_upstream_bzr_rev_with_dest_ppa_and_distro_without_dest_ppa_rev(self):
+        '''We always get the latest upstream bzr rev version when we have a dest ppa and a distro version without dest_ppa rev'''
+        with open(os.path.join(self.changelogs_file_dir, 'destppa_with_distro_without_dest_ppa')) as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 42)
+
+    def test_get_latest_upstream_bzr_rev_with_dest_ppa_with_2_versions(self):
+        '''We always get the latest upstream bzr rev version when we have a dest with 2 distros version in the same changelog'''
+        with open(os.path.join(self.changelogs_file_dir, 'destppa_with_2_versions')) as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 43)
 
     def test_list_packages_info_in_str(self):
         '''We return the packages info in a string'''
@@ -442,7 +472,7 @@ class PackageManagerTests(BaseUnitTestCase):
 
     def test_collect_bugs_in_changelog_until_latest_snapshot_extras(self):
         '''We collect bugs in the changelog file until latest snapshot. Extras syntax cases: some bugs in an unreleased changelog'''
-        with open(os.path.join(self.data_dir, 'changelogs', 'different_bugs_pattern')) as f:
+        with open(os.path.join(self.changelogs_file_dir, 'different_bugs_pattern')) as f:
             self.assertEquals(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['56789', '67890', '34567', '12345',
                                                                                                              '567890', '678901', '123456', '1234567']))
 
@@ -454,27 +484,27 @@ class PackageManagerTests(BaseUnitTestCase):
 
     def test_collect_bugs_in_changelog_until_latest_snapshot_no_unrelease_no_manual(self):
         '''We collect bugs in the changelog file until latest snapshot. No manual upload, no unreleased changelog'''
-        with open(os.path.join(self.data_dir, 'changelogs', 'no_unrelease_no_manual')) as f:
+        with open(os.path.join(self.changelogs_file_dir, 'no_unrelease_no_manual')) as f:
             self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set())
 
     def test_collect_bugs_in_changelog_until_latest_snapshot_multiple_unrelease(self):
         '''We collect bugs in the changelog file until latest snapshot, but no bug from it the first snapshot. Only multiple unreleased changelog content'''
-        with open(os.path.join(self.data_dir, 'changelogs', 'multiple_unrelease')) as f:
+        with open(os.path.join(self.changelogs_file_dir, 'multiple_unrelease')) as f:
             self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['34567', '12345', '23456']))
 
     def test_collect_bugs_in_changelog_until_latest_snapshot_multiple_unrelease_manual_upload(self):
         '''Test that we collect bugs in the changelog file until latest snapshot. We only collect bugs until the last manual upload'''
-        with open(os.path.join(self.data_dir, 'changelogs', 'multiple_unrelease_with_release')) as f:
+        with open(os.path.join(self.changelogs_file_dir, 'multiple_unrelease_with_release')) as f:
             self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['23456']))
 
     def test_collect_bugs_in_changelog_until_latest_snapshot_only_one_unreleased_changelog(self):
         '''Test that we collect bugs in the changelog file until latest snapshot. We collect the bugs from the one unreleased changelog'''
-        with open(os.path.join(self.data_dir, 'changelogs', 'one_unreleased')) as f:
+        with open(os.path.join(self.changelogs_file_dir, 'one_unreleased')) as f:
             self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['12345']))
 
     def test_collect_bugs_in_changelog_until_latest_snapshot_only_one_unreleased_changelog_no_bug(self):
         '''Test that we collect bugs in the changelog file until latest snapshot. We have no bug from the only one unreleased changelog'''
-        with open(os.path.join(self.data_dir, 'changelogs', 'one_unreleased_no_bug')) as f:
+        with open(os.path.join(self.changelogs_file_dir, 'one_unreleased_no_bug')) as f:
             self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set())
 
     def test_update_changelog_simple(self):
@@ -530,6 +560,13 @@ class PackageManagerTests(BaseUnitTestCase):
         authors = {"Didier Roche": ["One fix for LP: #12345", "Another fix for LP: #23456"], "Bar": ["Another fix for LP: #23456"], "Baz baz": ["and another Fix on LP: #34567"]}
         packagemanager.update_changelog("42.0daily83.09.14-0ubuntu1", "raring", 42, authors)
         result_file = os.path.join(self.result_dir, "existing_content_multiple_authors_changelog_update")
+        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+
+    def test_update_changelog_with_dest_ppa(self):
+        '''Update a changelog from a list with a destination ppa'''
+        self.get_data_branch('dummypackage')
+        packagemanager.update_changelog("1.2daily83.09.14.ubuntu.unity.next-0ubuntu1", "raring", 42, {}, "ubuntu-unity/next")
+        result_file = os.path.join(self.result_dir, "changelog_with_dest_ppa")
         self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
 
 

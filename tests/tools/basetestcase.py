@@ -34,6 +34,7 @@ class BaseTestCase(unittest.TestCase):
         cls.data_dir = os.path.join(cls.root_dir, 'data')
         cls.result_dir = os.path.join(cls.data_dir, 'results')
         cls.project_file_dir = os.path.join(cls.data_dir, 'project_files')
+        cls.changelogs_file_dir = os.path.join(cls.data_dir, 'changelogs')
 
     @classmethod
     def addToPath(cls, path):

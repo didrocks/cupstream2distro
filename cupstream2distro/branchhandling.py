@@ -128,7 +128,7 @@ def _get_all_bugs_from_content(content):
     bug_regexp = re.compile("((lp|bug|fix(es)?)[: #]*|#|launchpad.net/bugs/)(\d{5,})", re.IGNORECASE)
     # see lp:autopilot, rev 76, Only a committer:Tarmac and right author, we need to get the author in that case
     author_regexp = re.compile("(author|committer): (.*) <.*>")
-    merge_trunk_commit_regex = re.compile(REV_STRING_FORMAT + "(\d+)")
+    merge_trunk_commit_regex = re.compile("{} (\d+)".format(REV_STRING_FORMAT))
     # Ignore resync from trunk, with commit message having be done with debcommit (see rev 2892.5.19 in unity)
     # as it's listing every bugs already fixed.
     resync_trunk_commit = False

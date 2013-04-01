@@ -69,23 +69,45 @@ def is_version_in_changelog(version, f):
     return False
 
 
-def get_latest_upstream_bzr_rev(f):
-    '''Report latest bzr rev in the file'''
-    regex = re.compile(settings.REV_STRING_FORMAT + "(\d+)")
-    last_bzr_rev = None
+def get_latest_upstream_bzr_rev(f, dest_ppa=None):
+    '''Report latest bzr rev in the file
+
+    If dest_ppa, first try to fetch the dest ppa tag. Otherwise, fallback to first distro version'''
+    distro_regex = re.compile("{} (\d+)($| *\(bootstrap\))".format(settings.REV_STRING_FORMAT))
+    destppa_regexp = re.compile("{} (\d+) (\({}\))".format(settings.REV_STRING_FORMAT, dest_ppa))
+    distro_rev = None
+    candidate_destppa_rev = None
+    candidate_distro_rev = None
     for line in f:
-        rev = regex.findall(line)
-        if rev:
-            last_bzr_rev = int(rev[0])
-        # end of current changelog stenza (doesn't have last_bzr_rev if cherry-pick from distro)
-        if last_bzr_rev and line.startswith(" -- "):
-            break
+        line = line[:-1]
+        if dest_ppa:
+            try:
+                candidate_destppa_rev = int(destppa_regexp.findall(line)[0][0])
+            except IndexError:
+                pass
+        if not distro_rev:
+            try:
+                candidate_distro_rev = int(distro_regex.findall(line)[0][0])
+            except IndexError:
+                pass
 
-    # we are taking the last added one to the changelog for bootstrapping: we have two rev in the case on the first upload and we just want the last one
-    if last_bzr_rev:
-        return last_bzr_rev
+        if line.startswith(" -- "):
+            # first grab the dest ppa
+            if candidate_destppa_rev:
+                return candidate_destppa_rev
+            if not distro_rev and candidate_distro_rev:
+                distro_rev = candidate_distro_rev
+            if not dest_ppa and distro_rev:
+                return distro_rev
 
-    raise Exception("Didn't find any string in debian/changelog of the form: \"{}\". Bootstrapping issue?".format(regex.pattern))
+    # we didn't find any dest ppa result but there is a distro_rev one
+    if dest_ppa and distro_rev:
+        return distro_rev
+
+    error_message = "Didn't find any string in debian/changelog of the form: \"{}\". Bootstrapping issue?".format(distro_regex.pattern)
+    if dest_ppa:
+        error_message += " We could as well have a special ppa format with {}.".format(destppa_regexp.pattern)
+    raise Exception(error_message)
 
 
 def list_packages_info_in_str(packages_set):
@@ -236,7 +258,7 @@ def collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name):
     return bugs
 
 
-def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with_title):
+def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with_title, dest_ppa=None):
     '''Update the changelog for the incoming upload'''
 
     dch_env = os.environ.copy()
@@ -245,9 +267,13 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with
         for bug_desc in authors_bugs_with_title[author]:
             subprocess.Popen(["dch", bug_desc], env=dch_env).communicate()
 
+    commit_message = "{} {}".format(settings.REV_STRING_FORMAT, tip_bzr_rev)
+    if dest_ppa:
+        commit_message += " ({})".format(dest_ppa)
+
     dch_env["DEBFULLNAME"] = settings.BOT_DEBFULLNAME
     dch_env["DEBEMAIL"] = settings.BOT_DEBEMAIL
-    instance = subprocess.Popen(["dch", "-v{}".format(new_package_version), "{}{}".format(settings.REV_STRING_FORMAT, tip_bzr_rev)],
+    instance = subprocess.Popen(["dch", "-v{}".format(new_package_version), commit_message],
                                 stderr=subprocess.PIPE, env=dch_env)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:

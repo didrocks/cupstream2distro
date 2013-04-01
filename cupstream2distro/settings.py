@@ -19,7 +19,7 @@
 
 import os
 
-REV_STRING_FORMAT = "Automatic snapshot from revision "
+REV_STRING_FORMAT = "Automatic snapshot from revision"
 NEW_CHANGELOG_PATTERN = "^{} \(.*\) (?!UNRELEASED)"
 PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
 REPLACEME_TAG = "0replaceme"
