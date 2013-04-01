@@ -104,9 +104,11 @@ def get_latest_upstream_bzr_rev(f, dest_ppa=None):
     if dest_ppa and distro_rev:
         return distro_rev
 
-    error_message = "Didn't find any string in debian/changelog of the form: \"{}\". Bootstrapping issue?".format(distro_regex.pattern)
+    # we force a bootstrap commit for new components not going to distro, just assume rev one
     if dest_ppa:
-        error_message += " We could as well have a special ppa format with {}.".format(destppa_regexp.pattern)
+        return 1
+
+    error_message = "Didn't find any string in debian/changelog of the form: \"{}\". Bootstrapping issue?".format(distro_regex.pattern)
     raise Exception(error_message)
 
 

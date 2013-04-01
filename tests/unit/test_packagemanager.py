@@ -193,6 +193,12 @@ class PackageManagerTests(BaseUnitTestCase):
         with open(os.path.join(self.changelogs_file_dir, 'destppa_with_2_versions')) as f:
             self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 43)
 
+    def test_get_latest_upstream_bzr_rev_with_dest_ppa_without_commit_tag(self):
+        '''We will get rev 1 if we dont' have any commit tag for a dest ppa'''
+        self.get_data_branch('dummypackage')
+        with open("debian/changelog") as f:
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 1)
+
     def test_list_packages_info_in_str(self):
         '''We return the packages info in a string'''
         package1 = Mock()
