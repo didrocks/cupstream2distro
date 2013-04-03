@@ -357,6 +357,12 @@ class PackageManagerTests(BaseUnitTestCase):
         dest_version_source = self.get_ubuntu_source_content_path('onemanualupload')
         self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
 
+    def test_dont_release_if_only_ignore_content(self):
+        '''We don't release if the upstream and downstream only have ignored content'''
+        self.get_data_branch('onlyignorechanges')
+        dest_version_source = self.get_ubuntu_source_content_path('onemanualupload')
+        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+
     def test_release_even_if_changelog_change(self):
         '''We release even if the only change is a debian/changelog change'''
         self.get_data_branch('debianchangelog_change_on_onemanualupload')

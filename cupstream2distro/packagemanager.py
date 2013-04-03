@@ -209,7 +209,7 @@ def is_new_content_relevant_since_old_published_source(source_package_name, dest
 
     # now check the relevance of the committed changes compared to the version in the repository (if any)
     diffinstance = subprocess.Popen(['diff', '-Nrup', '.', dest_version_source], stdout=subprocess.PIPE)
-    filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*po', '-x', '*pot'], stdin=diffinstance.stdout, stdout=subprocess.PIPE)
+    filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*po', '-x', '*pot', '-x', '*local-options'], stdin=diffinstance.stdout, stdout=subprocess.PIPE)
     lsdiffinstance = subprocess.Popen(['lsdiff'], stdin=filterinstance.stdout, stdout=subprocess.PIPE)
     (relevant_changes, err) = subprocess.Popen(['grep', '-v', '.bzr'], stdin=lsdiffinstance.stdout, stdout=subprocess.PIPE).communicate()
     return (relevant_changes != '')
