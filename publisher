@@ -71,13 +71,12 @@ if __name__ == '__main__':
     manual_publish_cause_list = []
 
     # Generate global packaging change status
-    manual_publish_cause_list.extend(get_stack_packaging_change_status(packageinppamanager.get_all_packages_uploaded()))
+    all_packages_uploaded = packageinppamanager.get_all_packages_uploaded()
+    manual_publish_cause_list.extend(get_stack_packaging_change_status(all_packages_uploaded))
 
     # Generate global stack status based on rdepends
     (stackname, release) = get_current_stack_infos()
     manual_publish_cause_list.extend(generate_dep_status_message(stackname, release))
-
-    all_packages_uploaded = packageinppamanager.get_all_packages_uploaded()
 
     force_manual_publish = is_stack_in_always_manual_publishing_mode(stackname, release)
     if force_manual_publish:

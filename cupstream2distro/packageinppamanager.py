@@ -40,7 +40,7 @@ def get_all_packages_uploaded():
     # we do not rely on the .changes files but in the config file
     # because we need the exact version (which can have an epoch)
     result = set()
-    source_package_regexp = re.compile("(.*).{}".format(PROJECT_CONFIG_SUFFIX))
+    source_package_regexp = re.compile("(.*).{}$".format(PROJECT_CONFIG_SUFFIX))
     for file in os.listdir('.'):
         substract = source_package_regexp.findall(file)
         if substract:
