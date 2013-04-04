@@ -18,20 +18,41 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import logging
+import os
+import re
 
 
 class PackageInPPA():
 
     (BUILDING, FAILED, PUBLISHED) = range(3)
 
-    def __init__(self, source_name, version, ppa, series, archs, arch_all_arch):
+    def __init__(self, source_name, version, ppa, series, available_archs_in_ppa, arch_all_arch):
         self.source_name = source_name
         self.version = version
         self.series = series
-        self.archs = archs
         self.arch_all_arch = arch_all_arch
         self.ppa = ppa
         self.current_status = {}
+
+        # Get archs we should look at
+        version_for_source_file = version.split(':')[-1]
+        dsc_filename = "{}_{}.dsc".format(source_name, version_for_source_file)
+        regexp = re.compile("^Architecture: (.*)\n")
+        for line in open(dsc_filename):
+            arch_lists = regexp.findall(line)
+            if arch_lists:
+                if "any" in arch_lists:
+                    self.archs = available_archs_in_ppa
+                elif arch_lists == "all":
+                    self.archs = self.arch_all_arch
+                else:
+                    archs_supported_by_package = set()
+                    for arch in arch_lists.split():
+                        if arch in ("any", "all"):
+                            continue
+                        archs_supported_by_package.add(arch)
+                    self.archs = archs_supported_by_package.intersection(archs_supported_by_package)
+                break
 
     def get_status(self, only_arch_all):
         '''Look at the package status in the ppa'''
@@ -62,8 +83,25 @@ class PackageInPPA():
         # if it's not None, not BUILDING, nor FAILED, it's PUBLISHED
         return self.PUBLISHED
 
+    def _refresh_archs_skipped(self):
+        '''Refresh archs that we should skip for this build'''
+
+        for arch in self.archs:
+            if os.path.isfile("{}.{}.ignore".format(self.source_name, arch)):
+                logging.warning("Request to ignore {} on {}.".format(self.source_name, arch))
+                try:
+                    self.archs.remove(arch)
+                except ValueError:
+                    logging.warning("Request to ignore {} on {} has been proceeded, but this one wasn't in the list we were monitor for.".format(self.source_name, arch))
+                try:
+                    self.current_status.remove(arch)
+                except ValueError:
+                    logging.warning("Request to ignore {} on {} has been proceeded, but this one wasn't in the list we were monitor for.".format(self.source_name, arch))
+
     def _refresh_status(self):
         '''Refresh status from the ppa'''
+
+        self._refresh_archs_skipped()
 
         # first step, get the source published
         if not self.current_status:
@@ -108,7 +146,6 @@ class PackageInPPA():
 
         # Try to see if all binaries availables for this arch are built, including arch:all on other archs
         status = self.current_status
-        only_arch_all_packages = True
         at_least_one_published_binary = False
         for binary in self.source.getPublishedBinaries():
             at_least_one_published_binary = True
@@ -118,8 +155,6 @@ class PackageInPPA():
             if binary.status == "Published" and (binary.distro_arch_series.architecture_tag == self.arch_all_arch or
                (binary.distro_arch_series.architecture_tag != self.arch_all_arch and binary.architecture_specific)):
                 status[binary.distro_arch_series.architecture_tag] = self.PUBLISHED
-            if binary.architecture_specific:
-                only_arch_all_packages = False
 
         # Looking for builds on archs still BUILDING (just loop on builds once to avoid too many lp requests)
         needs_checking_build = False
@@ -153,12 +188,12 @@ class PackageInPPA():
 
         # If arch_all_arch is built and we only have arch:all packages, sync the published state
         # FIXME: why at_least_one_published_binary, status[self.arch_all_arch] == self.PUBLISHED should cover it, isn't it?
-        if status[self.arch_all_arch] == self.PUBLISHED and only_arch_all_packages and at_least_one_published_binary:
+        if status[self.arch_all_arch] == self.PUBLISHED and at_least_one_published_binary:
             for arch in self.archs:
                 status[arch] = self.PUBLISHED
 
         # FIXME: if at_least_one_published_binary isn't necessary, we can factorize that with the above part
-        if status[self.arch_all_arch] == self.FAILED and only_arch_all_packages:
+        if status[self.arch_all_arch] == self.FAILED:
             for arch in self.archs:
                 status[arch] = self.FAILED
 
