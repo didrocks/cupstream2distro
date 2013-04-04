@@ -1,0 +1,128 @@
+#! /usr/bin/python
+""" Skip an arch for a project on a stack
+"""
+# Copyright (C) 2012-2013, Canonical Ltd (http://www.canonical.com/)
+#
+# Author: Jean-Baptiste Lallement <jean-baptiste.lallement@canonical.com>
+# Author: Didier Roche <didier.roche@canonical.com>
+#
+# This software is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+#
+# This software is distributed in the hope that it will
+# be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+import os
+import logging
+import sys
+import yaml
+import jenkins
+import argparse
+
+BINDIR = os.path.dirname(__file__)
+PREFIX = 'cu2d'
+DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
+DEFAULT_RELEASE = 'head'
+
+
+def load_jenkins_credentials(path):
+    """ Load Credentials from credentials configuration file """
+    if not os.path.exists(path):
+        return False
+
+    logging.debug('Loading credentials from %s', path)
+    cred = yaml.load(file(path, 'r'))
+
+    for param in ('username', 'password', 'url', 'token'):
+        if not param in cred['jenkins']:
+            logging.error("Setting missing from jenkins credentials: %s. "
+                          "Aborting!", param)
+            sys.exit(1)
+    return False if not 'jenkins' in cred else cred['jenkins']
+
+
+def run(jkcfg, stack, release, project, archs, **kwargs):
+    """ Force publication of a stack/release
+
+    :param jkcfg: dictionary with the credentials
+    :param stack: Name of the stack to publish
+    :param release: Name of the release the stack belongs tostack to publish
+    :param project: project on which we want to separate one or more archs
+    :param archs: archs we want to skip
+    """
+    logging.debug('Logging to Jenkins')
+    if 'username' in jkcfg:
+        jkh = jenkins.Jenkins(jkcfg['url'],
+                                  username=jkcfg['username'],
+                                  password=jkcfg['password'])
+    else:
+        jkh = jenkins.Jenkins(jkcfg['url'])
+
+    jobname = "cu2d-skip-project-archs"
+    args = {'stack': stack,
+            'release': release,
+            'project': project,
+            'archs': " ".join(archs)}
+
+    if not jkh.job_exists(jobname):
+        logging.info("Job '%s' doesn't exists.", jobname)
+        return False
+
+    logging.info('Triggering build: %s', jobname)
+    jkh.build_job(jobname, args, token=jkcfg['token'])
+
+    return True
+
+
+def set_logging(debugmode=False):
+    """Initialize logging"""
+    logging.basicConfig(
+        level=logging.DEBUG if debugmode else logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s"
+        )
+    logging.debug('Debug mode enabled')
+
+
+def main():
+    ''' Main routine '''
+    parser = argparse.ArgumentParser(
+        description='Tell an existing run to skip one or multiple archs for a build')
+    parser.add_argument('-C', '--credentials', metavar='CREDENTIALFILE',
+                        default=DEFAULT_CREDENTIALS,
+                        help='use Jenkins and load credentials from '
+                        'CREDENTIAL FILE (default: %s)' % DEFAULT_CREDENTIALS)
+    parser.add_argument('-r', '--release',
+                        default=DEFAULT_RELEASE,
+                        help='Release the stack to publish belongs to '
+                        '(default: %s)' % DEFAULT_RELEASE)
+    parser.add_argument('-d', '--debug', action='store_true', default=False,
+                        help='enable debug mode')
+    parser.add_argument('stack', help='Name of the stack to publish')
+    parser.add_argument('project', help='Name of the project to skip one arch')
+    parser.add_argument('archs', nargs='+', help='Archs (separated by commas) to skip')
+
+    args = parser.parse_args()
+    set_logging(args.debug)
+
+    credentials = None
+    if args.credentials:
+        credentialsfile = args.credentials
+        credentials = load_jenkins_credentials(
+            os.path.expanduser(credentialsfile))
+        if not credentials:
+            logging.error('Credentials not found. Aborting!')
+            sys.exit(1)
+
+        if not run(credentials, args.stack, args.release, args.project, args.archs):
+            logging.error('Failed to run job. Aborting!')
+            sys.exit(2)
+
+if __name__ == "__main__":
+    main()
