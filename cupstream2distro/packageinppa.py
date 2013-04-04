@@ -41,6 +41,7 @@ class PackageInPPA():
         for line in open(dsc_filename):
             arch_lists = regexp.findall(line)
             if arch_lists:
+                arch_lists = arch_lists[0]
                 if "any" in arch_lists:
                     self.archs = available_archs_in_ppa
                 elif arch_lists == "all":
@@ -48,10 +49,8 @@ class PackageInPPA():
                 else:
                     archs_supported_by_package = set()
                     for arch in arch_lists.split():
-                        if arch in ("any", "all"):
-                            continue
                         archs_supported_by_package.add(arch)
-                    self.archs = archs_supported_by_package.intersection(archs_supported_by_package)
+                    self.archs = archs_supported_by_package.intersection(available_archs_in_ppa)
                 break
 
     def get_status(self, only_arch_all):
@@ -86,7 +85,7 @@ class PackageInPPA():
     def _refresh_archs_skipped(self):
         '''Refresh archs that we should skip for this build'''
 
-        for arch in self.archs:
+        for arch in self.archs.copy():
             if os.path.isfile("{}.{}.ignore".format(self.source_name, arch)):
                 logging.warning("Request to ignore {} on {}.".format(self.source_name, arch))
                 try:
@@ -94,9 +93,9 @@ class PackageInPPA():
                 except ValueError:
                     logging.warning("Request to ignore {} on {} has been proceeded, but this one wasn't in the list we were monitor for.".format(self.source_name, arch))
                 try:
-                    self.current_status.remove(arch)
-                except ValueError:
-                    logging.warning("Request to ignore {} on {} has been proceeded, but this one wasn't in the list we were monitor for.".format(self.source_name, arch))
+                    self.current_status.pop(arch)
+                except KeyError:
+                    pass
 
     def _refresh_status(self):
         '''Refresh status from the ppa'''
