@@ -45,7 +45,7 @@ class PackageInPPA():
                 if "any" in arch_lists:
                     self.archs = available_archs_in_ppa
                 elif arch_lists == "all":
-                    self.archs = [self.arch_all_arch]
+                    self.archs = set([self.arch_all_arch])
                 else:
                     archs_supported_by_package = set()
                     for arch in arch_lists.split():
