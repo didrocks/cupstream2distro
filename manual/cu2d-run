@@ -111,7 +111,7 @@ def main():
     parser.add_argument('--check-with-whole-ppa', action='store_true', default=False,
                         help="don't rebuild the current stack, only rerun it with the whole ppa content for the check step")
     parser.add_argument('stack', help='Name of the stack to publish')
-    parser.add_argument('projects', nargs='*', help='Name of the projects to rerun against (only with -R)')
+    parser.add_argument('projects', nargs='*', help='Name of the projects (source packages) to rerun against (only with -R)')
 
     args = parser.parse_args()
     set_logging(args.debug)

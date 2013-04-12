@@ -105,7 +105,7 @@ def main():
     parser.add_argument('-d', '--debug', action='store_true', default=False,
                         help='enable debug mode')
     parser.add_argument('stack', help='Name of the stack to publish')
-    parser.add_argument('project', help='Name of the project to skip one arch')
+    parser.add_argument('project', help='Name of the project (source package) to skip one arch')
     parser.add_argument('archs', nargs='+', help='Archs (separated by commas) to skip')
 
     args = parser.parse_args()
