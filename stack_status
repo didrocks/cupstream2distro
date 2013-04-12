@@ -5,20 +5,20 @@ Reports global status for a stack
 #
 # Copyright (C) 2012, Canonical Ltd (http://www.canonical.com/)
 #
-# This file is part of ubuntu-server-iso-testing.
+# This file is part of cupstream2distro.
 #
-# ubuntu-server-iso-testing is free software: you can redistribute it
+# This program is free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, version 3 of
 # the License.
 #
-# ubuntu-server-iso-testing is distributed in the hope that it will
+# This program is distributed in the hope that it will
 # be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with ubuntu-server-iso-testing.  If not, see
+# along with This program.  If not, see
 # <http://www.gnu.org/licenses/>.
 #
 
@@ -88,14 +88,15 @@ class CU2DStackStatus(object):
                     nextnum = fnb.read()
                 buildnumber = int(nextnum) - 1
             except IOError:
-                logging.debug('error reading %s, ignoring!', nextbuildpath)
+                logging.warning('error reading %s, ignoring!', nextbuildpath)
                 continue
             logging.debug('%s : %s', jobpath, buildnumber)
 
             buildxml = os.path.join(jobpath, 'builds', str(buildnumber),
                                     'build.xml')
             if not os.path.isfile(buildxml):
-                logging.debug('file does not exist %s, ignoring!', buildxml)
+                logging.warning('file does not exist %s, ignoring!', buildxml)
+                continue
 
             result = test_result(buildxml)
             logging.debug('Step %s : %s', job, result)
