@@ -215,7 +215,7 @@ def is_new_content_relevant_since_old_published_source(source_package_name, dest
     return (relevant_changes != '')
 
 
-def create_new_packaging_version(base_package_version, destppa=''):
+def create_new_packaging_version(base_package_version, destppa='', maintenance_version=''):
     '''Deliver a new packaging version, based on simple rules:
 
     Version would be <upstream_version>daily<yy.mm.dd(.minor)>-0ubuntu1
@@ -242,7 +242,10 @@ def create_new_packaging_version(base_package_version, destppa=''):
             today_version = "{}.{}".format(today_version, minor)
 
     destppa = destppa.replace("-", '.').replace("_", ".").replace("/", ".")
-    return "{}daily{}{}-0ubuntu1".format(upstream_version, today_version, destppa)
+    new_upstream_version = "{}daily{}{}".format(upstream_version, today_version, destppa)
+    if maintenance_version:
+        new_upstream_version = "{}~{}".format(new_upstream_version, maintenance_version)
+    return "{}-0ubuntu1".format(new_upstream_version)
 
 
 def get_packaging_sourcename():

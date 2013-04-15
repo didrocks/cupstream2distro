@@ -481,6 +481,22 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.13didrocks.my.ppa.mine-0ubuntu1', 'didrocks/my-ppa_mine'), '42daily83.09.13.1didrocks.my.ppa.mine-0ubuntu1')
         strftime_call.assert_called_with('%y.%m.%d')
 
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_maintenance_mode(self, datetimeMock):
+        '''We create a new packaging version with a maintenance mode version in the end'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.12-0ubuntu1', maintenance_version='13.04'), '42daily83.09.13~13.04-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_with_ppa_dest_and_maintenance_mode(self, datetimeMock):
+        '''We create a new packaging version after with a ppa destination after a ppa_dest in maintenance mode'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.12-0ubuntu1', 'didrocks/my-ppa_mine', '13.04'), '42daily83.09.13didrocks.my.ppa.mine~13.04-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
     def test_get_packaging_sourcename(self):
         '''Get the packaging source name'''
         self.get_data_branch('onemanualupload')

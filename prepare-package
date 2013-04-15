@@ -40,6 +40,7 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--series", help="Serie used to build the package")
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
     parser.add_argument("-d", "--destppa", help="Consider this destppa instead of only the distro for finale destination", default='')
+    parser.add_argument("-m", "--maintenance-version", help="Appending a special version in the end once a stack is under maintenance mode", default='')
     args = parser.parse_args()
 
     source_package_name = args.sourcename
@@ -133,7 +134,7 @@ if __name__ == '__main__':
             generate_xml_artefacts("Prepare",  [], artefacts_file)
             sys.exit(0)
 
-    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=args.destppa)
+    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=args.destppa, maintenance=args.maintenance_version)
 
     # Refresh symbol files
     logging.info("Update symbol files version if needed")
