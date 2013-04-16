@@ -134,7 +134,7 @@ if __name__ == '__main__':
             generate_xml_artefacts("Prepare",  [], artefacts_file)
             sys.exit(0)
 
-    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=args.destppa, maintenance=args.maintenance_version)
+    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=args.destppa, maintenance_version=args.maintenance_version)
 
     # Refresh symbol files
     logging.info("Update symbol files version if needed")
