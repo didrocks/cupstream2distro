@@ -178,7 +178,7 @@ class PackageInPPA():
 
         # There is no way to know if there are some arch:all packages (and there are not in publishedBinaries for this arch until
         # it's built on arch_all_arch). So mark all arch to BUILDING if self.arch_all_arch is building or FAILED if it failed.
-        if status[self.arch_all_arch] != self.PUBLISHED:
+        if self.arch_all_arch in status and status[self.arch_all_arch] != self.PUBLISHED:
             for arch in self.archs:
                 if status[arch] == self.PUBLISHED:
                     status[arch] = status[self.arch_all_arch]
