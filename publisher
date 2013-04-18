@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     force_manual_publish = is_stack_in_always_manual_publishing_mode(stackname, release)
     if force_manual_publish:
-        logging.info("Manual publishing mode for this stack forced.")
+        logging.info("Manual publishing mode for this stack forced. Components ready for release are: {}".format(all_packages_uploaded))
 
     # we only go on manual publishing if we have something to publish
     if all_packages_uploaded and ((manual_publish_cause_list and not args.force) or force_manual_publish):
