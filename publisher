@@ -82,7 +82,7 @@ if __name__ == '__main__':
     if force_manual_publish:
         message = "Manual publishing mode for this stack forced. Components ready for release are: {}".format(all_packages_uploaded)
         logging.info(message)
-        manual_publish_cause_list.extend(message)
+        manual_publish_cause_list.append(message)
 
     # we only go on manual publishing if we have something to publish
     if all_packages_uploaded and ((manual_publish_cause_list and not args.force) or force_manual_publish):
