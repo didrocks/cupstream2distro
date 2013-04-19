@@ -85,7 +85,7 @@ if __name__ == '__main__':
         manual_publish_cause_list.append(message)
 
     # we only go on manual publishing if we have something to publish
-    if all_packages_uploaded and ((manual_publish_cause_list and not args.force) or force_manual_publish):
+    if not args.force and all_packages_uploaded and (manual_publish_cause_list or force_manual_publish):
         logging.info("Don't upload the stack automatically.")
         generate_xml_artefacts("Publisher", manual_publish_cause_list, PUBLISHER_ARTEFACTS_FILENAME)
     else:
