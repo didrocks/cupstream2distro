@@ -194,10 +194,10 @@ class PackageManagerTests(BaseUnitTestCase):
             self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 43)
 
     def test_get_latest_upstream_bzr_rev_with_dest_ppa_without_commit_tag(self):
-        '''We will get rev 1 if we dont' have any commit tag for a dest ppa'''
+        '''We will get rev 0 if we don't have any commit tag for a dest ppa'''
         self.get_data_branch('dummypackage')
         with open("debian/changelog") as f:
-            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 1)
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 0)
 
     def test_get_latest_upstream_bzr_rev_with_dest_ppa_with_marker_on_two_lines(self):
         '''We always get the latest upstream bzr rev version when we have a dest ppa with a marker shown on 2 lines'''
