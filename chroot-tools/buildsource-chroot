@@ -98,14 +98,14 @@ HOME="$CHROOT_HOME"
 export HOME;
 
 apt-get update
-apt-get -yq dist-upgrade
+apt-get -yq --force-yes dist-upgrade
 
 # this isn't need (you should install them in the chroot), but easier for debugging
-apt-get install pbuilder bzr-builddeb -yq
+apt-get install pbuilder bzr-builddeb -yq --force-yes
 
 # add the optional ppa and update from it
 if [ -n "$PPA" ]; then
-    apt-get install software-properties-common
+    apt-get -yq --force-yes install software-properties-common
     add-apt-repository -y ppa:$PPA
     apt-get update
 fi
