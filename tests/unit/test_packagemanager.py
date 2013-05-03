@@ -724,6 +724,16 @@ class PackageManagerOnlineTests(BaseUnitTestCase):
         self.assertChangesFilesAreIdenticals('foo_1.2-0ubuntu1_source.changes', os.path.join(self.data_dir, "results", 'foo_1.2-0ubuntu1_source.changes.lastcontent'))
 
     @patch('cupstream2distro.packagemanager.settings')
+    def test_build_source_package_with_ppa(self, settings_mock):
+        '''Call cowbuilder and build a source package with a ppa (unsigned for tests)'''
+        self.setup_settings_mock(settings_mock)
+        self.get_data_branch('dummypackage')
+        os.environ["MOCK_MODE"] = "1"
+        packagemanager.build_source_package("raring", "1.1-0ubuntu1", "ubuntu-unity/foo")
+        os.chdir('..')
+        self.assertChangesFilesAreIdenticals('foo_1.2-0ubuntu1_source.changes', os.path.join(self.data_dir, "results", 'foo_1.2-0ubuntu1_source.changes.lastcontent'))
+
+    @patch('cupstream2distro.packagemanager.settings')
     def test_build_and_include_older_version(self, settings_mock):
         '''Call cowbuilder and build a source package (unsigned for tests), but the .changes files should contain intermediate version'''
         self.setup_settings_mock(settings_mock)

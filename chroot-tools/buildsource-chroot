@@ -46,7 +46,7 @@ while [ -n "$1" ]; do
         --help)
             echo "$0: Enable building a source package inside a chroot
 
-    Usage: $0 WORKDIR --uid=UID --gid=GID --gnupg-parentdir=DIR --gnupg-keyid=KEYID --distro-version=version_from_distro
+    Usage: $0 WORKDIR --uid=UID --gid=GID --gnupg-parentdir=DIR --gnupg-keyid=KEYID --distro-version=version_from_distro [--ppa ppa_name]
     All parameters below are mandatory:
     - WORKDIR is the current package source directory (in tree)
     - uid is the uid owning the current source tree (used so that root don't own the new created files)
@@ -54,6 +54,7 @@ while [ -n "$1" ]; do
     - gnupg-parentdir is the directory containing the .gnupg/ directory. Certainly $HOME for you.
     - gnupg-keyid is the keyid with which signing the source package.
     - distro-version is the latest version published to the distro
+    - ppa is the optional ppa to add to the chroot
 
 
     Note that WORKDIR and gnupg-keyid should be bindmounted into the chroot.
@@ -68,6 +69,10 @@ while [ -n "$1" ]; do
             ;;
         --gnupg-keyid)
             KEYID=$2
+            shift; shift;
+            ;;
+        --ppa)
+            PPA=$2
             shift; shift;
             ;;
         --uid)
@@ -97,6 +102,13 @@ apt-get -yq dist-upgrade
 
 # this isn't need (you should install them in the chroot), but easier for debugging
 apt-get install pbuilder bzr-builddeb -yq
+
+# add the optional ppa and update from it
+if [ -n "$PPA" ]; then
+    apt-get install software-properties-common
+    add-apt-repository -y ppa:$PPA
+    apt-get update
+fi
 
 # install build-deps
 . /usr/lib/pbuilder/pdebuild-checkparams

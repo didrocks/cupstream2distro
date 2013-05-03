@@ -48,16 +48,23 @@ if __name__ == '__main__':
         distro_version = args[20]
         serie = os.environ['DIST']
 
-        if serie == "precise":
-            copy_data_file("foo_1.2-0ubuntu1_source.changes.onprecise", dest_dir, dest_filename="foo_1.2-0ubuntu1_source.changes")
-            sys.exit(0)
-        elif serie == "raring":
-            if distro_version == "1.1-0ubuntu1":
+        # this mode should have the ppa call
+        if os.environ.get("MOCK_MODE") == "1":
+            if "--ppa ubuntu-unity/foo" in command:
                 copy_data_file("foo_1.2-0ubuntu1_source.changes.lastcontent", dest_dir, dest_filename="foo_1.2-0ubuntu1_source.changes")
                 sys.exit(0)
-            elif distro_version == "1.0-0ubuntu1":
-                copy_data_file("foo_1.2-0ubuntu1_source.changes.sincedistroversion", dest_dir, dest_filename="foo_1.2-0ubuntu1_source.changes")
+
+        else:
+            if serie == "precise":
+                copy_data_file("foo_1.2-0ubuntu1_source.changes.onprecise", dest_dir, dest_filename="foo_1.2-0ubuntu1_source.changes")
                 sys.exit(0)
+            elif serie == "raring":
+                if distro_version == "1.1-0ubuntu1":
+                    copy_data_file("foo_1.2-0ubuntu1_source.changes.lastcontent", dest_dir, dest_filename="foo_1.2-0ubuntu1_source.changes")
+                    sys.exit(0)
+                elif distro_version == "1.0-0ubuntu1":
+                    copy_data_file("foo_1.2-0ubuntu1_source.changes.sincedistroversion", dest_dir, dest_filename="foo_1.2-0ubuntu1_source.changes")
+                    sys.exit(0)
 
     # unhandled case
     sys.exit(1)

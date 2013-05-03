@@ -305,8 +305,10 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with
     subprocess.call(["dch", "-r", "--distribution", series, "--force-distribution", ""], env=dch_env)
 
 
-def build_source_package(series, distro_version):
-    '''Build the source package using the internal helper'''
+def build_source_package(series, distro_version, ppa=None):
+    '''Build the source package using the internal helper
+
+    Add the additional ppa inside the chroot if requested.'''
 
     chroot_tool_dir = os.path.join(settings.ROOT_CU2D, "chroot-tools")
     buildsource = os.path.join(chroot_tool_dir, "buildsource-chroot")
@@ -315,9 +317,12 @@ def build_source_package(series, distro_version):
     cowbuilder_env = os.environ.copy()
     cowbuilder_env["HOME"] = chroot_tool_dir  # take the internal .pbuilderrc
     cowbuilder_env["DIST"] = series
-    instance = subprocess.Popen(["sudo", "-E", "cowbuilder", "--execute", "--bindmounts", parent_dir, "--bindmounts", settings.GNUPG_DIR,
-                                 "--", buildsource, branch_dir, "--gnupg-parentdir", settings.GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
-                                 "--gnupg-keyid", settings.BOT_KEY, "--distro-version", distro_version], env=cowbuilder_env)
+    cmd = ["sudo", "-E", "cowbuilder", "--execute", "--bindmounts", parent_dir, "--bindmounts", settings.GNUPG_DIR,
+           "--", buildsource, branch_dir, "--gnupg-parentdir", settings.GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
+           "--gnupg-keyid", settings.BOT_KEY, "--distro-version", distro_version]
+    if ppa:
+        cmd.extend(["--ppa", ppa])
+    instance = subprocess.Popen(cmd, env=cowbuilder_env)
     instance.communicate()
     if instance.returncode != 0:
         raise Exception("The above command returned an error.")
