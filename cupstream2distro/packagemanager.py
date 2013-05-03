@@ -289,7 +289,7 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with
     for author in authors_bugs_with_title:
         dch_env["DEBFULLNAME"] = author
         for bug_desc in authors_bugs_with_title[author]:
-            subprocess.Popen(["dch", bug_desc], env=dch_env).communicate()
+            subprocess.Popen(["dch", "-v{}".format(new_package_version), bug_desc], env=dch_env).communicate()
 
     commit_message = "{} {}".format(settings.REV_STRING_FORMAT, tip_bzr_rev)
     if dest_ppa:
