@@ -50,13 +50,13 @@ if __name__ == '__main__':
         if options == "log -c -1 --line":
             print("6: Didier Roche 2013-02-17 add some upstream changes")
             sys.exit(0)
-        elif options == "log -r 3.. --include-merged --forward":
+        elif options == "log -r 3.. --show-diff --forward":
             print_to_stdout('bzr_log_simple')
             sys.exit(0)
-        elif options == "log -r 1.. --include-merged --forward":
+        elif options == "log -r 1.. --show-diff --forward":
             print_to_stdout('bzr_log_nested')
             sys.exit(0)
-        elif options == "log -r 12.. --include-merged --forward":
+        elif options == "log -r 12.. --show-diff --forward":
             print_to_stdout('bzr_log_remerge_trunk')
             sys.exit(0)
 

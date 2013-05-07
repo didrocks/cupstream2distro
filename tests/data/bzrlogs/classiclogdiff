@@ -1,0 +1,635 @@
+------------------------------------------------------------
+revno: 3308
+committer: Marco Trevisan (Treviño) <mail@3v1n0.net>
+branch nick: trunk
+timestamp: Fri 2013-02-08 02:46:52 +0000
+message:
+  Simulating direct commit to trunk
+diff:
+=== modified file 'launcher/EdgeBarrierController.cpp'
+--- launcher/EdgeBarrierController.cpp  2012-12-11 23:38:30 +0000
++++ launcher/EdgeBarrierController.cpp  2013-02-08 01:00:23 +0000
+@@ -19,6 +19,7 @@
+  */
+ 
+ #include "EdgeBarrierController.h"
++#include "EdgeBarrierControllerPrivate.h"
+ #include "Decaymulator.h"
+ #include "unity-shared/UScreen.h"
+ #include "UnityCore/GLibSource.h"
+------------------------------------------------------------
+revno: 3309 [merge]
+author: Automatic PS uploader <ps-jenkins@lists.canonical.com>
+committer: Tarmac
+branch nick: trunk
+timestamp: Thu 2013-04-18 09:36:04 +0000
+message:
+  Releasing 7.0.0daily13.04.18~13.04-0ubuntu1 to ubuntu.
+  
+  Approved by PS Jenkins bot.
+diff:
+=== modified file 'debian/changelog'
+--- debian/changelog	2013-04-17 04:07:04 +0000
++++ debian/changelog	2013-04-18 05:43:35 +0000
+@@ -1,3 +1,13 @@
++unity (7.0.0daily13.04.18~13.04-0ubuntu1) raring; urgency=low
++
++  [ Manuel de la Pena ]
++  * Purchased songs won't download when not logged to U1 (LP: #1168674)
++
++  [ Ubuntu daily release ]
++  * Automatic snapshot from revision 3309
++
++ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 18 Apr 2013 05:43:34 +0000
++
+ unity (7.0.0daily13.04.17~13.04-0ubuntu1) raring; urgency=low
+ 
+   [ Marco Trevisan (Treviño) ]
+------------------------------------------------------------
+revno: 3310 [merge]
+author: Marco Trevisan (Treviño) <mail@3v1n0.net>, Brandon Schaefer <brandon.schaefer@canonical.com>
+committer: Tarmac
+branch nick: trunk
+timestamp: Fri 2013-02-08 02:46:52 +0000
+message:
+  EdgeBarrierController: add multiple types of subscriber results, fix edges on autohide
+  
+  Now when sticky keys are disabled, and the launcher is set to autohide, the mouse will hit both sides of the screen (instead of just the left side o
+f the barrier); at that point we'll release the events coming from the launcher-less side of the monitor, but we'll use them to temporary keep the bar
+rier "broken". Fixes: https://bugs.launchpad.net/bugs/1064945.
+  
+  Approved by Brandon Schaefer.
+diff:
+=== modified file 'launcher/EdgeBarrierController.cpp'
+--- launcher/EdgeBarrierController.cpp  2012-12-11 23:38:30 +0000
++++ launcher/EdgeBarrierController.cpp  2013-02-08 01:00:23 +0000
+@@ -19,6 +19,7 @@
+  */
+ 
+ #include "EdgeBarrierController.h"
++#include "EdgeBarrierControllerPrivate.h"
+ #include "Decaymulator.h"
+ #include "unity-shared/UScreen.h"
+ #include "UnityCore/GLibSource.h"
+------------------------------------------------------------
+revno: 3311 [merge]
+author: Sebastien Bacher <seb128@ubuntu.com>
+committer: Tarmac
+branch nick: trunk
+timestamp: Tue 2013-04-23 15:35:41 +0000
+message:
+  Use '%s:' string for preview hints, rather than just appending ':'. Fixes: https://bugs.launchpad.net/bugs/1074038.
+  
+  Approved by Marco Trevisan (Treviño), PS Jenkins bot.
+diff:
+=== modified file 'dash/previews/PreviewInfoHintWidget.cpp'
+--- dash/previews/PreviewInfoHintWidget.cpp	2013-01-16 18:34:18 +0000
++++ dash/previews/PreviewInfoHintWidget.cpp	2013-04-23 13:04:50 +0000
+@@ -20,6 +20,9 @@
+  *
+  */
+ 
++#include "config.h"
++#include <glib/gi18n-lib.h>
++
+ #include "PreviewInfoHintWidget.h"
+ #include "unity-shared/IntrospectableWrappers.h"
+ #include <NuxCore/Logger.h>
+@@ -158,8 +161,8 @@
+     StaticCairoTextPtr info_name;
+     if (!info_hint->display_name.empty())
+     {
+-      std::string tmp_display_name = info_hint->display_name;
+-      tmp_display_name += ":";
++      // The "%s" is used in the dash preview to display the "<hint>: <value>" infos
++      std::string tmp_display_name = glib::String(g_strdup_printf (_("%s:"), info_hint->display_name.c_str())).Str();
+ 
+       info_name = new StaticCairoText(tmp_display_name, true, NUX_TRACKER_LOCATION);
+       info_name->SetFont(style.info_hint_bold_font());
+
+=== modified file 'po/POTFILES.in'
+--- po/POTFILES.in	2013-03-22 12:47:04 +0000
++++ po/POTFILES.in	2013-04-23 13:04:50 +0000
+@@ -9,6 +9,7 @@
+ dash/PlacesGroup.cpp
+ dash/ResultViewGrid.cpp
+ dash/previews/ApplicationPreview.cpp
++dash/previews/PreviewInfoHintWidget.cpp
+ dash/previews/SocialPreview.cpp
+ hud/HudController.cpp
+ hud/HudView.cpp
+------------------------------------------------------------
+revno: 3312 [merge]
+author: Marco Trevisan (Treviño) <mail@3v1n0.net>
+committer: Tarmac
+branch nick: trunk
+timestamp: Tue 2013-04-23 22:00:39 +0000
+message:
+  IconRenderer: preprocess an icon if its emblem has been shown/hidden
+    
+  In that way we can update its transformation. Fixes: https://bugs.launchpad.net/bugs/1171476, https://bugs.launchpad.net/bugs/1171663.
+  
+  Approved by PS Jenkins bot, Brandon Schaefer.
+diff:
+=== modified file 'launcher/LauncherIcon.cpp'
+--- launcher/LauncherIcon.cpp	2013-03-21 16:29:34 +0000
++++ launcher/LauncherIcon.cpp	2013-04-23 00:49:38 +0000
+@@ -1144,13 +1144,14 @@
+   if (!remote->CountVisible())
+     return;
+ 
+-  std::string text;
+-  if (remote->Count() > 9999)
+-    text = "****";
++  if (remote->Count() / 10000 != 0)
++  {
++    SetEmblemText("****");
++  }
+   else
+-    text = std::to_string(remote->Count());
+-
+-  SetEmblemText(text);
++  {
++    SetEmblemText(std::to_string(remote->Count()));
++  }
+ }
+ 
+ void
+
+=== modified file 'unity-shared/IconRenderer.cpp'
+--- unity-shared/IconRenderer.cpp	2013-04-10 21:41:57 +0000
++++ unity-shared/IconRenderer.cpp	2013-04-23 00:49:38 +0000
+@@ -300,7 +300,8 @@
+     if (it->render_center == launcher_icon->LastRenderCenter(monitor) &&
+         it->logical_center == launcher_icon->LastLogicalCenter(monitor) &&
+         it->rotation == launcher_icon->LastRotation(monitor) &&
+-        it->skip == launcher_icon->WasSkipping(monitor))
++        it->skip == launcher_icon->WasSkipping(monitor) &&
++        (launcher_icon->Emblem() != nullptr) == launcher_icon->HadEmblem())
+     {
+       continue;
+     }
+@@ -308,6 +309,7 @@
+     launcher_icon->RememberCenters(monitor, it->render_center, it->logical_center);
+     launcher_icon->RememberRotation(monitor, it->rotation);
+     launcher_icon->RememberSkip(monitor, it->skip);
++    launcher_icon->RememberEmblem(launcher_icon->Emblem() != nullptr);
+ 
+     float w = icon_size;
+     float h = icon_size;
+
+=== modified file 'unity-shared/IconTextureSource.cpp'
+--- unity-shared/IconTextureSource.cpp	2013-04-12 23:33:52 +0000
++++ unity-shared/IconTextureSource.cpp	2013-04-23 00:48:47 +0000
+@@ -32,7 +32,8 @@
+ }
+ 
+ IconTextureSource::IconTextureSource()
+-  : skip_(RENDERERS_SIZE, false)
++  : had_emblem_(false)
++  , skip_(RENDERERS_SIZE, false)
+   , last_render_center_(RENDERERS_SIZE)
+   , last_logical_center_(RENDERERS_SIZE)
+   , last_rotation_(RENDERERS_SIZE)
+@@ -80,5 +81,15 @@
+   return skip_[monitor];
+ }
+ 
++void IconTextureSource::RememberEmblem(bool has_emblem)
++{
++  had_emblem_ = has_emblem;
++}
++
++bool IconTextureSource::HadEmblem() const
++{
++  return had_emblem_;
++}
++
+ }
+ }
+\ No newline at end of file
+
+=== modified file 'unity-shared/IconTextureSource.h'
+--- unity-shared/IconTextureSource.h	2013-04-12 23:33:52 +0000
++++ unity-shared/IconTextureSource.h	2013-04-23 00:48:47 +0000
+@@ -58,6 +58,9 @@
+   void RememberSkip(int monitor, bool skip);
+   bool WasSkipping(int monitor) const;
+ 
++  void RememberEmblem(bool has_emblem);
++  bool HadEmblem() const;
++
+   virtual nux::Color BackgroundColor() const = 0;
+ 
+   virtual nux::Color GlowColor() = 0;
+@@ -67,6 +70,7 @@
+   virtual nux::BaseTexture* Emblem() = 0;
+ 
+ private:
++  bool had_emblem_;
+   std::vector<bool> skip_;
+   std::vector<nux::Point3> last_render_center_;
+   std::vector<nux::Point3> last_logical_center_;
+------------------------------------------------------------
+revno: 3313 [merge]
+author: Marco Trevisan (Treviño) <mail@3v1n0.net>
+committer: Tarmac
+branch nick: trunk
+timestamp: Wed 2013-04-24 00:04:04 +0000
+message:
+  UnityWindow: don't draw the panel shadow above a fullscreen window. Fixes: https://bugs.launchpad.net/bugs/1171934.
+  
+  Approved by PS Jenkins bot, Andrea Azzarone.
+diff:
+=== modified file 'plugins/unityshell/src/unityshell.cpp'
+--- plugins/unityshell/src/unityshell.cpp	2013-04-16 22:11:24 +0000
++++ plugins/unityshell/src/unityshell.cpp	2013-04-23 16:59:52 +0000
+@@ -2302,8 +2302,6 @@
+ 
+   if (p)
+   {
+-    MultiActionList expoActions;
+-
+     for (CompOption& option : p->vTable->getOptions())
+     {
+       if (option.name() == "close_window_key")
+@@ -2624,7 +2622,9 @@
+       {
+         draw_panel_shadow = DrawPanelShadow::BELOW_WINDOW;
+ 
+-        if (!(window->state() & MAXIMIZE_STATE))
++        if (!(window->state() & CompWindowStateMaximizedVertMask) &&
++            !(window->state() & CompWindowStateFullscreenMask) &&
++            !(window->type() & CompWindowTypeFullscreenMask))
+         {
+           auto const& output = uScreen->screen->currentOutputDev();
+------------------------------------------------------------
+revno: 3314 [merge]
+author: Łukasz 'sil2100' Zemczak <lukasz.zemczak@canonical.com>
+committer: Tarmac
+branch nick: trunk
+timestamp: Thu 2013-04-25 10:21:51 +0000
+message:
+  Now that we're using the new HUD, there have been some changes that typically cause test_hud tests to fail. Fix the tests to fit the new model.
+  The first one is that generally we do not have indicator entries visible in the HUD anymore. Only application menu entries are in it now.
+  The second one - the way the results are displayed is different. Now, instead of "Menu > Entry" we have "Entry (Menu)" etc.
+  
+  Approved by PS Jenkins bot, Mathieu Trudel-Lapierre.
+diff:
+=== modified file 'tests/autopilot/unity/tests/test_hud.py'
+--- tests/autopilot/unity/tests/test_hud.py	2013-03-20 22:10:59 +0000
++++ tests/autopilot/unity/tests/test_hud.py	2013-04-24 15:25:08 +0000
+@@ -66,6 +66,14 @@
+         }
+         self.launch_test_window(window_spec)
+ 
++    def start_menu_app(self):
++        window_spec = {
++            "Title": "Test menu application",
++            "Menu": ["Entry 1", "Entry 2", "Entry 3", "Entry 4", "Entry 5", "Quit"],
++        }
++        self.launch_test_window(window_spec)
++
++
+ 
+ class HudBehaviorTests(HudTestsBase):
+ 
+@@ -83,16 +91,20 @@
+         self.assertThat(self.unity.hud.selected_button, Equals(0))
+ 
+     def test_check_a_values(self):
++        self.start_menu_app()
+         self.unity.hud.ensure_visible()
+-        self.keyboard.type('a')
+-        self.assertThat(self.unity.hud.search_string, Eventually(Equals('a')))
++        self.keyboard.type('e')
++        self.assertThat(self.unity.hud.search_string, Eventually(Equals('e')))
+         self.assertThat(self.unity.hud.num_buttons, Eventually(Equals(5)))
+         self.assertThat(self.unity.hud.selected_button, Eventually(Equals(1)))
+ 
+     def test_up_down_arrows(self):
++        self.start_menu_app()
+         self.unity.hud.ensure_visible()
+-        self.keyboard.type('a')
+-        self.assertThat(self.unity.hud.search_string, Eventually(Equals('a')))
++        self.keyboard.type('e')
++        self.assertThat(self.unity.hud.search_string, Eventually(Equals('e')))
++        self.assertThat(self.unity.hud.num_buttons, Eventually(Equals(5)))
++
+         self.keyboard.press_and_release('Down')
+         self.assertThat(self.unity.hud.selected_button, Eventually(Equals(2)))
+         self.keyboard.press_and_release('Down')
+@@ -120,6 +132,8 @@
+         """Hud must not change selected button when results update over time."""
+         # TODO - this test doesn't test anything. Onmy system the results never update.
+         # ideally we'd send artificial results to the hud from the test.
++        self.skipTest("This test makes no sense in its current state, needs reworking.")
++
+         self.unity.hud.ensure_visible()
+         self.keyboard.type('is')
+         self.assertThat(self.unity.hud.search_string, Eventually(Equals('is')))
+@@ -198,8 +212,10 @@
+ 
+         self.keyboard.type("undo")
+         hud_query_check = lambda: self.unity.hud.selected_hud_button.label_no_formatting
++        # XXX: with the new HUD, command and description is separated by '\u2002' and
++        #  not a regular space ' '. Is that correct? (LP: #1172237)
+         self.assertThat(hud_query_check,
+-                        Eventually(Equals("Edit > Undo")))
++                        Eventually(Equals(u'Undo\u2002(Edit)')))
+         self.keyboard.press_and_release('Return')
+         self.assertThat(self.unity.hud.visible, Eventually(Equals(False)))
+ 
+@@ -306,8 +322,11 @@
+ 
+         self.unity.hud.ensure_visible()
+ 
+-        self.keyboard.type("File > Quit")
+-        self.assertThat(self.unity.hud.search_string, Eventually(Equals("File > Quit")))
++        self.keyboard.type("Quit")
++        self.assertThat(self.unity.hud.search_string, Eventually(Equals("Quit")))
++        hud_query_check = lambda: self.unity.hud.selected_hud_button.label_no_formatting
++        self.assertThat(hud_query_check,
++                        Eventually(Equals(u'Quit\u2002(File)')))
+ 
+         self.keyboard.press_and_release("Enter")
+ 
+@@ -368,10 +387,11 @@
+         """This tests moves the mouse from the top of the screen to the bottom, this must
+         change the selected button from 1 to 5.
+         """
+-
++        self.start_menu_app()
+         self.unity.hud.ensure_visible()
+ 
+-        self.keyboard.type("a")
++        self.keyboard.type("e")
++        self.assertThat(self.unity.hud.num_buttons, Eventually(Equals(5)))
+         (x,y,w,h) = self.unity.hud.view.geometry
+ 
+         # Specify a slower rate so that HUD can register the mouse movement properly
+@@ -385,10 +405,11 @@
+         """This tests moves the mouse from the top of the screen to the bottom,
+         then it presses the keyboard up 5 times, this must change the selected button from 5 to 1.
+         """
+-
++        self.start_menu_app()
+         self.unity.hud.ensure_visible()
+ 
+-        self.keyboard.type("a")
++        self.keyboard.type("e")
++        self.assertThat(self.unity.hud.num_buttons, Eventually(Equals(5)))
+         (x,y,w,h) = self.unity.hud.view.geometry
+ 
+         self.mouse.move(w/2, 0)
+@@ -462,13 +483,13 @@
+ 
+     def test_mouse_does_not_steal_button_focus(self):
+         """When typing in the hud the mouse must not steal button focus."""
+-
++        self.start_menu_app()
+         self.unity.hud.ensure_visible()
+ 
+         (x,y,w,h) = self.unity.hud.view.geometry
+         self.mouse.move(w/4, h/4)
+ 
+-        self.keyboard.type("a")
++        self.keyboard.type("e")
+         self.assertThat(self.unity.hud.view.selected_button, Eventually(Equals(1)))
+------------------------------------------------------------
+revno: 3315 [merge]
+author: Andrea Azzarone <azzaronea@gmail.com>
+committer: Tarmac
+branch nick: trunk
+timestamp: Thu 2013-04-25 16:22:08 +0000
+message:
+  Disable detail view for webapp icons. Fixes: https://bugs.launchpad.net/bugs/1169340.
+  
+  Approved by PS Jenkins bot, Marco Trevisan (Treviño).
+diff:
+=== modified file 'launcher/AbstractLauncherIcon.h'
+--- launcher/AbstractLauncherIcon.h	2013-03-14 18:55:36 +0000
++++ launcher/AbstractLauncherIcon.h	2013-04-17 19:16:54 +0000
+@@ -180,6 +180,7 @@
+   virtual float GetProgress() = 0;
+ 
+   virtual bool ShowInSwitcher(bool current) = 0;
++  virtual bool AllowDetailViewInSwitcher() const = 0;
+ 
+   virtual unsigned long long SwitcherPriority() = 0;
+ 
+
+=== modified file 'launcher/ApplicationLauncherIcon.cpp'
+--- launcher/ApplicationLauncherIcon.cpp	2013-04-09 17:02:27 +0000
++++ launcher/ApplicationLauncherIcon.cpp	2013-04-17 19:16:54 +0000
+@@ -1254,6 +1254,11 @@
+   return result;
+ }
+ 
++bool ApplicationLauncherIcon::AllowDetailViewInSwitcher() const
++{
++  return app_->type() != "webapp";
++}
++
+ unsigned long long ApplicationLauncherIcon::SwitcherPriority()
+ {
+   unsigned long long result = 0;
+
+=== modified file 'launcher/ApplicationLauncherIcon.h'
+--- launcher/ApplicationLauncherIcon.h	2013-04-05 19:09:21 +0000
++++ launcher/ApplicationLauncherIcon.h	2013-04-17 19:16:54 +0000
+@@ -60,6 +60,7 @@
+   virtual void UnStick();
+ 
+   virtual bool ShowInSwitcher(bool current);
++  virtual bool AllowDetailViewInSwitcher() const override;
+   virtual unsigned long long SwitcherPriority();
+ 
+   virtual nux::Color BackgroundColor() const;
+
+=== modified file 'launcher/LauncherIcon.h'
+--- launcher/LauncherIcon.h	2013-03-18 12:57:00 +0000
++++ launcher/LauncherIcon.h	2013-04-17 19:16:54 +0000
+@@ -119,6 +119,11 @@
+     return false;
+   };
+ 
++  virtual bool AllowDetailViewInSwitcher() const override
++  {
++    return false;
++  }
++
+   virtual unsigned long long SwitcherPriority()
+   {
+     return 0;
+
+=== modified file 'launcher/MockLauncherIcon.h'
+--- launcher/MockLauncherIcon.h	2013-03-18 12:57:00 +0000
++++ launcher/MockLauncherIcon.h	2013-04-17 19:16:54 +0000
+@@ -215,6 +215,11 @@
+     return true;
+   }
+ 
++  bool AllowDetailViewInSwitcher() const override
++  {
++    return true;
++  }
++
+   void InsertEntryRemote(LauncherEntryRemote::Ptr const& remote) {}
+ 
+   void RemoveEntryRemote(LauncherEntryRemote::Ptr const& remote) {}
+
+=== modified file 'launcher/SwitcherController.cpp'
+--- launcher/SwitcherController.cpp	2013-03-19 18:47:01 +0000
++++ launcher/SwitcherController.cpp	2013-04-18 14:04:10 +0000
+@@ -533,13 +533,13 @@
+ 
+ void Controller::Impl::SetDetail(bool value, unsigned int min_windows)
+ {
+-  if (value && model_->DetailXids().size() >= min_windows)
++  if (value && model_->Selection()->AllowDetailViewInSwitcher() && model_->DetailXids().size() >= min_windows)
+   {
+     model_->detail_selection = true;
+     obj_->detail_mode_ = DetailMode::TAB_NEXT_WINDOW;
+   }
+   else
+-  {
++  { 
+     model_->detail_selection = false;
+   }
+ }
+
+=== modified file 'tests/mock-application.h'
+--- tests/mock-application.h	2013-03-06 16:38:17 +0000
++++ tests/mock-application.h	2013-04-17 19:16:54 +0000
+@@ -84,6 +84,7 @@
+     , active_(false)
+     , running_(false)
+     , urgent_(false)
++    , type_("mock")
+     {
+       seen.SetGetterFunction(sigc::mem_fun(this, &MockApplication::GetSeen));
+       seen.SetSetterFunction(sigc::mem_fun(this, &MockApplication::SetSeen));
+@@ -105,12 +106,13 @@
+   bool running_;
+   bool urgent_;
+   unity::WindowList windows_;
++  std::string type_;
+ 
+ 
+   virtual std::string icon() const { return icon_; }
+   virtual std::string title() const { return title_; }
+   virtual std::string desktop_file() const { return desktop_file_; }
+-  virtual std::string type() const { return "mock"; }
++  virtual std::string type() const { return type_; }
+   virtual std::string repr() const { return "MockApplication"; }
+ 
+   virtual unity::WindowList GetWindows() const { return windows_; }
+
+=== modified file 'tests/test_application_launcher_icon.cpp'
+--- tests/test_application_launcher_icon.cpp	2013-04-08 18:19:46 +0000
++++ tests/test_application_launcher_icon.cpp	2013-04-17 19:16:54 +0000
+@@ -525,4 +525,13 @@
+   EXPECT_TRUE(icon->IsFileManager());
+ }
+ 
++TEST_F(TestApplicationLauncherIcon, AllowDetailViewInSwitcher)
++{
++  mock_app->type_ = "mock";
++  EXPECT_TRUE(mock_icon->AllowDetailViewInSwitcher());
++
++  mock_app->type_ = "webapp";
++  EXPECT_FALSE(mock_icon->AllowDetailViewInSwitcher());
++}
++
+ }
+
+=== modified file 'tests/test_switcher_controller.cpp'
+--- tests/test_switcher_controller.cpp	2013-03-19 01:13:43 +0000
++++ tests/test_switcher_controller.cpp	2013-04-17 19:16:54 +0000
+@@ -63,6 +63,21 @@
+   EXPECT_LT(model->detail_selection.changed.size(), prev_size);
+ }
+ 
++TEST_F(TestSwitcherController, InitiateDetailWebapps)
++{
++  controller_->Show(ShowMode::ALL, SortMode::LAUNCHER_ORDER, icons_);
++
++  controller_->Select(3);
++  controller_->InitiateDetail();
++
++  auto const& view = controller_->GetView();
++  auto const& model = view->GetModel();
++  EXPECT_EQ(controller_->detail_mode(), DetailMode::TAB_NEXT_TILE);
++  EXPECT_FALSE(view->animate());
++  EXPECT_FALSE(model->detail_selection());
++}
++
++
+ TEST_F(TestSwitcherController, ShowSwitcher)
+ {
+   EXPECT_FALSE(controller_->Visible());
+
+=== modified file 'tests/test_switcher_controller.h'
+--- tests/test_switcher_controller.h	2013-03-19 01:13:43 +0000
++++ tests/test_switcher_controller.h	2013-04-17 19:16:54 +0000
+@@ -72,12 +72,14 @@
+ class FakeLauncherIcon : public unity::launcher::SimpleLauncherIcon
+ {
+ public:
+-  FakeLauncherIcon(std::string const& app_name, unsigned priority);
++  FakeLauncherIcon(std::string const& app_name, bool allow_detail_view, unsigned priority);
+ 
+-  unity::WindowList Windows();
+-  unsigned long long SwitcherPriority();
++  unity::WindowList Windows()override;
++  bool AllowDetailViewInSwitcher() const override;
++  unsigned long long SwitcherPriority() override;
+ 
+ private:
++  bool allow_detail_view_;
+   unsigned   priority_;
+   unity::WindowList window_list;
+ };
+
+=== modified file 'tests/test_switcher_controller_class.cpp'
+--- tests/test_switcher_controller_class.cpp	2013-03-19 01:13:43 +0000
++++ tests/test_switcher_controller_class.cpp	2013-04-17 19:16:54 +0000
+@@ -37,8 +37,9 @@
+ bool FakeApplicationWindow::Focus() const { return false; }
+ void FakeApplicationWindow::Quit() const {}
+ 
+-FakeLauncherIcon::FakeLauncherIcon(std::string const& app_name, unsigned priority)
++FakeLauncherIcon::FakeLauncherIcon(std::string const& app_name, bool allow_detail_view, unsigned priority)
+   : launcher::SimpleLauncherIcon(IconType::APPLICATION)
++  , allow_detail_view_(allow_detail_view)
+   , priority_(priority)
+   , window_list{ std::make_shared<FakeApplicationWindow>(priority_ | 0x0001),
+                  std::make_shared<FakeApplicationWindow>(priority_ | 0x0002) }
+@@ -51,6 +52,11 @@
+   return window_list;
+ }
+ 
++bool FakeLauncherIcon::AllowDetailViewInSwitcher() const
++{
++  return allow_detail_view_;
++}
++
+ unsigned long long FakeLauncherIcon::SwitcherPriority()
+ {
+   return 0xffffffff - priority_;
+@@ -74,8 +80,10 @@
+ 
+   icons_.push_back(launcher::AbstractLauncherIcon::Ptr(new launcher::DesktopLauncherIcon()));
+ 
+-  FakeLauncherIcon* first_app = new FakeLauncherIcon("First", 0x0100);
++  FakeLauncherIcon* first_app = new FakeLauncherIcon("First", true, 0x0100);
+   icons_.push_back(launcher::AbstractLauncherIcon::Ptr(first_app));
+-  FakeLauncherIcon* second_app = new FakeLauncherIcon("Second", 0x0200);
++  FakeLauncherIcon* second_app = new FakeLauncherIcon("Second", true, 0x0200);
+   icons_.push_back(launcher::AbstractLauncherIcon::Ptr(second_app));
++  FakeLauncherIcon* third_app = new FakeLauncherIcon("Third", false, 0x0300);
++  icons_.push_back(launcher::AbstractLauncherIcon::Ptr(third_app));
+ }
+------------------------------------------------------------
+Use --include-merged or -n0 to see merged revisions.

@@ -294,13 +294,13 @@ def collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name):
     return bugs
 
 
-def update_changelog(new_package_version, series, tip_bzr_rev, authors_bugs_with_title, dest_ppa=None):
+def update_changelog(new_package_version, series, tip_bzr_rev, authors_commits, dest_ppa=None):
     '''Update the changelog for the incoming upload'''
 
     dch_env = os.environ.copy()
-    for author in authors_bugs_with_title:
+    for author in authors_commits:
         dch_env["DEBFULLNAME"] = author
-        for bug_desc in authors_bugs_with_title[author]:
+        for bug_desc in authors_commits[author]:
             subprocess.Popen(["dch", "-v{}".format(new_package_version), bug_desc], env=dch_env).communicate()
 
     commit_message = "{} {}".format(settings.REV_STRING_FORMAT, tip_bzr_rev)

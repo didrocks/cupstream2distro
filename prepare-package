@@ -142,11 +142,12 @@ if __name__ == '__main__':
 
     # Prepare changelog
     logging.info("Prepare changelog content")
-    authors_bugs = {}
-    authors_bugs_with_title = {}
-    authors_bugs = branchhandling.collect_author_bugs(last_upstream_rev + 1, source_package_name)
-    authors_bugs_with_title = launchpadmanager.get_bugs_titles(authors_bugs)
-    packagemanager.update_changelog(packaging_version, series, tip_bzr_rev, authors_bugs_with_title, args.destppa)
+    log_content = branchhandling.return_log_diff()
+    alreadyfixed_bugs = set()
+    with open("debian/changelog") as f:
+        alreadyfixed_bugs = packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name)
+    (authors_commits, bugs_set) = branchhandling.collect_author_commits(log_content, alreadyfixed_bugs)
+    packagemanager.update_changelog(packaging_version, series, tip_bzr_rev, authors_commits, args.destppa)
 
     # We don't do manual diff check for a feature ppa
     if not args.destppa:
@@ -156,9 +157,6 @@ if __name__ == '__main__':
 
     logging.info("Sync launchpad with current proposed work")
     branchhandling.commit_release(packaging_version, tip_bzr_rev)
-    bugs_set = set()
-    for author in authors_bugs:
-        bugs_set = bugs_set.union(authors_bugs[author])
     launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series)
 
     logging.info("Build source package and upload to the ppa")
