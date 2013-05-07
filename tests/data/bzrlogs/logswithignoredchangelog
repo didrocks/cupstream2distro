@@ -1,0 +1,135 @@
+------------------------------------------------------------
+revno: 3308
+committer: Marco Trevisan (Treviño) <mail@3v1n0.net>
+branch nick: trunk
+timestamp: Fri 2013-02-08 02:46:52 +0000
+message:
+  Simulating direct commit to trunk #nochangelog
+diff:
+=== modified file 'launcher/EdgeBarrierController.cpp'
+--- launcher/EdgeBarrierController.cpp  2012-12-11 23:38:30 +0000
++++ launcher/EdgeBarrierController.cpp  2013-02-08 01:00:23 +0000
+@@ -19,6 +19,7 @@
+  */
+ 
+ #include "EdgeBarrierController.h"
++#include "EdgeBarrierControllerPrivate.h"
+ #include "Decaymulator.h"
+ #include "unity-shared/UScreen.h"
+ #include "UnityCore/GLibSource.h"
+------------------------------------------------------------
+revno: 3310 [merge]
+author: Marco Trevisan (Treviño) <mail@3v1n0.net>, Brandon Schaefer <brandon.schaefer@canonical.com>
+committer: Tarmac
+branch nick: trunk
+timestamp: Fri 2013-02-08 02:46:52 +0000
+message:
+  EdgeBarrierController: add multiple types of subscriber results, fix edges on autohide
+
+  #nochangelog
+  
+  Now when sticky keys are disabled, and the launcher is set to autohide, the mouse will hit both sides of the screen (instead of just the left side o
+f the barrier); at that point we'll release the events coming from the launcher-less side of the monitor, but we'll use them to temporary keep the bar
+rier "broken". Fixes: https://bugs.launchpad.net/bugs/1064945.
+  
+  Approved by Brandon Schaefer.
+diff:
+=== modified file 'launcher/EdgeBarrierController.cpp'
+--- launcher/EdgeBarrierController.cpp  2012-12-11 23:38:30 +0000
++++ launcher/EdgeBarrierController.cpp  2013-02-08 01:00:23 +0000
+@@ -19,6 +19,7 @@
+  */
+ 
+ #include "EdgeBarrierController.h"
++#include "EdgeBarrierControllerPrivate.h"
+ #include "Decaymulator.h"
+ #include "unity-shared/UScreen.h"
+ #include "UnityCore/GLibSource.h"
+------------------------------------------------------------
+revno: 3312 [merge]
+author: Marco Trevisan (Treviño) <mail@3v1n0.net>
+committer: Tarmac
+branch nick: trunk
+timestamp: Tue 2013-04-23 22:00:39 +0000
+message:
+  IconRenderer: preprocess an icon if its emblem has been shown/hidden
+    
+  In that way we can update its transformation. Fixes: https://bugs.launchpad.net/bugs/1171476, https://bugs.launchpad.net/bugs/1171663.
+  
+  Approved by PS Jenkins bot, Brandon Schaefer.
+diff:
+=== modified file 'unity-shared/IconRenderer.cpp'
+--- unity-shared/IconRenderer.cpp	2013-04-10 21:41:57 +0000
++++ unity-shared/IconRenderer.cpp	2013-04-23 00:49:38 +0000
+@@ -300,7 +300,8 @@
+     if (it->render_center == launcher_icon->LastRenderCenter(monitor) &&
+         it->logical_center == launcher_icon->LastLogicalCenter(monitor) &&
+         it->rotation == launcher_icon->LastRotation(monitor) &&
+-        it->skip == launcher_icon->WasSkipping(monitor))
++        it->skip == launcher_icon->WasSkipping(monitor) &&
++        (launcher_icon->Emblem() != nullptr) == launcher_icon->HadEmblem())
+     {
+       continue;
+     }
+@@ -308,6 +309,7 @@
+     launcher_icon->RememberCenters(monitor, it->render_center, it->logical_center);
+     launcher_icon->RememberRotation(monitor, it->rotation);
+     launcher_icon->RememberSkip(monitor, it->skip);
++    launcher_icon->RememberEmblem(launcher_icon->Emblem() != nullptr);
+ 
+     float w = icon_size;
+     float h = icon_size;
+
+=== modified file 'unity-shared/IconTextureSource.cpp'
+--- unity-shared/IconTextureSource.cpp	2013-04-12 23:33:52 +0000
++++ unity-shared/IconTextureSource.cpp	2013-04-23 00:48:47 +0000
+@@ -32,7 +32,8 @@
+ }
+ 
+ IconTextureSource::IconTextureSource()
+-  : skip_(RENDERERS_SIZE, false)
++  : had_emblem_(false)
++  , skip_(RENDERERS_SIZE, false)
+   , last_render_center_(RENDERERS_SIZE)
+   , last_logical_center_(RENDERERS_SIZE)
+   , last_rotation_(RENDERERS_SIZE)
+@@ -80,5 +81,15 @@
+   return skip_[monitor];
+ }
+ 
++void IconTextureSource::RememberEmblem(bool has_emblem)
++{
++  had_emblem_ = has_emblem;
++}
++
++bool IconTextureSource::HadEmblem() const
++{
++  return had_emblem_;
++}
++
+ }
+ }
+\ No newline at end of file
+
+=== modified file 'unity-shared/IconTextureSource.h'
+--- unity-shared/IconTextureSource.h	2013-04-12 23:33:52 +0000
++++ unity-shared/IconTextureSource.h	2013-04-23 00:48:47 +0000
+@@ -58,6 +58,9 @@
+   void RememberSkip(int monitor, bool skip);
+   bool WasSkipping(int monitor) const;
+ 
++  void RememberEmblem(bool has_emblem);
++  bool HadEmblem() const;
++
+   virtual nux::Color BackgroundColor() const = 0;
+ 
+   virtual nux::Color GlowColor() = 0;
+@@ -67,6 +70,7 @@
+   virtual nux::BaseTexture* Emblem() = 0;
+ 
+ private:
++  bool had_emblem_;
+   std::vector<bool> skip_;
+   std::vector<nux::Point3> last_render_center_;
+   std::vector<nux::Point3> last_logical_center_;
+------------------------------------------------------------

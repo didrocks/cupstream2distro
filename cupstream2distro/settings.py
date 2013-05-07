@@ -25,7 +25,7 @@ PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
 REPLACEME_TAG = "0replaceme"
 BRANCH_URL = "lp:~ps-jenkins/{}/latestsnapshot-{}"
 
-IGNORECHANGELOG_COMMIT = "IGNORECHANGELOG"
+IGNORECHANGELOG_COMMIT = "#nochangelog"
 
 PROJECT_CONFIG_SUFFIX = "project"
 
