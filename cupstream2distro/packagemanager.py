@@ -212,6 +212,18 @@ def is_new_content_relevant_since_old_published_source(source_package_name, dest
     filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*po', '-x', '*pot', '-x', '*local-options'], stdin=diffinstance.stdout, stdout=subprocess.PIPE)
     lsdiffinstance = subprocess.Popen(['lsdiff'], stdin=filterinstance.stdout, stdout=subprocess.PIPE)
     (relevant_changes, err) = subprocess.Popen(['grep', '-v', '.bzr'], stdin=lsdiffinstance.stdout, stdout=subprocess.PIPE).communicate()
+
+    # detect if the only change is a Vcs* target changes (with or without changelog edit). We won't release in that case
+    number_of_changed_files = relevant_changes.count("\n")
+    if ((number_of_changed_files == 1 and "debian/control" in relevant_changes) or
+       (number_of_changed_files == 2 and "debian/control" in relevant_changes and "debian/changelog" in relevant_changes)):
+        (results, err) = subprocess.Popen(['diff', os.path.join('debian', 'control'), os.path.join(dest_version_source, "debian", "control")], stdout=subprocess.PIPE).communicate()
+        for diff_line in results.split('\n'):
+            if diff_line.startswith("< ") or diff_line.startswith("> "):
+                if not diff_line[2:].startswith("Vcs-") and not diff_line[2:].startswith("#"):
+                    return True
+        return False
+
     return (relevant_changes != '')
 
 

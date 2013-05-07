@@ -363,6 +363,18 @@ class PackageManagerTests(BaseUnitTestCase):
         dest_version_source = self.get_ubuntu_source_content_path('onemanualupload')
         self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
 
+    def test_dont_release_if_vcs_bzr_change(self):
+        '''We don't release if there is only a vcs* change (when diverging branches)'''
+        self.get_data_branch('vcsbzrchange')
+        dest_version_source = self.get_ubuntu_source_content_path('onerelease')
+        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+
+    def test_dont_release_if_vcs_bzr_change_with_changelog(self):
+        '''We don't release if there is only a vcs* change (when diverging branches), even with a changelog change'''
+        self.get_data_branch('vcsbzrchangewithchangelog')
+        dest_version_source = self.get_ubuntu_source_content_path('onerelease')
+        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+
     def test_release_even_if_changelog_change(self):
         '''We release even if the only change is a debian/changelog change'''
         self.get_data_branch('debianchangelog_change_on_onemanualupload')
