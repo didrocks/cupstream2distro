@@ -5,6 +5,8 @@ branch nick: basic
 timestamp: Mon 2013-01-07 12:27:37 +0100
 message:
   first commit
+diff:
+=== added file 'foo'
 ------------------------------------------------------------
 revno: 2
 committer: Didier Roche <didrocks@ubuntu.com>
@@ -12,6 +14,49 @@ branch nick: foo
 timestamp: Sun 2013-02-17 17:16:54 +0100
 message:
   adding some initial packaging
+diff:
+=== added directory 'debian'
+=== added file 'debian/changelog'
+--- debian/changelog	1970-01-01 00:00:00 +0000
++++ debian/changelog	2013-02-17 16:16:54 +0000
+@@ -0,0 +1,6 @@
++foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
++
++  * We snapshotted it for please
++  * Automatic snapshot from revision 1
++
++ -- Automatic Didrocks uploader <did@machine.fr>  Fri, 13 Sep 1983 04:02:00 +0000
+
+=== added file 'debian/control'
+--- debian/control	1970-01-01 00:00:00 +0000
++++ debian/control	2013-02-17 16:16:54 +0000
+@@ -0,0 +1,20 @@
++Source: basic
++Section: unity
++Priority: optional
++Maintainer: DidRocks
++Build-Depends: cmake,
++               debhelper (>= 9.0.0~),
++               dh-migrations,
++Standards-Version: 3.9.3
++Homepage: https://launchpad.net/foo
++# If you aren't a member of ~unity-team but need to upload packaging changes,
++# just go ahead.  ~unity-team will notice and sync up the code again.
++Vcs-Bzr: https://code.launchpad.net/~didrocks/foo/trunk
++
++Package: foo
++Architecture: any
++Depends: ${shlibs:Depends},
++         ${misc:Depends},
++         ${python:Depends},
++Description: The amazing foo package, without any trace of bar
++ Baz as well is excluded from the foo package.
+
+=== added file 'debian/install'
+--- debian/install	1970-01-01 00:00:00 +0000
++++ debian/install	2013-02-17 16:16:54 +0000
+@@ -0,0 +1,1 @@
++dummy install file, do you want to install anything from it?
 ------------------------------------------------------------
 revno: 3
 committer: Didier Roche <didrocks@ubuntu.com>
@@ -19,6 +64,55 @@ branch nick: foo
 timestamp: Sun 2013-02-17 17:19:12 +0100
 message:
   add fake code to foo project
+diff:
+=== added file 'CMakeLists.txt'
+--- CMakeLists.txt	1970-01-01 00:00:00 +0000
++++ CMakeLists.txt	2013-02-17 16:19:12 +0000
+@@ -0,0 +1,1 @@
++Fake cmakerie on root dir
+
+=== added file 'Makefile.am'
+--- Makefile.am	1970-01-01 00:00:00 +0000
++++ Makefile.am	2013-02-17 16:19:12 +0000
+@@ -0,0 +1,1 @@
++Fake Makefile in root
+
+=== added file 'configure'
+--- configure	1970-01-01 00:00:00 +0000
++++ configure	2013-02-17 16:19:12 +0000
+@@ -0,0 +1,1 @@
++And a fake configure
+
+=== added file 'configure.ac'
+--- configure.ac	1970-01-01 00:00:00 +0000
++++ configure.ac	2013-02-17 16:19:12 +0000
+@@ -0,0 +1,1 @@
++Fake configure.ac
+
+=== added file 'setup.py'
+--- setup.py	1970-01-01 00:00:00 +0000
++++ setup.py	2013-02-17 16:19:12 +0000
+@@ -0,0 +1,1 @@
++Fake setup
+
+=== added directory 'src'
+=== added file 'src/CMakeLists.txt'
+--- src/CMakeLists.txt	1970-01-01 00:00:00 +0000
++++ src/CMakeLists.txt	2013-02-17 16:19:12 +0000
+@@ -0,0 +1,1 @@
++Fake cmakerie on src dir
+
+=== added file 'src/Makefile.am'
+--- src/Makefile.am	1970-01-01 00:00:00 +0000
++++ src/Makefile.am	2013-02-17 16:19:12 +0000
+@@ -0,0 +1,1 @@
++Fake Makefile in src
+
+=== added file 'src/real_source.c'
+--- src/real_source.c	1970-01-01 00:00:00 +0000
++++ src/real_source.c	2013-02-17 16:19:12 +0000
+@@ -0,0 +1,1 @@
++A real source file
 ------------------------------------------------------------
 revno: 4
 committer: Didier Roche <didrocks@ubuntu.com>
@@ -26,6 +120,14 @@ branch nick: foo
 timestamp: Sun 2013-02-17 17:23:30 +0100
 message:
   add a trivial packaging change
+diff:
+=== modified file 'debian/install'
+--- debian/install	2013-02-17 16:16:54 +0000
++++ debian/install	2013-02-17 16:23:30 +0000
+@@ -1,1 +1,3 @@
+ dummy install file, do you want to install anything from it?
++
++Trivial packaging change
 ------------------------------------------------------------
 revno: 5
 committer: Didier Roche <didrocks@ubuntu.com>
@@ -33,6 +135,20 @@ branch nick: foo
 timestamp: Sun 2013-02-17 17:24:21 +0100
 message:
   Add a foo message
+diff:
+=== modified file 'debian/changelog'
+--- debian/changelog	2013-02-17 16:16:54 +0000
++++ debian/changelog	2013-02-17 16:24:21 +0000
+@@ -1,3 +1,9 @@
++foo (42.0daily83.09.13-0ubuntu2) UNRELEASED; urgency=low
++
++  * Add a foo message
++
++ -- Didier Roche <did@rocks.frm>  Sun, 17 Feb 2013 17:23:34 +0100
++
+ foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
+ 
+   * We snapshotted it for please
 ------------------------------------------------------------
 revno: 6
 committer: Didier Roche <didrocks@ubuntu.com>
@@ -40,6 +156,82 @@ branch nick: foo
 timestamp: Sun 2013-02-17 17:25:36 +0100
 message:
   add some upstream changes
+diff:
+=== modified file 'CMakeLists.txt'
+--- CMakeLists.txt	2013-02-17 16:19:12 +0000
++++ CMakeLists.txt	2013-02-17 16:25:36 +0000
+@@ -1,1 +1,3 @@
+ Fake cmakerie on root dir
++
++Change here
+
+=== modified file 'Makefile.am'
+--- Makefile.am	2013-02-17 16:19:12 +0000
++++ Makefile.am	2013-02-17 16:25:36 +0000
+@@ -1,1 +1,3 @@
+ Fake Makefile in root
++
++Change here
+
+=== added file 'bar'
+--- bar	1970-01-01 00:00:00 +0000
++++ bar	2013-02-17 16:25:36 +0000
+@@ -0,0 +1,1 @@
++New file here
+
+=== modified file 'configure'
+--- configure	2013-02-17 16:19:12 +0000
++++ configure	2013-02-17 16:25:36 +0000
+@@ -1,1 +1,3 @@
+ And a fake configure
++
++Change here
+
+=== modified file 'configure.ac'
+--- configure.ac	2013-02-17 16:19:12 +0000
++++ configure.ac	2013-02-17 16:25:36 +0000
+@@ -1,1 +1,3 @@
+ Fake configure.ac
++
++Change here
+
+=== modified file 'foo'
+--- foo	2013-01-07 11:27:37 +0000
++++ foo	2013-02-17 16:25:36 +0000
+@@ -0,0 +1,1 @@
++Change here
+
+=== modified file 'setup.py'
+--- setup.py	2013-02-17 16:19:12 +0000
++++ setup.py	2013-02-17 16:25:36 +0000
+@@ -1,1 +1,3 @@
+ Fake setup
++
++Change here
+
+=== modified file 'src/CMakeLists.txt'
+--- src/CMakeLists.txt	2013-02-17 16:19:12 +0000
++++ src/CMakeLists.txt	2013-02-17 16:25:36 +0000
+@@ -1,1 +1,3 @@
+ Fake cmakerie on src dir
++
++Change here
+
+=== modified file 'src/Makefile.am'
+--- src/Makefile.am	2013-02-17 16:19:12 +0000
++++ src/Makefile.am	2013-02-17 16:25:36 +0000
+@@ -1,1 +1,3 @@
+ Fake Makefile in src
++
++Change here
+
+=== modified file 'src/real_source.c'
+--- src/real_source.c	2013-02-17 16:19:12 +0000
++++ src/real_source.c	2013-02-17 16:25:36 +0000
+@@ -1,1 +1,3 @@
+ A real source file
++
++Change here
 ------------------------------------------------------------
 revno: 7
 committer: Didier Roche <didrocks@ubuntu.com>
@@ -47,6 +239,20 @@ branch nick: foo
 timestamp: Sun 2013-02-17 19:05:42 +0000
 message:
   add some bugs to the changelog for one person
+diff:
+=== modified file 'debian/changelog'
+--- debian/changelog	2013-02-17 16:24:21 +0000
++++ debian/changelog	2013-02-17 19:05:42 +0000
+@@ -1,6 +1,10 @@
+ foo (42.0daily83.09.13-0ubuntu2) UNRELEASED; urgency=low
+ 
+   * Add a foo message
++  * Fixed some bug LP: #12345
++  * Some other bug LP: 23456
++  * But don't count bug #98765 nor LP #87654
++  * Finally, you should get those two: (LP: #56789, #67890)
+ 
+  -- Didier Roche <did@rocks.frm>  Sun, 17 Feb 2013 17:23:34 +0100
 ------------------------------------------------------------
 revno: 8
 committer: Didier Roche <didrocks@ubuntu.com>
@@ -54,6 +260,27 @@ branch nick: foo
 timestamp: Sun 2013-02-17 19:06:42 +0000
 message:
   another bug added by someone else
+diff:
+=== modified file 'debian/changelog'
+--- debian/changelog	2013-02-17 19:05:42 +0000
++++ debian/changelog	2013-02-17 19:06:42 +0000
+@@ -1,12 +1,16 @@
+ foo (42.0daily83.09.13-0ubuntu2) UNRELEASED; urgency=low
+ 
++  [ Didier Roche ]
+   * Add a foo message
+   * Fixed some bug LP: #12345
+   * Some other bug LP: 23456
+   * But don't count bug #98765 nor LP #87654
+   * Finally, you should get those two: (LP: #56789, #67890)
+ 
+- -- Didier Roche <did@rocks.frm>  Sun, 17 Feb 2013 17:23:34 +0100
++  [ Rocks Did ]
++  * Another bug from another contestant: LP: #34567
++
++ -- Rocks Did <didrocks@ubuntu.com>  Sun, 17 Feb 2013 19:06:09 +0000
+ 
+ foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
 ------------------------------------------------------------
 revno: 9 [merge]
 committer: Didier Roche <didrocks@ubuntu.com>
@@ -61,21 +288,15 @@ branch nick: simple
 timestamp: Mon 2013-03-04 09:55:43 +0100
 message:
   merge nested content
-    ------------------------------------------------------------
-    revno: 8.1.1
-    fixes bug: https://launchpad.net/bugs/345678
-    committer: Didier Roche <didrocks@ubuntu.com>
-    branch nick: foo
-    timestamp: Mon 2013-03-04 09:54:50 +0100
-    message:
-      change to fix another bug
-    ------------------------------------------------------------
-    revno: 8.1.2
-    committer: Didier Roche <didrocks@ubuntu.com>
-    branch nick: foo
-    timestamp: Mon 2013-03-04 09:55:08 +0100
-    message:
-      fix typo
+diff:
+=== modified file 'configure.ac'
+--- configure.ac	2013-02-17 16:25:36 +0000
++++ configure.ac	2013-03-04 08:55:08 +0000
+@@ -1,3 +1,4 @@
+ Fake configure.ac
+ 
+ Change here
++Another change
 ------------------------------------------------------------
 revno: 10
 committer: Didier Roche <didrocks@ubuntu.com>
@@ -83,3 +304,17 @@ branch nick: onenested
 timestamp: Mon 2013-03-04 10:10:35 +0100
 message:
   cheat changing bug #
+diff:
+=== modified file 'debian/changelog'
+--- debian/changelog	2013-02-17 19:06:42 +0000
++++ debian/changelog	2013-03-04 09:10:35 +0000
+@@ -8,7 +8,7 @@
+   * Finally, you should get those two: (LP: #56789, #67890)
+ 
+   [ Rocks Did ]
+-  * Another bug from another contestant: LP: #34567
++  * Another bug from another contestant: LP: #34567890
+ 
+  -- Rocks Did <didrocks@ubuntu.com>  Sun, 17 Feb 2013 19:06:09 +0000
+------------------------------------------------------------
+Use --include-merged or -n0 to see merged revisions.
