@@ -142,7 +142,7 @@ if __name__ == '__main__':
 
     # Prepare changelog
     logging.info("Prepare changelog content")
-    log_content = branchhandling.return_log_diff()
+    log_content = branchhandling.return_log_diff(last_upstream_rev + 1)
     alreadyfixed_bugs = set()
     with open("debian/changelog") as f:
         alreadyfixed_bugs = packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name)
