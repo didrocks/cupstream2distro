@@ -184,6 +184,20 @@ class BranchHandlingTests(BaseUnitTestCase):
                               ({'Marco Trevisan (Trevi\xc3\xb1o)': ['IconRenderer: preprocess an icon if its emblem has been shown/hidden In that way we can update its transformation. (LP: #1171476, #1171663)']},
                                set([1171476, 1171663])))
 
+    def test_collect_author_with_launchpad_bot_commits(self):
+        '''Collect author commits and bugs for a normal bzr log and ignore launchpad bots commits'''
+        with open(os.path.join(self.data_dir, 'bzrlogs', 'logswithlaunchpadcommits')) as f:
+            self.assertEquals(branchhandling.collect_author_commits(f.read(), set()),
+                             ({'Sebastien Bacher': ["Use '%s:' string for preview hints, rather than just appending ':'. (LP: #1074038)"],
+                               'Brandon Schaefer': ['EdgeBarrierController: add multiple types of subscriber results, fix edges on autohide Now when sticky keys are disabled, and the launcher is set to autohide, the mouse will hit both sides of the screen (instead of just the left side of the barrier); at that point we\'ll release the events coming from the launcher-less side of the monitor, but we\'ll use them to temporary keep the barrier "broken". (LP: #1064945)'],
+                               'Marco Trevisan (Trevi\xc3\xb1o)': ['Simulating direct commit to trunk',
+                                                                   'EdgeBarrierController: add multiple types of subscriber results, fix edges on autohide Now when sticky keys are disabled, and the launcher is set to autohide, the mouse will hit both sides of the screen (instead of just the left side of the barrier); at that point we\'ll release the events coming from the launcher-less side of the monitor, but we\'ll use them to temporary keep the barrier "broken". (LP: #1064945)',
+                                                                   'IconRenderer: preprocess an icon if its emblem has been shown/hidden In that way we can update its transformation. (LP: #1171476, #1171663)',
+                                                                   "UnityWindow: don't draw the panel shadow above a fullscreen window. (LP: #1171934)"],
+                               "\xc5\x81ukasz 'sil2100' Zemczak": ['Now that we\'re using the new HUD, there have been some changes that typically cause test_hud tests to fail. Fix the tests to fit the new model. The first one is that generally we do not have indicator entries visible in the HUD anymore. Only application menu entries are in it now. The second one - the way the results are displayed is different. Now, instead of "Menu > Entry" we have "Entry (Menu)" etc.'],
+                               'Andrea Azzarone': ['Disable detail view for webapp icons. (LP: #1169340)']},
+                              set([1064945, 1171476, 1074038, 1169340, 1171934, 1171663])))
+
 
 class BranchHandlingTestsWithErrors(BaseUnitTestCaseWithErrors):
 

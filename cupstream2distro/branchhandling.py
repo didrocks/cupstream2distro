@@ -109,7 +109,8 @@ def collect_author_commits(content_to_parse, bugs_to_skip):
                 commit_message = " (LP: {})".format(commit_message[:-2])
             commit_message = "{}{}".format(current_commit, commit_message)
             for author in current_authors:
-                author_commit[author].append(commit_message)
+                if not author.startswith("Launchpad "):
+                    author_commit[author].append(commit_message)
             all_bugs = all_bugs.union(current_bugs)
             current_authors = set()
             current_commit = ""
