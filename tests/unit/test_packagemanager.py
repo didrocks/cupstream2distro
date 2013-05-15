@@ -193,11 +193,11 @@ class PackageManagerTests(BaseUnitTestCase):
         with open(os.path.join(self.changelogs_file_dir, 'destppa_with_2_versions')) as f:
             self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 43)
 
-    def test_get_latest_upstream_bzr_rev_with_dest_ppa_without_commit_tag(self):
-        '''We will get rev 0 if we don't have any commit tag for a dest ppa'''
+    def test_get_latest_upstream_bzr_rev_without_commit_tag(self):
+        '''We will get rev 0 if we don't have any commit tag'''
         self.get_data_branch('dummypackage')
         with open("debian/changelog") as f:
-            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f, 'ubuntu-unity/next'), 0)
+            self.assertEquals(packagemanager.get_latest_upstream_bzr_rev(f), 0)
 
     def test_get_latest_upstream_bzr_rev_with_dest_ppa_with_marker_on_two_lines(self):
         '''We always get the latest upstream bzr rev version when we have a dest ppa with a marker shown on 2 lines'''
@@ -817,13 +817,6 @@ class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
         for filename in os.listdir(package_source_dir):
             result_files_path.append(os.path.join(package_source_dir, filename))
         return result_files_path
-
-    def test_we_fail_if_no_boostrap_message(self):
-        '''We raise an exception if no marker in the changelog'''
-        self.get_data_branch('dummypackage')
-        with open("debian/changelog") as f:
-            with self.assertRaises(Exception):
-                packagemanager.get_latest_upstream_bzr_rev(f)
 
     def test_raise_exception_when_upload_fail(self):
         '''We fail if the dput push failed'''

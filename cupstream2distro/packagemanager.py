@@ -123,12 +123,8 @@ def get_latest_upstream_bzr_rev(f, dest_ppa=None):
     if dest_ppa and distro_rev:
         return distro_rev
 
-    # we force a bootstrap commit for new components not going to distro, just assume rev one
-    if dest_ppa:
-        return 0
-
-    error_message = "Didn't find any string in debian/changelog of the form: \"{}\". Bootstrapping issue?".format(distro_regex.pattern)
-    raise Exception(error_message)
+    # we force a bootstrap commit for new components
+    return 0
 
 
 def list_packages_info_in_str(packages_set):
