@@ -329,6 +329,22 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertEqual(os.listdir('.'), [])
         self.assertFalse(launchpadmanagerMock.get_series.called)
 
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_source_package_from_dest_with_ubuntu_native_version(self, launchpadmanagerMock):
+        '''We grab the correct source from dest with ubuntu native version'''
+
+        dest_archive = Mock()
+        source1 = Mock()
+        dest_archive.getPublishedSources.return_value = [source1]
+        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_native_ubuntu_version')
+
+        source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "42ubuntu1", "rolling")
+
+        launchpadmanagerMock.get_series.assert_called_once_with("rolling")
+        dest_archive.getPublishedSources.assert_called_once_with(status="Published", exact_match=True, source_name="foo", distro_series=launchpadmanagerMock.get_series.return_value, version="42ubuntu1")
+        source1.sourceFileUrls.assert_called_once()
+        self.assertTrue(os.path.isdir(source_package_dir))
+
     def test_release_with_no_ubuntu_upload(self):
         '''We release if there has been no upload before'''
         self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=None))
@@ -507,6 +523,14 @@ class PackageManagerTests(BaseUnitTestCase):
         strftime_call = datetimeMock.date.today.return_value.strftime
         strftime_call.side_effect = lambda date: '83.09.13'
         self.assertEqual(packagemanager.create_new_packaging_version('42daily83.09.12-0ubuntu1', 'didrocks/my-ppa_mine', '13.04'), '42daily83.09.13didrocks.my.ppa.mine~13.04-0ubuntu1')
+        strftime_call.assert_called_with('%y.%m.%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_wrong_native(self, datetimeMock):
+        '''We create a new packaging version after a wrong native with ubuntu in it'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '83.09.13'
+        self.assertEqual(packagemanager.create_new_packaging_version('42ubuntu1'), '42udaily83.09.13-0ubuntu1')
         strftime_call.assert_called_with('%y.%m.%d')
 
     def test_get_packaging_sourcename(self):

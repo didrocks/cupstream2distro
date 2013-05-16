@@ -184,7 +184,8 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
     # check the dir exist
     splitted_version = dest_current_version.split(':')[-1].split('-')  # remove epoch is there is one
     # TODO: debian version (like -3) is not handled here.
-    if "ubuntu" in splitted_version[-1]:  # don't remove last item for the case where we had a native version (-0.35.2) without ubuntu in it
+    # We do handle 42ubuntu1 though (as splitted_version[0] can contain "ubuntu")
+    if "ubuntu" in splitted_version[-1] and len(splitted_version) > 1:  # don't remove last item for the case where we had a native version (-0.35.2) without ubuntu in it
         splitted_version = splitted_version[:-1]
     version_for_source_file = '-'.join(splitted_version)
     source_directory_name = "{}-{}".format(source_package_name, version_for_source_file)
@@ -234,7 +235,12 @@ def create_new_packaging_version(base_package_version, destppa='', maintenance_v
     today_version = datetime.date.today().strftime('%y.%m.%d')
     # bootstrapping mode or direct upload or UNRELEASED for bumping to a new series
     if not "daily" in base_package_version:
+        # support both 42, 42-0ubuntu1
         upstream_version = base_package_version.split('-')[0]
+        # if we have 42ubuntu1 (because of wrong semi-native version before, add "u" to the upstream version as udaily > ubuntu)
+        if "ubuntu" in upstream_version:
+            upstream_version = "{}u".format(upstream_version.split('ubuntu')[0])
+            print(upstream_version)
     else:
         # extract the day of previous daily upload and bump if already uploaded today
         regexp = re.compile("(.*)daily([\d\.]{8})([.\d]*).*-.*")

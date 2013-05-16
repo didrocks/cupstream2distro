@@ -1,0 +1,36 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Mon, 25 Feb 2013 10:33:30 +0100
+Source: foo
+Binary: foo
+Architecture: source
+Version: 42ubuntu1
+Distribution: raring
+Urgency: low
+Maintainer: DidRocks@ubuntu.com
+Changed-By: Didier Roche <didrocks@ubuntu.com>
+Description: 
+ foo        - The amazing foo package, without any trace of bar
+Changes: 
+ foo (42ubuntu1) raring; urgency=low
+ .
+   * Automatic snapshot from revision 10
+Checksums-Sha1: 
+ 7dd687a198c6b9622ebc06ded3f927fd59ca1eb2 830 foo_42ubuntu1.dsc
+ 4a9c290ca856593dbefc01bee077d7fc56077868 1545 foo_42ubuntu1.tar.gz
+Checksums-Sha256: 
+ 3ff97269e8eccd9488f85f1b531503eb01e475b6604d8f9ebc446b2fe47e45c3 830 foo_42ubuntu1.dsc
+ 86736630549164921274141f8cf3fb32f92206258ce89fe17ee4f457b017fae6 1545 foo_42ubuntu1.tar.gz
+Files: 
+ 42d974a26af2ea46486a09acbf01c606 830 unity optional foo_42ubuntu1.dsc
+ b323ef0262b1d5b8dab72ae0f1ce151d 1545 unity optional foo_42ubuntu1.tar.gz
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAlGUfnkACgkQmLJKnOSsII5ngwCfbWDtP6XiEGvFoycdDsMRJV8Z
+OooAnA356WywHNEYftcCaHnAjzYzMceK
+=A634
+-----END PGP SIGNATURE-----
