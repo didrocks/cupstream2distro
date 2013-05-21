@@ -235,7 +235,7 @@ def compute_stat(cfg, new, old):
         ret += EREGRESS
     if not goal_reached(cfg['skip'], trun, new['skip']):
         ret += ESKIP
-    if not goal_reached(cfg['removal'], toldrun, -dtotal):
+    if not goal_reached(cfg['removal'], toldrun, dtotal):
         ret += EREMOVAL
 
     return ret
