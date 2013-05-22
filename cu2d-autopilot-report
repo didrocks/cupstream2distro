@@ -178,7 +178,7 @@ def archive_log(histdir, lognew):
     return(logprev, lognew)
 
 
-def goal_reached(target, total, count):
+def goal_reached(target, total, count, category):
     ''' Check if value is below target.
 
     :param target: Value must be below target to succeed. Can be a percentage
@@ -191,7 +191,7 @@ def goal_reached(target, total, count):
     else:
         goal = float(target)
 
-    logging.debug('Goal: %f / Count: %f', goal, count)
+    logging.debug('Checking for %s: Goal: %f, Count: %f', category, goal, count)
     return(count <= goal)
 
 
@@ -220,22 +220,22 @@ def compute_stat(cfg, new, old):
         ptotal = 1
     pskip = float(new['skip']) / trun
 
-    sys.stdout.write('count\t{:d}\t{:d}\t{:d}\n'.format(
+    sys.stdout.write('count |  total: {:4d} |  skip:{:4d} |   failures: {:4d}\n'.format(
         new['total'], new['skip'], len(new['fail'])))
-    sys.stdout.write('delta\t{:+d}\t{:+d}\t{:+d}\n'.format(
+    sys.stdout.write('delta | dtotal: {:+4d} | tskip: {:+4d} | dfailures: {:+4d}\n'.format(
         dtotal, dskip, dfail))
-    sys.stdout.write('ratio\t{:+.3f}\t{:+.3f}\t{:+.3f}\t{:+.3f}\n'.format(
+    sys.stdout.write('ratio | ptotal: {:+4.3f} | pskip: {:+4.3f} | pfailures: {:+4.3f} | regressions: {:+4.3f}\n'.format(
         ptotal, pskip, pfail, pregr))
     sys.stdout.flush()
 
     # Result analysis
-    if not goal_reached(cfg['failure'], trun, len(new['fail'])):
+    if not goal_reached(cfg['failure'], trun, len(new['fail'], "failures")):
         ret += EFAILURE
-    if not goal_reached(cfg['regression'], trun, dfail):
+    if not goal_reached(cfg['regression'], trun, dfail, "regression"):
         ret += EREGRESS
-    if not goal_reached(cfg['skip'], trun, new['skip']):
+    if not goal_reached(cfg['skip'], trun, new['skip'], "skip"):
         ret += ESKIP
-    if not goal_reached(cfg['removal'], toldrun, dtotal):
+    if not goal_reached(cfg['removal'], toldrun, -dtotal, "removal"):
         ret += EREMOVAL
 
     return ret
