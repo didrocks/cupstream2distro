@@ -229,7 +229,7 @@ def compute_stat(cfg, new, old):
     sys.stdout.flush()
 
     # Result analysis
-    if not goal_reached(cfg['failure'], trun, len(new['fail'], "failures")):
+    if not goal_reached(cfg['failure'], trun, len(new['fail']), "failures"):
         ret += EFAILURE
     if not goal_reached(cfg['regression'], trun, dfail, "regression"):
         ret += EREGRESS
