@@ -300,6 +300,8 @@ def main():
             prevlog)
 
     ret = compute_stat(config, nresult, presult)
+    if (ret > 0):
+        logging.error('Check failed with exit code %d' % ret)
     sys.exit(ret)
 
 
