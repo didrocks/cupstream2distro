@@ -41,7 +41,7 @@ def _rsync_stack_files():
     else:
         raise Exception('Please set environment variable CU2D_RSYNCSVR')
 
-    cmd = ["rsync", '--remove-source-files', remoteaddr, '.']
+    cmd = ["rsync", '--remove-source-files', '--timeout=60', remoteaddr, '.']
     instance = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode not in (0, 23):
