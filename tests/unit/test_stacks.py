@@ -111,10 +111,17 @@ class StackTests(BaseUnitTestCase):
         '''Return stack status from the reverse dependency stack'''
         shutil.copytree(self.workdir, 'workdir')
         current_workdir = os.path.join('workdir', 'head', 'stack2')
-        os.makedirs(current_workdir)
         os.chdir(current_workdir)
         self.assertEquals(stacks.get_stack_status("stack1", "head"), 0)
         self.assertEquals(stacks.get_stack_status("stack3", "head"), 1)
+
+    def test_ignore_status_status(self):
+        '''Ensure that we return good status everytime we hit a "ignored" stack'''
+        shutil.copytree(self.workdir, 'workdir')
+        current_workdir = os.path.join('workdir', 'head', 'stack2')
+        os.chdir(current_workdir)
+        self.assertEquals(stacks.get_stack_status("stack2", "head"), 0)
+        self.assertEquals(stacks.get_stack_status("stack4", "back"), 0)
 
 
 class StackTestsWithOnline(BaseUnitTestCase):

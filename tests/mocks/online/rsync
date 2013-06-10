@@ -38,11 +38,11 @@ if __name__ == '__main__':
 
     commands = " ".join(sys.argv[1:])
 
-    if commands == '--remove-source-files rsync://default/cu2d_out/packagelist_rsync* .':
+    if commands == '--remove-source-files --timeout=60 rsync://default/cu2d_out/packagelist_rsync* .':
         copy_data_file('packagelist_rsync_foo-front', '.')
         copy_data_file('packagelist_rsync_oif-head', '.')
         sys.exit(0)
-    elif commands == '--remove-source-files rsync://nothing/cu2d_out/packagelist_rsync* .':
+    elif commands == '--remove-source-files --timeout=60 rsync://nothing/cu2d_out/packagelist_rsync* .':
         sys.exit(0)
 
     # unhandled case

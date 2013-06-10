@@ -24,6 +24,7 @@ import subprocess
 
 from .settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN, DEFAULT_CONFIG_STACKS_DIR, STACK_STATUS_FILENAME
 from .tools import get_packaging_diff_filename
+from .utils import ignored
 
 
 def get_current_stack_infos():
@@ -142,6 +143,10 @@ def get_stack_status(stackname, release):
 
     Return None if the status is not available yet'''
 
+    cfg = yaml.load(open(get_stack_file_path(stackname, release)))
+    with ignored(KeyError):
+        if cfg['stack']['status_ignored']:
+            return 0
     statusfile = os.path.join('..', '..', release, stackname, STACK_STATUS_FILENAME)
     if not os.path.isfile(statusfile):
         return None
