@@ -26,7 +26,8 @@ class PackageInPPA():
 
     (BUILDING, FAILED, PUBLISHED) = range(3)
 
-    def __init__(self, source_name, version, ppa, series, available_archs_in_ppa, arch_all_arch):
+    def __init__(self, source_name, version, ppa, destarchive, series,
+                 available_archs_in_ppa, arch_all_arch, archs_to_eventually_ignore):
         self.source_name = source_name
         self.version = version
         self.series = series
@@ -52,6 +53,24 @@ class PackageInPPA():
                         archs_supported_by_package.add(arch)
                     self.archs = archs_supported_by_package.intersection(available_archs_in_ppa)
                 break
+        # ignore some eventual archs if doesn't exist in latest published version in dest
+        if archs_to_eventually_ignore:
+            try:
+                previous_source = destarchive.getPublishedSources(exact_match=True, source_name=self.source_name,
+                                                                  distro_series=self.series, status="Published")[0]
+                for binary in previous_source.getPublishedBinaries():
+                    if binary.architecture_specific and binary.distro_arch_series.architecture_tag in archs_to_eventually_ignore:
+                        archs_to_eventually_ignore -= binary.distro_arch_series.architecture_tag
+                    if not archs_to_eventually_ignore:
+                        break
+
+            except IndexError:
+                # no package in dest, don't wait on any archs_to_eventually_ignore
+                pass
+            # remove from the inspection remaining archs to ignore
+            if archs_to_eventually_ignore:
+                self.archs -= archs_to_eventually_ignore
+
 
     def get_status(self, only_arch_all):
         '''Look at the package status in the ppa'''

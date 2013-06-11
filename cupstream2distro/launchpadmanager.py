@@ -24,7 +24,7 @@ from launchpadlib.launchpad import Launchpad
 import lazr
 launchpad = None
 
-from .settings import VIRTUALIZED_PPA_ARCH, CRED_FILE_PATH, COMMON_LAUNCHPAD_CACHE_DIR
+from .settings import ARCHS_TO_EVENTUALLY_IGNORE, VIRTUALIZED_PPA_ARCH, CRED_FILE_PATH, COMMON_LAUNCHPAD_CACHE_DIR
 
 
 def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_PATH)):
@@ -106,8 +106,8 @@ def open_bugs_for_source(bugs_list, source_name, series_name):
             pass  # ignore non existing or available bugs
 
 
-def get_all_available_archs_and_all_arch(series, ppa=None):
-    '''Return a set of available arch for a ppa eventually'''
+def get_available_all_and_ignored_archs(series, ppa=None):
+    '''Return a set of available archs, the all arch and finally the archs we can eventually ignored if nothing is published in dest'''
     available_arch = set()
     if ppa and ppa.require_virtualized:
         available_arch = set(VIRTUALIZED_PPA_ARCH)
@@ -121,7 +121,7 @@ def get_all_available_archs_and_all_arch(series, ppa=None):
             if arch.is_nominated_arch_indep:
                 arch_all_arch = arch.architecture_tag
 
-    return (available_arch, arch_all_arch)
+    return (available_arch, arch_all_arch, ARCHS_TO_EVENTUALLY_IGNORE)
 
 
 def get_ppa(ppa_name):

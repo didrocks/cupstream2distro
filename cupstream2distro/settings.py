@@ -42,6 +42,8 @@ BOT_KEY = "B879A3E9"
 
 # selected arch for building arch:all packages
 VIRTUALIZED_PPA_ARCH = ["i386", "amd64"]
+# an arch we will ignore for publication if latest published version in dest doesn't build it
+ARCHS_TO_EVENTUALLY_IGNORE = set(['powerpc'])
 
 TIME_BETWEEN_PPA_CHECKS = 5 * 60
 TIME_BETWEEN_STACK_CHECKS = 60
