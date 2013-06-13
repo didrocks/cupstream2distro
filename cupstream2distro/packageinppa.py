@@ -60,7 +60,7 @@ class PackageInPPA():
                                                                   distro_series=self.series, status="Published")[0]
                 for binary in previous_source.getPublishedBinaries():
                     if binary.architecture_specific and binary.distro_arch_series.architecture_tag in archs_to_eventually_ignore:
-                        archs_to_eventually_ignore -= binary.distro_arch_series.architecture_tag
+                        archs_to_eventually_ignore -= set([binary.distro_arch_series.architecture_tag])
                     if not archs_to_eventually_ignore:
                         break
 
