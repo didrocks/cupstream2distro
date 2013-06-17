@@ -27,7 +27,7 @@ from cupstream2distro import launchpadmanager, packageinppamanager
 from cupstream2distro.branchhandling import propose_branch_for_merging
 from cupstream2distro.stacks import generate_dep_status_message, get_current_stack_infos, get_stack_packaging_change_status, is_stack_in_always_manual_publishing_mode
 from cupstream2distro.tools import generate_xml_artefacts, get_previous_distro_version_from_config, mark_project_as_published
-from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT
+from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT, SRU_PPA
 
 
 if __name__ == '__main__':
@@ -55,19 +55,31 @@ if __name__ == '__main__':
         logging.info("ppa and series parameters are mandatory.")
         sys.exit(1)
 
-    # getting the archives and series objects
-    if args.destppa:
-        dest_archive = launchpadmanager.get_ppa(args.destppa)
-        dest_pocket = 'Release'
-    else:
-        dest_archive = launchpadmanager.get_ubuntu_archive()
-        dest_pocket = 'Proposed'
     src_ppa = launchpadmanager.get_ppa(ppa)
     src_pocket = 'Release'
 
-    logging.info("Copying from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series".format(
-                 src_archive=src_ppa, src_pocket=src_pocket, dest_archive=dest_archive, dest_pocket=dest_pocket,
-                 series=series))
+    # getting the archives and series objects
+    is_sru = not launchpadmanager.is_series_current(series)
+    if args.destppa:
+        dest_archive = launchpadmanager.get_ppa(args.destppa)
+        dest_pocket = 'Release'
+        logging.info("Direct copy from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series".format(
+                      src_archive=src_ppa, src_pocket=src_pocket, dest_archive=dest_archive, dest_pocket=dest_pocket,
+                      series=series))
+    else:
+        logging.info("Copy from {src_archive} ({src_pocket}) to {series} series in distro".format(
+                      src_archive=src_ppa, src_pocket=src_pocket, series=series))
+        distro = launchpadmanager.get_ubuntu_archive()
+        distro_pocket = 'Proposed'
+        copy_from_ppa = ppa
+        copy_from_ppa_pocket = src_pocket
+        if is_sru:
+            logging.info("This upload is part of a SRU. The {} ppa will be used as a staging archive".format(SRU_PPA))
+            dest_archive = launchpadmanager.get_ppa(SRU_PPA)
+            copy_from_ppa = SRU_PPA
+            dest_pocket = 'Release'
+            copy_from_ppa_pocket = dest_pocket
+
     manual_publish_cause_list = []
 
     # Generate global packaging change status
@@ -93,13 +105,15 @@ if __name__ == '__main__':
         for (source, version) in all_packages_uploaded:
             logging.info("Copying {} ({})".format(source, version))
             propose_branch_for_merging(source, version)
-            if args.destppa:  # direct upload
+            # direct upload or SRU staging ppa copy
+            if args.destppa or is_sru:
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=series,
                                          include_binaries=True, to_pocket=dest_pocket, to_series=series,
                                          source_name=source, version=version)
-            else:  # generate a file that will be rsynced from another place
+            # generate a file for distro that will be rsynced from another place
+            if not args.destppa:
                 distro_version = get_previous_distro_version_from_config(source)
-                package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(ppa, src_pocket, series, dest_pocket, series, source, version, distro_version))
+                package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(copy_from_ppa, copy_from_ppa_pocket, series, distro_pocket, series, source, version, distro_version))
             mark_project_as_published(source, version)
         if package_to_copy:
             package_list_rsync_file = PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(stackname, release)

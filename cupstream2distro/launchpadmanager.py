@@ -11,7 +11,7 @@
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 # FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-# details.
+# details.cat
 #
 # You should have received a copy of the GNU General Public License along with
 # this program; if not, write to the Free Software Foundation, Inc.,
@@ -128,3 +128,7 @@ def get_ppa(ppa_name):
     '''Return a launchpad ppa'''
     ppa_dispatch = ppa_name.split("/")
     return get_launchpad().people[ppa_dispatch[0]].getPPAByName(name=ppa_dispatch[1])
+
+def is_series_current(series_name):
+    '''Return if series_name is the edge development version'''
+    return get_ubuntu().current_series.name == series_name
