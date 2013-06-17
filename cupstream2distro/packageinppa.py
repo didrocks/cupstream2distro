@@ -182,7 +182,10 @@ class PackageInPPA():
                 needs_checking_build = True
         if needs_checking_build:
             for build in self.source.getBuilds():
-                if build.arch_tag in self.current_status and self.current_status[build.arch_tag] == self.BUILDING:
+                # ignored archs
+                if not build.arch_tag in self.current_status:
+                    continue
+                if self.current_status[build.arch_tag] == self.BUILDING:
                     if build.buildstate in build_state_failed:
                         logging.error("{}: Build {} ({}) failed because of {}".format(build.arch_tag, build.title,
                                                                                        build.web_link, build.buildstate))
