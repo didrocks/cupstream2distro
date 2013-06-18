@@ -1,6 +1,6 @@
 foo (42.0daily83.09.13.2-0ubuntu1) raring; urgency=low
 
-  * Automatic snapshot from revision 42 (ubuntu-unity/experimental-
+  * Automatic snapshot from revision 42 (ppa:ubuntu-unity/experimental-
     certified)
 
  -- Didier Roche <didrocks@ubuntu.com>  Mon, 25 Feb 2013 10:33:30 +0100

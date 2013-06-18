@@ -73,11 +73,12 @@ def get_latest_upstream_bzr_rev(f, dest_ppa=None):
     '''Report latest bzr rev in the file
 
     If dest_ppa, first try to fetch the dest ppa tag. Otherwise, fallback to first distro version'''
-    distro_regex = re.compile("{} (\d+)($| *\(bootstrap\))".format(settings.REV_STRING_FORMAT))
-    destppa_regexp = re.compile("{} (\d+) (\({}\))".format(settings.REV_STRING_FORMAT, dest_ppa))
+    distro_regex = re.compile("{} (\d+)".format(settings.REV_STRING_FORMAT))
+    destppa_regexp = re.compile("{} (\d+) \(ppa:{}\)".format(settings.REV_STRING_FORMAT, dest_ppa))
     distro_rev = None
     candidate_destppa_rev = None
     candidate_distro_rev = None
+    destppa_element_found = False
 
     # handle marker spread on two lines
     end_of_line_regexp = re.compile(" *(.*\))")
@@ -95,13 +96,13 @@ def get_latest_upstream_bzr_rev(f, dest_ppa=None):
 
         if dest_ppa:
             try:
-                candidate_destppa_rev = int(destppa_regexp.findall(line)[0][0])
+                candidate_destppa_rev = int(destppa_regexp.findall(line)[0])
                 destppa_element_found = True
             except IndexError:
                 destppa_element_found = False
-        if not distro_rev:
+        if not distro_rev and not destppa_element_found and not "(ppa:" in line:
             try:
-                candidate_distro_rev = int(distro_regex.findall(line)[0][0])
+                candidate_distro_rev = int(distro_regex.findall(line)[0])
                 distro_element_found = True
             except IndexError:
                 distro_element_found = False

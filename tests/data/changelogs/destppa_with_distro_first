@@ -17,7 +17,7 @@ foo (42.0daily83.09.13.1-0ubuntu1) raring; urgency=low
   * Another bug from another contestant: LP: #34567
 
   [ Automagic thingy ]
-  * Automatic snapshot from revision 8 (ubuntu-unity/next)
+  * Automatic snapshot from revision 8 (ppa:ubuntu-unity/next)
 
  -- Rocks Did <didrocks@ubuntu.com>  Sun, 17 Feb 2013 19:06:09 +0000
 
