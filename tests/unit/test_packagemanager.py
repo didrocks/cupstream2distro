@@ -518,6 +518,14 @@ class PackageManagerTests(BaseUnitTestCase):
         strftime_call.assert_called_with('%Y%m%d')
 
     @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_with_ppa_dest_to_distro(self, datetimeMock):
+        '''We create a new packaging version after having a ppa destination to normal distro'''
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '19830913'
+        self.assertEqual(packagemanager.create_new_packaging_version('42+13.10.19830912didrocks.my.ppa.mine-0ubuntu1', '13.10'), '42+13.10.19830913-0ubuntu1')
+        strftime_call.assert_called_with('%Y%m%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
     def test_create_new_packaging_version_wrong_native(self, datetimeMock):
         '''We create a new packaging version after a wrong native with ubuntu in it'''
         strftime_call = datetimeMock.date.today.return_value.strftime
