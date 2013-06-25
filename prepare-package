@@ -38,14 +38,15 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--sourcename", help="Source package name")
     parser.add_argument("-b", "--branch", help="Branch to use as the upstream source")
     parser.add_argument("-s", "--series", help="Serie used to build the package")
+    parser.add_argument("-V", "--series-version", help="set series versions")
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
     parser.add_argument("-d", "--destppa", help="Consider this destppa instead of only the distro for finale destination", default='')
-    parser.add_argument("-m", "--maintenance-version", help="Appending a special version in the end once a stack is under maintenance mode", default='')
     args = parser.parse_args()
 
     source_package_name = args.sourcename
     branch = args.branch
     series = args.series
+    series_version = args.series_version
     ppa = args.ppa
     if not source_package_name:
         source_package_name = os.getenv("sourcename")
@@ -53,6 +54,8 @@ if __name__ == '__main__':
         branch = os.getenv("branch")
     if not series:
         series = os.getenv("series")
+    if not series_version:
+        series = os.getenv("series_version")
     if not ppa:
         ppa = os.getenv("ppa")
     instance_info = "for source: {}, branch: {}, series: {}".format(source_package_name, branch, series)
@@ -134,7 +137,7 @@ if __name__ == '__main__':
             generate_xml_artefacts("Prepare",  [], artefacts_file)
             sys.exit(0)
 
-    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=args.destppa, maintenance_version=args.maintenance_version)
+    packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=args.destppa, series_version=series_version)
 
     # Refresh symbol files
     logging.info("Update symbol files version if needed")

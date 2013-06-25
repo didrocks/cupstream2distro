@@ -225,41 +225,47 @@ def is_new_content_relevant_since_old_published_source(source_package_name, dest
     return (relevant_changes != '')
 
 
-def create_new_packaging_version(base_package_version, destppa='', maintenance_version=''):
+def create_new_packaging_version(base_package_version, series_version, destppa=''):
     '''Deliver a new packaging version, based on simple rules:
 
-    Version would be <upstream_version>daily<yy.mm.dd(.minor)>-0ubuntu1
+    Version would be <upstream_version>.<series>.<yyyymmdd(.minor)>-0ubuntu1
     if we already have something delivered today, it will be .minor, then, .minor+1…
 
     We append the destination ppa name if we target a dest ppa and not distro'''
 
-    today_version = datetime.date.today().strftime('%y.%m.%d')
+    today_version = datetime.date.today().strftime('%Y%m%d')
     # bootstrapping mode or direct upload or UNRELEASED for bumping to a new series
-    if not "daily" in base_package_version:
+    # TRANSITION
+    if not ("daily" in base_package_version or "+" in base_package_version):
         # support both 42, 42-0ubuntu1
         upstream_version = base_package_version.split('-')[0]
-        # if we have 42ubuntu1 (because of wrong semi-native version before, add "u" to the upstream version as udaily > ubuntu)
+        # if we have 42ubuntu1 like a wrong native version
         if "ubuntu" in upstream_version:
-            upstream_version = "{}u".format(upstream_version.split('ubuntu')[0])
-            print(upstream_version)
+            upstream_version = upstream_version.split('ubuntu')[0]
     else:
         # extract the day of previous daily upload and bump if already uploaded today
-        regexp = re.compile("(.*)daily([\d\.]{8})([.\d]*).*-.*")
-        previous_day = regexp.findall(base_package_version)
-        if not previous_day:
-            raise Exception("Didn't find a correct versioning in the current package: {}".format(base_package_version))
-        previous_day = previous_day[0]
+        regexp = re.compile("(.*)\+([\d\.]{5})\.(\d{8})\.?([\d]*).*-.*")
+        try:
+            previous_day = regexp.findall(base_package_version)[0]
+        except IndexError:
+            # TRANSITION FALLBACK
+            try:
+                regexp = re.compile("(.*)(daily)([\d\.]{8})\.?([\d]*).*-.*")
+                previous_day = regexp.findall(base_package_version)[0]
+                # make the version compatible with the new version
+                previous_day = (previous_day[0], previous_day[1], "20" + previous_day[2].replace(".", ""), previous_day[3])
+            except IndexError:
+                raise Exception("Didn't find a correct versioning in the current package: {}".format(base_package_version))
         upstream_version = previous_day[0]
-        if previous_day[1] == today_version:
+        if previous_day[1] == series_version and previous_day[2] == today_version:
             minor = 1
-            if previous_day[2]:  # second upload of the day
-                minor = int(previous_day[2][1:]) + 1
+            if previous_day[3]:  # second upload of the day
+                minor = int(previous_day[3]) + 1
             today_version = "{}.{}".format(today_version, minor)
 
     destppa = destppa.replace("-", '.').replace("_", ".").replace("/", ".")
-    new_upstream_version = "{}daily{}{}".format(upstream_version, today_version, destppa)
-    if maintenance_version:
-        new_upstream_version = "{}~{}".format(new_upstream_version, maintenance_version)
+    new_upstream_version = "{upstream}+{series}.{date}{destppa}".format(upstream=upstream_version, series=series_version,
+                                                                        date=today_version, destppa=destppa)
     return "{}-0ubuntu1".format(new_upstream_version)
 
 
