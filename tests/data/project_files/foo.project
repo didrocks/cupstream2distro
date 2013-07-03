@@ -1,5 +1,6 @@
 [Branch]
 branch = lp:foo
+rev = 42
 
 [Package]
 dest_current_version = 6.12.0-0ubuntu1

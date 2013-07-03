@@ -22,6 +22,7 @@ import logging
 import os
 import re
 
+from .branchhandling import _get_parent_branch
 from .packageinppa import PackageInPPA
 from .settings import PROJECT_CONFIG_SUFFIX
 
@@ -35,7 +36,7 @@ def _ensure_removed_from_set(target_set, content_to_remove):
 
 
 def get_all_packages_uploaded():
-    '''Get (package, version) of all packages uploaded'''
+    '''Get (package, version, rev, branch) of all packages uploaded'''
 
     # we do not rely on the .changes files but in the config file
     # because we need the exact version (which can have an epoch)
@@ -45,8 +46,9 @@ def get_all_packages_uploaded():
         substract = source_package_regexp.findall(file)
         if substract:
             version = _get_current_packaging_version_from_config(substract[0])
-            result.add((substract[0], version))
-
+            rev = _get_current_rev_from_config(substract[0])
+            branch = _get_parent_branch(substract[0])
+            result.add((substract[0], version, rev, branch))
     return result
 
 
@@ -72,7 +74,14 @@ def update_all_packages_status(packages_not_in_ppa, packages_building, packages_
 
 
 def _get_current_packaging_version_from_config(source_package_name):
-    '''Get previous packaging version from the saved config'''
+    '''Get current packaging version from the saved config'''
     config = ConfigParser.RawConfigParser()
     config.read("{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX))
     return config.get('Package', 'packaging_version')
+
+
+def _get_current_rev_from_config(source_package_name):
+    '''Get current tip revision from the saved config'''
+    config = ConfigParser.RawConfigParser()
+    config.read("{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX))
+    return config.get('Branch', 'rev')

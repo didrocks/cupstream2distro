@@ -100,9 +100,9 @@ if __name__ == '__main__':
             sys.exit(0)
 
     elif command == "lp-propose-merge":
-        if options == "lp-propose-merge lp:foo -m Releasing 6.12.0daily13.02.27.in.special.ppa-0ubuntu1 to ubuntu --approve":
+        if options == "lp-propose-merge lp:foo -m Releasing 6.12.0daily13.02.27.in.special.ppa-0ubuntu1 (revision 42 from lp:foo) --approve":
             sys.exit(0)
-        elif options == "lp-propose-merge lp:foo -m Releasing 1:6.12.0~daily13.02.27.in.special.ppa-0ubuntu1 to ubuntu --approve":
+        elif options == "lp-propose-merge lp:foo -m Releasing 1:6.12.0~daily13.02.27.in.special.ppa-0ubuntu1 (revision 42 from lp:foo) --approve":
             sys.exit(0)
 
     # unhandled case

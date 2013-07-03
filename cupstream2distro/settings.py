@@ -21,7 +21,7 @@ import os
 
 REV_STRING_FORMAT = "Automatic snapshot from revision"
 NEW_CHANGELOG_PATTERN = "^{} \(.*\) (?!UNRELEASED)"
-PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} to ubuntu"
+PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} (revision {} from {})"
 REPLACEME_TAG = "0replaceme"
 BRANCH_URL = "lp:~ps-jenkins/{}/latestsnapshot-{}"
 

@@ -239,14 +239,14 @@ class BranchHandlingTestForOfflineOnly(BaseUnitTestCase):
         self.get_data_branch('basic')
         os.chdir('..')
         shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'basic.project')
-        branchhandling.propose_branch_for_merging('basic', '6.12.0daily13.02.27.in.special.ppa-0ubuntu1')
+        branchhandling.propose_branch_for_merging('basic', '6.12.0daily13.02.27.in.special.ppa-0ubuntu1', '42', 'lp:foo')
 
     def test_propose_branch_for_merging_with_special_chars(self):
         '''We do propose a branch depending on the packaging version (and so depending on the destination). It has special ~ and : characters not allowed by bzr'''
         self.get_data_branch('basic')
         os.chdir('..')
         shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'basic.project')
-        branchhandling.propose_branch_for_merging('basic', '1:6.12.0~daily13.02.27.in.special.ppa-0ubuntu1')
+        branchhandling.propose_branch_for_merging('basic', '1:6.12.0~daily13.02.27.in.special.ppa-0ubuntu1', '42', 'lp:foo')
 
 
 class BranchHandlingTestForOfflineOnlyWithErrors(BaseUnitTestCaseWithErrors):
@@ -258,7 +258,7 @@ class BranchHandlingTestForOfflineOnlyWithErrors(BaseUnitTestCaseWithErrors):
         shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'basic.project')
         os.environ['MOCK_ERROR_MODE'] = "push"
         with self.assertRaises(Exception):
-            branchhandling.propose_branch_for_merging('basic', '6.12.0daily13.02.27.in.special.ppa-0ubuntu1')
+            branchhandling.propose_branch_for_merging('basic', '6.12.0daily13.02.27.in.special.ppa-0ubuntu1', '42', 'lp:foo')
 
     def test_propose_branch_for_merging_propose_failed(self):
         '''We raise an exception is lp-propose-merge failed'''
@@ -267,4 +267,4 @@ class BranchHandlingTestForOfflineOnlyWithErrors(BaseUnitTestCaseWithErrors):
         shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'basic.project')
         os.environ['MOCK_ERROR_MODE'] = "lp-propose-merge"
         with self.assertRaises(Exception):
-            branchhandling.propose_branch_for_merging('basic', '6.12.0daily13.02.27.in.special.ppa-0ubuntu1')
+            branchhandling.propose_branch_for_merging('basic', '6.12.0daily13.02.27.in.special.ppa-0ubuntu1', '42', 'lp:foo')

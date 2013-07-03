@@ -49,11 +49,12 @@ def get_previous_distro_version_from_config(source_package_name):
     return config.get('Package', 'dest_current_version')
 
 
-def save_project_config(source_package_name, branch, dest_current_version, current_packaging_version):
+def save_project_config(source_package_name, branch, revision, dest_current_version, current_packaging_version):
     '''Save branch and package configuration'''
     config = ConfigParser.RawConfigParser()
     config.add_section('Branch')
     config.set('Branch', 'branch', branch)
+    config.set('Branch', 'rev', revision)
     config.add_section('Package')
     config.set('Package', 'dest_current_version', dest_current_version)
     config.set('Package', 'packaging_version', current_packaging_version)

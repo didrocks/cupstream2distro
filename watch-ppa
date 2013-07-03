@@ -70,7 +70,7 @@ if __name__ == '__main__':
     packages_not_in_ppa = set()
     packages_building = set()
     packages_failed = set()
-    for (source, version) in packageinppamanager.get_all_packages_uploaded():
+    for (source, version, tip_rev, target_branch) in packageinppamanager.get_all_packages_uploaded():
         packages_not_in_ppa.add(PackageInPPA(source, version, monitored_ppa, dest_archive, lp_series,
                                              available_archs_in_ppa, arch_all_arch, archs_to_eventually_ignore))
 

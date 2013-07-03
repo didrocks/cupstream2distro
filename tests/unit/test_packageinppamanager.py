@@ -27,7 +27,12 @@ import shutil
 
 class PackageInPPAManagerTests(BaseUnitTestCase):
 
-    def test_get_previous_distro_version_from_config(self):
+    def test_get_current_distro_version_from_config(self):
         '''We load and return the current package version from config'''
         shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), '.')
         self.assertEquals(packageinppamanager._get_current_packaging_version_from_config('foo'), '6.12.0daily13.02.27-0ubuntu1')
+
+    def test_get_current_return_from_config(self):
+        '''We load and return the current tip rev from config'''
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), '.')
+        self.assertEquals(packageinppamanager._get_current_rev_from_config('foo'), '42')

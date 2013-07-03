@@ -44,7 +44,7 @@ class ToolsTests(BaseUnitTestCase):
 
     def test_save_correct_project_file(self):
         '''We save the correct profiles file'''
-        tools.save_project_config('foo', 'lp:foo', '6.12.0-0ubuntu1', '6.12.0daily13.02.27-0ubuntu1')
+        tools.save_project_config('foo', 'lp:foo', '42', '6.12.0-0ubuntu1', '6.12.0daily13.02.27-0ubuntu1')
         self.assertFilesAreIdenticals('foo.project', os.path.join(self.project_file_dir, 'foo.project'))
 
     def test_packaging_diff_filename(self):
