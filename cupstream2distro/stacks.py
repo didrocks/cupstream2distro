@@ -202,10 +202,11 @@ What's need to be done:
 def get_stack_packaging_change_status(source_version_list):
     '''Return global package change status list
 
-    source_version_list is a list of couples (source, version)'''
+    # FIXME: added too many infos now, should only be: (source, version)
+    source_version_list is a list of couples (source, version, tip_rev, target_branch)'''
 
     packaging_change_status = []
-    for (source, version) in source_version_list:
+    for (source, version, tip_rev, target_branch) in source_version_list:
         if os.path.exists(get_packaging_diff_filename(source, version)):
             message = "Packaging change for {} ({}).".format(source, version)
             logging.warning(message)
