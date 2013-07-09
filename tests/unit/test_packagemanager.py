@@ -23,6 +23,7 @@ from cupstream2distro import packagemanager
 
 import os
 from mock import patch, Mock
+import shutil
 import subprocess
 import urllib
 
@@ -396,6 +397,22 @@ class PackageManagerTests(BaseUnitTestCase):
         self.get_data_branch('debianchangelog_change_on_onemanualupload')
         dest_version_source = self.get_ubuntu_source_content_path('onemanualupload')
         self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+
+    def test_package_wrongly_diffing(self):
+        '''We detect if a package only having the automatic bump and marker in debian/changelog has nothing relevant'''
+        for file in self.get_source_files_for_package("foo_package"):
+            if not os.path.isdir(file):
+                shutil.copy2(file, '.')
+        dest_version_source = self.get_ubuntu_source_content_path('ubuntu_foo_package_with_one_less_release')
+        self.assertFalse(packagemanager.is_relevant_source_diff_from_previous_dest_version("foo", "42.0daily83.09.13.2-0ubuntu1", dest_version_source))
+
+    def test_package_rightly_diffing(self):
+        '''We detect if a package has relevant changes justifying the daily release'''
+        for file in self.get_source_files_for_package("foo_package"):
+            if not os.path.isdir(file):
+                shutil.copy2(file, '.')
+        dest_version_source = self.get_ubuntu_source_content_path('ubuntu_foo_package_with_two_less_release')
+        self.assertTrue(packagemanager.is_relevant_source_diff_from_previous_dest_version("foo", "42.0daily83.09.13.2-0ubuntu1", dest_version_source))
 
     @patch('cupstream2distro.packagemanager.datetime')
     def test_create_new_packaging_version_regular(self, datetimeMock):

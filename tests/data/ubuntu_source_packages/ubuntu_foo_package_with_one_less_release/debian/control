@@ -1,0 +1,20 @@
+Source: foo
+Section: unity
+Priority: optional
+Maintainer: DidRocks@ubuntu.com
+Build-Depends: cmake,
+               debhelper (>= 9.0.0~),
+               dh-migrations,
+Standards-Version: 3.9.3
+Homepage: https://launchpad.net/foo
+# If you aren't a member of ~unity-team but need to upload packaging changes,
+# just go ahead.  ~unity-team will notice and sync up the code again.
+Vcs-Bzr: https://code.launchpad.net/~didrocks/foo/trunk
+
+Package: foo
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         ${python:Depends},
+Description: The amazing foo package, without any trace of bar
+ Baz as well is excluded from the foo package.

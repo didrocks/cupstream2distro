@@ -162,9 +162,21 @@ if __name__ == '__main__':
     branchhandling.commit_release(packaging_version, tip_bzr_rev)
     launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series)
 
-    logging.info("Build source package and upload to the ppa")
+    logging.info("Build source package")
     packagemanager.build_source_package(series, previous_finaledest_version, args.destppa)
     os.chdir('..')
+
+    # second diff step: in case the source package was created from nothing (like a diff between trunk and the source package, but none after newly .dsc created extraction)
+    logging.info("Check that the newly created source package has relevant diff")
+    if not packagemager.is_relevant_source_diff_from_previous_dest_version(source_package_name, packaging_version, dest_source_package):
+        message = ("There was a diff between trunk and the source package in ubuntu triggering a source package build. However, after that one was created, we diffed again "
+                   "between that source in ubuntu and the newly created source extracted and found nothing relevant. Not upload that one then. Please check that the relevant "
+                   "diff in the package creation is justified by diffing manually trunk and the source in ubuntu.")
+        logging.info(message)
+        generate_xml_artefacts("Prepare",  [message], artefacts_file)
+        sys.exit(0)
+
+    logging.info("Upload to the ppa")
     packagemanager.upload_package(source_package_name, packaging_version, ppa)
 
     # Save infos for other jobs

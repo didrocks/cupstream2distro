@@ -22,12 +22,14 @@ import fileinput
 import logging
 import os
 import re
+import shutil
 import sys
 import subprocess
 import urllib
 
 import launchpadmanager
 import settings
+from .utils import ignored
 
 
 def get_current_version_for_series(source_package_name, series_name, ppa_name=None):
@@ -222,7 +224,33 @@ def is_new_content_relevant_since_old_published_source(source_package_name, dest
                     return True
         return False
 
+    logging.debug("Relevant changes are:")
+    logging.debug(relevant_changes)
+
     return (relevant_changes != '')
+
+
+def is_relevant_source_diff_from_previous_dest_version(source, version, dest_version_source):
+    '''Extract and check if the generated source diff different from previous one'''
+
+    os.makedirs("generated")
+    extracted_generated_source = os.path.join("generated", source)
+    with ignored(OSError):
+        shutil.rmtree(extracted_generated_source)
+
+    # remove epoch is there is one
+    version_for_source_file = version.split(':')[-1]
+    if subprocess.call(["dpkg-source", "-x", "{}_{}.dsc".format(source, version_for_source_file), extracted_generated_source]) != 0:
+        raise Exception("dpkg-source command returned an error.")
+
+    # now check the relevance of the committed changes compared to the version in the repository (if any)
+    diffinstance = subprocess.Popen(['diff', '-Nrup', extracted_generated_source, dest_version_source], stdout=subprocess.PIPE)
+    (diff, err) = subprocess.Popen(['filterdiff', '--clean', '-x', '*po', '-x', '*pot', '-x', '*local-options'], stdin=diffinstance.stdout, stdout=subprocess.PIPE).communicate()
+
+    # there is no important diff if the diff only contains 12 lines, corresponding to "Automatic daily release" marker in debian/changelog
+    if (diff.count('\n') <= 12):
+        return False
+    return True
 
 
 def create_new_packaging_version(base_package_version, series_version, destppa=''):
