@@ -198,7 +198,7 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
     return (os.path.join(source_package_download_dir, source_directory_name))
 
 
-def is_new_content_relevant_since_old_published_source(source_package_name, dest_version_source):
+def is_new_content_relevant_since_old_published_source(dest_version_source):
     '''Return True if a new snapshot is needed
 
     dest_version_source can be None if no released version was done before.'''
