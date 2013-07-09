@@ -25,7 +25,6 @@ import re
 import subprocess
 
 from .settings import BRANCH_URL, IGNORECHANGELOG_COMMIT, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX
-from .tools import get_packaging_diff_filename
 
 
 def get_branch(branch_url, dest_dir):
@@ -43,37 +42,6 @@ def get_tip_bzr_revision():
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8").strip())
     return (int(stdout.split(':')[0]))
-
-
-def _packaging_changes_in_branch(starting_rev):
-    '''Return if there has been a packaging change
-
-    We ignore the changelog only changes'''
-    bzrinstance = subprocess.Popen(['bzr', 'diff', 'debian/', '-r', str(starting_rev)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    filterinstance = subprocess.Popen(['filterdiff', '--clean', '-x', '*changelog'], stdin=bzrinstance.stdout, stdout=subprocess.PIPE)
-    (change_in_debian, filter_err) = filterinstance.communicate()
-    (bzrout, bzrerr) = bzrinstance.communicate()
-    if bzrerr or filterinstance.returncode != 0:
-        bzrerror = ""
-        filterdifferror = ""
-        if bzrerr:
-            bzrerror = bzrerr.decode("utf-8").strip()
-        if filter_err:
-            filterdifferror = filter_err.decode("utf-8").strip()
-        raise Exception("Error in bzr diff: {}\nfilterdiff:{}".format(bzrerror, filterdifferror))
-    return(change_in_debian != "")
-
-
-def generate_diff_in_branch(starting_rev, source_package_name, packaging_version):
-    '''Generate a diff file in the parent directory if the branch has packaging branch
-
-    The diff contains autotools files and cmakeries'''
-    if _packaging_changes_in_branch(starting_rev):
-        with open("../{}".format(get_packaging_diff_filename(source_package_name, packaging_version)), "w") as f:
-            bzrinstance = subprocess.Popen(['bzr', 'diff', '-r', str(starting_rev)], stdout=subprocess.PIPE)
-            (changes_to_publish, err) = subprocess.Popen(['filterdiff', '--clean', '-i', 'setup.py',
-                                                          '-i', '*Makefile.am', '-i', 'configure.*', '-i', 'debian/*',
-                                                          '-i', '*CMakeLists.txt'], stdin=bzrinstance.stdout, stdout=f).communicate()
 
 
 def collect_author_commits(content_to_parse, bugs_to_skip):

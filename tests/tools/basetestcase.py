@@ -99,14 +99,6 @@ class BaseTestCase(unittest.TestCase):
         '''Return the ubuntu source package path for package_name'''
         return os.path.join(self.data_dir, 'ubuntu_source_packages', package_name)
 
-    def are_files_identicals(self, filename1, filename2):
-        '''Return true if filename1 and filename2 are equals'''
-        return self.are_content_indenticals(open(filename1).read(), open(filename2).read())
-
-    def are_content_indenticals(self, content1, content2):
-        '''Return true if content1 and 2 are identicals'''
-        return (content1 == content2)
-
     def assertFilesAreIdenticals(self, filename1, filename2):
         '''assert if the files content are identical'''
         self.assertEquals(open(filename1).read().strip(), open(filename2).read().strip())

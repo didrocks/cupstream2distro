@@ -24,7 +24,7 @@ import os
 import sys
 
 from cupstream2distro import branchhandling, packagemanager, launchpadmanager
-from cupstream2distro.tools import generate_xml_artefacts, save_project_config
+from cupstream2distro.tools import generate_xml_artefacts, get_packaging_diff_filename, save_project_config
 from cupstream2distro.settings import PREPARE_ARTEFACTS_FILENAME_FORMAT
 
 
@@ -152,13 +152,6 @@ if __name__ == '__main__':
     (authors_commits, bugs_set) = branchhandling.collect_author_commits(log_content, alreadyfixed_bugs)
     packagemanager.update_changelog(packaging_version, series, tip_bzr_rev, authors_commits, args.destppa)
 
-    # We don't do manual diff check for a feature ppa
-    if not args.destppa:
-        # Prepare if a packaging change is part of the diff
-        # TODO: should be done with debdiff between all and new package
-        logging.info("Generate a diff if meaningfull packaging changes")
-        branchhandling.generate_diff_in_branch(last_upstream_rev, source_package_name, packaging_version)
-
     logging.info("Sync launchpad with current proposed work")
     branchhandling.commit_release(packaging_version, tip_bzr_rev)
     launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series)
@@ -170,13 +163,21 @@ if __name__ == '__main__':
 
     # second diff step: in case the source package was created from nothing (like a diff between trunk and the source package, but none after newly .dsc created extraction)
     logging.info("Check that the newly created source package has relevant diff")
-    if not packagemanager.is_relevant_source_diff_from_previous_dest_version(newdsc_path, dest_source_package):
+    if dest_source_package and not packagemanager.is_relevant_source_diff_from_previous_dest_version(newdsc_path, dest_source_package):
         message = ("There was a diff between trunk and the source package in ubuntu triggering a source package build. However, after that one was created, we diffed again "
                    "between that source in ubuntu and the newly created source extracted and found nothing relevant. Not upload that one then. Please check that the relevant "
                    "diff in the package creation is justified by diffing manually trunk and the source in ubuntu.")
         logging.info(message)
         generate_xml_artefacts("Prepare",  [message], artefacts_file)
         sys.exit(0)
+
+    # We don't do manual diff check for a feature ppa
+    if not args.destppa:
+        # Prepare if a packaging change is part of the diff
+        # FIXME: should be done with debdiff between all and new package
+        logging.info("Generate a diff if meaningfull packaging changes")
+        diff_filepath = get_packaging_diff_filename(source_package_name, packaging_version)
+        packagemanager.generate_diff_in_branch(diff_filepath, dest_source_package, newdsc_path)
 
     logging.info("Upload to the ppa")
     packagemanager.upload_package(source_package_name, packaging_version, ppa)

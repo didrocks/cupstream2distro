@@ -1,0 +1,40 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Tue, 09 Jul 2013 14:15:57 +0200
+Source: foo
+Binary: foo
+Architecture: source
+Version: 42.0+13.10.20130709-0ubuntu1
+Distribution: saucy
+Urgency: low
+Maintainer: DidRocks@ubuntu.com
+Changed-By: Didier Roche <didrocks@ubuntu.com>
+Description: 
+ foo        - The amazing foo package, without any trace of bar
+Changes: 
+ foo (42.0+13.10.20130709-0ubuntu1) saucy; urgency=low
+ .
+   * New upstream changelog with changes
+   * Automatic snapshot from revision 12
+Checksums-Sha1: 
+ b8097194b8b527615221f4fa390df2d973280886 1171 foo_42.0+13.10.20130709-0ubuntu1.dsc
+ 95d18760a500d70bd1d768c1ed4ef6275e5f8e18 637 foo_42.0+13.10.20130709.orig.tar.gz
+ 7c9e68d1cb5a65882acb5afb8a1844ac7858e0e7 1089 foo_42.0+13.10.20130709-0ubuntu1.diff.gz
+Checksums-Sha256: 
+ 1b1e7cef17c4030d14cd18174ee8fd92952d924272c5b319e00df74af1d6e14a 1171 foo_42.0+13.10.20130709-0ubuntu1.dsc
+ c7191c2ea2704f25c45fab26d42a43b6cf8cc4c1e6117bdd0b5c6a104a7e26d9 637 foo_42.0+13.10.20130709.orig.tar.gz
+ d0544c8594f04e62420e9943cae387f5f361ea25c4b170ac713308d27aefb79d 1089 foo_42.0+13.10.20130709-0ubuntu1.diff.gz
+Files: 
+ 78fb8fcbc90f5eebe70532f6dfefac60 1171 unity optional foo_42.0+13.10.20130709-0ubuntu1.dsc
+ 0a0b5b982bc917298d8e7df765bdd9ad 637 unity optional foo_42.0+13.10.20130709.orig.tar.gz
+ bd0f75992600e373ee8958817f0563d2 1089 unity optional foo_42.0+13.10.20130709-0ubuntu1.diff.gz
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAlHcAwQACgkQmLJKnOSsII5ZcgCggXxlR7tTagWhPJZtismCjWim
+R+IAnjjEma78Q0pMiyGVjEYTPy8zTlt0
+=cb5R
+-----END PGP SIGNATURE-----

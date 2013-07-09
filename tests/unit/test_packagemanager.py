@@ -232,13 +232,21 @@ class PackageManagerTests(BaseUnitTestCase):
         '''We return no packaging info if we get no package parameter'''
         self.assertEquals(packagemanager.list_packages_info_in_str(set()), "")
 
-    def get_source_files_for_package(self, package_name):
+    def get_source_files_for_package(self, package_name, for_download=False):
         '''Small handy tool to get a source package files in package_name dir'''
         result_files_path = []
         package_source_dir = self.get_ubuntu_source_content_path(package_name)
         for filename in os.listdir(package_source_dir):
-            result_files_path.append(os.path.join(package_source_dir, urllib.quote(filename)))
+            if for_download:
+                filename = urllib.quote(filename)
+            result_files_path.append(os.path.join(package_source_dir, filename))
         return result_files_path
+
+    def get_dsc_for_package(self, package_name):
+        '''Only return the .dsc file for a package source name'''
+        for file in self.get_source_files_for_package(package_name):
+            if file.endswith('.dsc'):
+                return file
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
     def test_get_source_package_from_dest(self, launchpadmanagerMock):
@@ -247,7 +255,7 @@ class PackageManagerTests(BaseUnitTestCase):
         dest_archive = Mock()
         source1 = Mock()
         dest_archive.getPublishedSources.return_value = [source1]
-        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_package')
+        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_package', for_download=True)
 
         source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "42.0daily83.09.13.2-0ubuntu1", "rolling")
 
@@ -281,7 +289,7 @@ class PackageManagerTests(BaseUnitTestCase):
         dest_archive = Mock()
         source1 = Mock()
         dest_archive.getPublishedSources.return_value = [source1]
-        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_package')
+        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_package', for_download=True)
 
         source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "1:42.0daily83.09.13.2-0ubuntu1", "rolling")
 
@@ -298,7 +306,7 @@ class PackageManagerTests(BaseUnitTestCase):
         dest_archive = Mock()
         source1 = Mock()
         dest_archive.getPublishedSources.return_value = [source1]
-        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_native_package')
+        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_native_package', for_download=True)
 
         source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "42.0daily83.09.13.2", "rolling")
 
@@ -314,7 +322,7 @@ class PackageManagerTests(BaseUnitTestCase):
         dest_archive = Mock()
         source1 = Mock()
         dest_archive.getPublishedSources.return_value = [source1]
-        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_specialchars_package')
+        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_specialchars_package', for_download=True)
 
         source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "42.0~daily83.09.13.2+0-0ubuntu1", "rolling")
 
@@ -337,7 +345,7 @@ class PackageManagerTests(BaseUnitTestCase):
         dest_archive = Mock()
         source1 = Mock()
         dest_archive.getPublishedSources.return_value = [source1]
-        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_native_ubuntu_version')
+        source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_native_ubuntu_version', for_download=True)
 
         source_package_dir = packagemanager.get_source_package_from_dest("foo", dest_archive, "42ubuntu1", "rolling")
 
@@ -413,6 +421,32 @@ class PackageManagerTests(BaseUnitTestCase):
                 shutil.copy2(file, '.')
         dest_version_source = self.get_ubuntu_source_content_path('ubuntu_foo_package_with_two_less_release')
         self.assertTrue(packagemanager.is_relevant_source_diff_from_previous_dest_version("foo_42.0daily83.09.13.2-0ubuntu1.dsc", dest_version_source))
+
+    def test_detect_packaging_changes_since_last_release(self):
+        '''We detect packaging changes since last release'''
+        self.assertTrue(packagemanager._packaging_changes_between_dsc(self.get_dsc_for_package("foo_package"),
+                                                                      self.get_dsc_for_package("foo_package_with_upstream_and_packaging_changes")))
+
+    def test_with_upstream_and_changelog_only_change(self):
+        '''We detect no packaging change when a package has the generated upstream and changelog changed only'''
+        self.assertFalse(packagemanager._packaging_changes_between_dsc(self.get_dsc_for_package("foo_package"),
+                                                                       self.get_dsc_for_package("foo_package_with_upstream_changes")))
+
+    def test_always_diff_when_no_previous_version_in_distro(self):
+        '''We detect packaging change if no previous version was in distro'''
+        self.assertTrue(packagemanager._packaging_changes_between_dsc(None, self.get_dsc_for_package("foo_package")))
+
+    def test_generate_diff(self):
+        '''We generate the right diff'''
+        packagemanager.generate_diff_between_dsc("foo.diff", self.get_dsc_for_package("foo_package"),  self.get_dsc_for_package("foo_package_with_upstream_and_packaging_changes"))
+        canonical_filepath = os.path.join(self.data_dir, "results", "foo_package_foo_package_with_upstream_and_packaging_changes.diff")
+        self.assertFilesAreIdenticals("foo.diff", canonical_filepath)
+
+    def test_diff_warn_for_new_package(self):
+        '''We warn in the generate diff for new packages'''
+        packagemanager.generate_diff_between_dsc("foo.diff", None,  self.get_dsc_for_package("foo_package"))
+        canonical_filepath = os.path.join(self.data_dir, "results", "new_foo_package.diff")
+        self.assertFilesAreIdenticals("foo.diff", canonical_filepath)
 
     @patch('cupstream2distro.packagemanager.datetime')
     def test_create_new_packaging_version_regular(self, datetimeMock):
@@ -903,6 +937,11 @@ class PackageManagerTestsWithErrors(BaseUnitTestCaseWithErrors):
         '''We fail if the dput push failed'''
         with self.assertRaises(Exception):
             packagemanager.upload_package('foo', '1:83.09.13-0ubuntu1', 'didrocks/foo')
+
+    def test_raise_exception_if_diff_unexisting_dsc(self):
+        '''We raise an exception if we try to debdiff an unexisting dsc'''
+        with self.assertRaises(Exception):
+            packagemanager._packaging_changes_between_dsc("foo.dsc", "bar.dsc")
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
     def test_get_source_package_from_dest_no_source(self, launchpadmanagerMock):

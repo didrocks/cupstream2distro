@@ -38,30 +38,6 @@ class BranchHandlingTests(BaseUnitTestCase):
         os.chdir(self.get_data_branch('basic'))
         self.assertEqual(branchhandling.get_tip_bzr_revision(), 6)
 
-    def test_detect_packaging_changes_in_branch(self):
-        '''We detect packaging changes in a branch'''
-        os.chdir(self.get_data_branch('basic'))
-        self.assertTrue(branchhandling._packaging_changes_in_branch(3))
-
-    def test_with_changelog_only_change(self):
-        '''We detect no packaging change when a branch has the changelog changed only'''
-        os.chdir(self.get_data_branch('basic'))
-        self.assertFalse(branchhandling._packaging_changes_in_branch(4))
-
-    def test_with_no_packaging_change(self):
-        '''We detect no packaging change when upstream change only'''
-        os.chdir(self.get_data_branch('basic'))
-        self.assertFalse(branchhandling._packaging_changes_in_branch(5))
-
-    def test_generate_diff(self):
-        '''We generate the right diff'''
-        self.get_data_branch('basic')
-        branchhandling.generate_diff_in_branch(3, "foo", "42.0daily83.09.13-0ubuntu2")
-        diff_filename = "packaging_changes_foo_42.0daily83.09.13-0ubuntu2.diff"
-        source_filepath = os.path.join('..', diff_filename)
-        canonical_filepath = os.path.join(self.data_dir, "results", diff_filename)
-        self.assertTrue(self.are_files_identicals(source_filepath, canonical_filepath))
-
     def test_return_log_diff_simple(self):
         '''Ensure we return the right log diff since a dedicated revision (simple branch)'''
         self.get_data_branch('simple')
@@ -212,18 +188,6 @@ class BranchHandlingTestsWithErrors(BaseUnitTestCaseWithErrors):
         os.chdir(self.get_data_branch('basic'))
         with self.assertRaises(Exception):
             branchhandling.get_tip_bzr_revision()
-
-    def test_return_exception_conditional_packaging_diff(self):
-        '''Return an exception when the packaging diff presence test errored'''
-        os.chdir(self.get_data_branch('basic'))
-        with self.assertRaises(Exception):
-            branchhandling._packaging_changes_in_branch(3)
-
-    def test_return_exception_when_cant_generate_diff(self):
-        '''Return an excpetion when we can't generate a diff'''
-        os.chdir(self.get_data_branch('basic'))
-        with self.assertRaises(Exception):
-            branchhandling.generate_diff_in_branch(3, "foo", "42.0daily83.09.13-0ubuntu2")
 
 
 class BranchHandlingTestForOfflineOnly(BaseUnitTestCase):

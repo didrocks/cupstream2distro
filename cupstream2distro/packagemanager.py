@@ -252,6 +252,40 @@ def is_relevant_source_diff_from_previous_dest_version(newdsc_path, dest_version
     return True
 
 
+def _packaging_changes_between_dsc(oldsource_dsc, newsource_dsc):
+    '''Return if there has been a packaging change between two dsc files
+
+    We ignore the changelog only changes'''
+    if not oldsource_dsc:
+        return True
+    if not os.path.isfile(oldsource_dsc) or not os.path.isfile(newsource_dsc):
+        raise Exception("[} or {} doesn't not exist, can't create a diff".format(oldsource_dsc, newsource_dsc))
+    diffinstance = subprocess.Popen(['debdiff', oldsource_dsc, newsource_dsc], stdout=subprocess.PIPE)
+    filterinstance = subprocess.Popen(['filterdiff', '--clean', '-i', '*debian/*', '-x', '*changelog'], stdin=diffinstance.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (change_in_debian, filter_err) = filterinstance.communicate()
+    # we can't rely on diffinstance returncode as the signature key is maybe not present and it will exit with 1
+    if filterinstance.returncode != 0:
+        raise Exception("Error in diff: {}".format(filter_err.decode("utf-8").strip()))
+    return(change_in_debian != "")
+
+
+def generate_diff_between_dsc(diff_filepath, oldsource_dsc, newsource_dsc):
+    '''Generate a diff file in diff_filepath if there is a relevant packaging diff between 2 sources
+
+    The diff contains autotools files and cmakeries'''
+    if _packaging_changes_between_dsc(oldsource_dsc, newsource_dsc):
+        with open(diff_filepath, "w") as f:
+            if not oldsource_dsc:
+                f.writelines("This source is a new package, if the destination is ubuntu, please ensure it has been preNEWed by an archive admin before publishing that stack.")
+                return
+            f.write("Remember that this diff only represent packaging changes and build tools diff\n")
+            diffinstance = subprocess.Popen(['debdiff', oldsource_dsc, newsource_dsc], stdout=subprocess.PIPE)
+            (changes_to_publish, err) = subprocess.Popen(['filterdiff', '--remove-timestamps', '--clean', '-i', '*setup.py',
+                                                          '-i', '*Makefile.am', '-i', '*configure.*', '-i', '*debian/*',
+                                                          '-i', '*CMakeLists.txt'], stdin=diffinstance.stdout, stdout=subprocess.PIPE).communicate()
+            f.write(changes_to_publish)
+
+
 def create_new_packaging_version(base_package_version, series_version, destppa=''):
     '''Deliver a new packaging version, based on simple rules:
 

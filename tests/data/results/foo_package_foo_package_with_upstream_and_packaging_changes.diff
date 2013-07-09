@@ -1,0 +1,63 @@
+Remember that this diff only represent packaging changes and build tools diff
+--- foo-42.0daily83.09.13.2/CMakeLists.txt
++++ foo-42.0+13.10.20130709/CMakeLists.txt
+@@ -1,3 +1,4 @@
+ Fake cmakerie on root dir
+ 
+ Change here
++Also one here
+--- foo-42.0daily83.09.13.2/configure.ac
++++ foo-42.0+13.10.20130709/configure.ac
+@@ -1,3 +1,4 @@
+ Fake configure.ac
+ 
+ Change here
++Another change here
+--- foo-42.0daily83.09.13.2/debian/changelog
++++ foo-42.0+13.10.20130709/debian/changelog
+@@ -1,3 +1,10 @@
++foo (42.0+13.10.20130709-0ubuntu1) saucy; urgency=low
++
++  * New upstream changelog with changes
++  * Automatic snapshot from revision 12
++
++ -- Didier Roche <didrocks@ubuntu.com>  Tue, 09 Jul 2013 14:15:57 +0200
++
+ foo (42.0daily83.09.13.2-0ubuntu1) raring; urgency=low
+ 
+   * Automatic snapshot from revision 10
+--- foo-42.0daily83.09.13.2/debian/control
++++ foo-42.0+13.10.20130709/debian/control
+@@ -16,5 +16,6 @@
+ Depends: ${shlibs:Depends},
+          ${misc:Depends},
+          ${python:Depends},
++Replaces: bar,
+ Description: The amazing foo package, without any trace of bar
+  Baz as well is excluded from the foo package.
+--- foo-42.0daily83.09.13.2/debian/subdir/subpackagefile
++++ foo-42.0+13.10.20130709/debian/subdir/subpackagefile
+@@ -0,0 +1 @@
++Package content
+--- foo-42.0daily83.09.13.2/setup.py
++++ foo-42.0+13.10.20130709/setup.py
+@@ -1,3 +1,4 @@
+ Fake setup
+ 
+ Change here
++Python is my passion
+--- foo-42.0daily83.09.13.2/src/CMakeLists.txt
++++ foo-42.0+13.10.20130709/src/CMakeLists.txt
+@@ -1,3 +1,4 @@
+ Fake cmakerie on src dir
+ 
+ Change here
++Changes in subdir
+--- foo-42.0daily83.09.13.2/src/Makefile.am
++++ foo-42.0+13.10.20130709/src/Makefile.am
+@@ -1,3 +1,4 @@
+ Fake Makefile in src
+ 
+ Change here
++Change in subdir
+
