@@ -230,17 +230,16 @@ def is_new_content_relevant_since_old_published_source(dest_version_source):
     return (relevant_changes != '')
 
 
-def is_relevant_source_diff_from_previous_dest_version(source, version, dest_version_source):
+def is_relevant_source_diff_from_previous_dest_version(newdsc_path, dest_version_source):
     '''Extract and check if the generated source diff different from previous one'''
 
     os.makedirs("generated")
-    extracted_generated_source = os.path.join("generated", source)
+    extracted_generated_source = os.path.join("generated", newdsc_path.split('_')[0])
     with ignored(OSError):
         shutil.rmtree(extracted_generated_source)
 
     # remove epoch is there is one
-    version_for_source_file = version.split(':')[-1]
-    if subprocess.call(["dpkg-source", "-x", "{}_{}.dsc".format(source, version_for_source_file), extracted_generated_source]) != 0:
+    if subprocess.call(["dpkg-source", "-x", newdsc_path, extracted_generated_source]) != 0:
         raise Exception("dpkg-source command returned an error.")
 
     # now check the relevance of the committed changes compared to the version in the repository (if any)

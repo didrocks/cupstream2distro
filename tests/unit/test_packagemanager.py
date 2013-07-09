@@ -348,55 +348,55 @@ class PackageManagerTests(BaseUnitTestCase):
 
     def test_release_with_no_ubuntu_upload(self):
         '''We release if there has been no upload before'''
-        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=None))
+        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source(None))
 
     def test_release_if_content_committed_before_snapshot_commit(self):
         '''We release if there is at least one change including an upstream change'''
         self.get_data_branch('oneupstreamchange_before_snapshot_committed')
         dest_version_source = self.get_ubuntu_source_content_path('oneupstreamchange_before_snapshot_committed')
-        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source(dest_version_source))
 
     def test_release_if_content_committed_and_changelog_unreleased_content(self):
         '''We release if there is at least one change including an upstream change, with a changelog content (UNRELEASED)'''
         self.get_data_branch('oneupstreamchange_with_unreleased_changelog_change')
         dest_version_source = self.get_ubuntu_source_content_path('regular_released_branch')
-        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source(dest_version_source))
 
     def test_release_if_new_content_with_manual_uploads(self):
         '''We release if there has been some manual uploads backported, but we still have at least one content difference'''
         self.get_data_branch('changebetween_manual_uploads')
         dest_version_source = self.get_ubuntu_source_content_path('2manualuploads')
-        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source(dest_version_source))
 
     def test_dont_release_if_content_matches(self):
         '''We don't release if the upstream and downstream content matches, even if we had a manual upload to distro'''
         self.get_data_branch('onemanualupload')
         dest_version_source = self.get_ubuntu_source_content_path('onemanualupload')
-        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source(dest_version_source))
 
     def test_dont_release_if_only_ignore_content(self):
         '''We don't release if the upstream and downstream only have ignored content'''
         self.get_data_branch('onlyignorechanges')
         dest_version_source = self.get_ubuntu_source_content_path('onemanualupload')
-        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source(dest_version_source))
 
     def test_dont_release_if_vcs_bzr_change(self):
         '''We don't release if there is only a vcs* change (when diverging branches)'''
         self.get_data_branch('vcsbzrchange')
         dest_version_source = self.get_ubuntu_source_content_path('onerelease')
-        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source(dest_version_source))
 
     def test_dont_release_if_vcs_bzr_change_with_changelog(self):
         '''We don't release if there is only a vcs* change (when diverging branches), even with a changelog change'''
         self.get_data_branch('vcsbzrchangewithchangelog')
         dest_version_source = self.get_ubuntu_source_content_path('onerelease')
-        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+        self.assertFalse(packagemanager.is_new_content_relevant_since_old_published_source(dest_version_source))
 
     def test_release_even_if_changelog_change(self):
         '''We release even if the only change is a debian/changelog change'''
         self.get_data_branch('debianchangelog_change_on_onemanualupload')
         dest_version_source = self.get_ubuntu_source_content_path('onemanualupload')
-        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source("foo", dest_version_source=dest_version_source))
+        self.assertTrue(packagemanager.is_new_content_relevant_since_old_published_source(dest_version_source))
 
     def test_package_wrongly_diffing(self):
         '''We detect if a package only having the automatic bump and marker in debian/changelog has nothing relevant'''
@@ -404,7 +404,7 @@ class PackageManagerTests(BaseUnitTestCase):
             if not os.path.isdir(file):
                 shutil.copy2(file, '.')
         dest_version_source = self.get_ubuntu_source_content_path('ubuntu_foo_package_with_one_less_release')
-        self.assertFalse(packagemanager.is_relevant_source_diff_from_previous_dest_version("foo", "42.0daily83.09.13.2-0ubuntu1", dest_version_source))
+        self.assertFalse(packagemanager.is_relevant_source_diff_from_previous_dest_version("foo_42.0daily83.09.13.2-0ubuntu1.dsc", dest_version_source))
 
     def test_package_rightly_diffing(self):
         '''We detect if a package has relevant changes justifying the daily release'''
@@ -412,7 +412,7 @@ class PackageManagerTests(BaseUnitTestCase):
             if not os.path.isdir(file):
                 shutil.copy2(file, '.')
         dest_version_source = self.get_ubuntu_source_content_path('ubuntu_foo_package_with_two_less_release')
-        self.assertTrue(packagemanager.is_relevant_source_diff_from_previous_dest_version("foo", "42.0daily83.09.13.2-0ubuntu1", dest_version_source))
+        self.assertTrue(packagemanager.is_relevant_source_diff_from_previous_dest_version("foo_42.0daily83.09.13.2-0ubuntu1.dsc", dest_version_source))
 
     @patch('cupstream2distro.packagemanager.datetime')
     def test_create_new_packaging_version_regular(self, datetimeMock):
