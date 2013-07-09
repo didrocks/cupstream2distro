@@ -171,7 +171,7 @@ if __name__ == '__main__':
         generate_xml_artefacts("Prepare",  [message], artefacts_file)
         sys.exit(0)
 
-    # We don't do manual diff check for a feature ppa
+    # We don't do package diff detection for a feature ppa
     if not args.destppa:
         # Prepare if a packaging change is part of the diff
         # FIXME: should be done with debdiff between all and new package

@@ -71,3 +71,10 @@ class ToolsTests(BaseUnitTestCase):
         shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), '.')
         tools.mark_project_as_published('foo', '4.2dailysomething-0ubuntu1')
         self.assertTrue(os.path.isfile('foo.project_4.2dailysomething-0ubuntu1'))
+
+    def test_mark_project_and_diff_as_published(self):
+        '''Rename current project filename and diff file once published to the unique project file to not republish them'''
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), '.')
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'packaging_changes_foo_4.2dailysomething-0ubuntu1.diff')
+        tools.mark_project_as_published('foo', '4.2dailysomething-0ubuntu1')
+        self.assertTrue(os.path.isfile('packaging_changes_foo_4.2dailysomething-0ubuntu1.diff.published'))

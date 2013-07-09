@@ -69,6 +69,9 @@ def get_packaging_diff_filename(source_package_name, packaging_version):
 
 
 def mark_project_as_published(source_package_name, packaging_version):
-    '''Rename .project file so that if we do a partial rebuild, we don't try to republish it'''
+    '''Rename .project and eventual diff files so that if we do a partial rebuild, we don't try to republish them'''
     project_filename = "{}.{}".format(source_package_name, PROJECT_CONFIG_SUFFIX)
     os.rename(project_filename, "{}_{}".format(project_filename, packaging_version))
+    diff_filename = get_packaging_diff_filename(source_package_name, packaging_version)
+    if os.path.isfile(diff_filename):
+        os.rename(diff_filename, "{}.published".format(diff_filename))
