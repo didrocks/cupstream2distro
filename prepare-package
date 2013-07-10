@@ -179,9 +179,9 @@ if __name__ == '__main__':
         diff_filepath = get_packaging_diff_filename(source_package_name, packaging_version)
         olddsc_path = None
         if dest_source_package:
-            for file in os.listdir(dest_source_package):
+            for file in os.listdir(os.path.dirname(dest_source_package)):
                 if file.endswith(".dsc"):
-                    olddsc_path = os.path.join(os.path.dirname(dest_source_package, file))
+                    olddsc_path = os.path.join(os.path.dirname(dest_source_package), file)
         packagemanager.generate_diff_between_dsc(diff_filepath, olddsc_path, newdsc_path)
 
     logging.info("Upload to the ppa")
