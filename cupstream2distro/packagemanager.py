@@ -259,7 +259,7 @@ def _packaging_changes_between_dsc(oldsource_dsc, newsource_dsc):
     if not oldsource_dsc:
         return True
     if not os.path.isfile(oldsource_dsc) or not os.path.isfile(newsource_dsc):
-        raise Exception("[} or {} doesn't not exist, can't create a diff".format(oldsource_dsc, newsource_dsc))
+        raise Exception("{} or {} doesn't not exist, can't create a diff".format(oldsource_dsc, newsource_dsc))
     diffinstance = subprocess.Popen(['debdiff', oldsource_dsc, newsource_dsc], stdout=subprocess.PIPE)
     filterinstance = subprocess.Popen(['filterdiff', '--clean', '-i', '*debian/*', '-x', '*changelog'], stdin=diffinstance.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (change_in_debian, filter_err) = filterinstance.communicate()
