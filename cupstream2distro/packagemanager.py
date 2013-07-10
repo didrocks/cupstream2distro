@@ -277,7 +277,7 @@ def generate_diff_between_dsc(diff_filepath, oldsource_dsc, newsource_dsc):
             if not oldsource_dsc:
                 f.writelines("This source is a new package, if the destination is ubuntu, please ensure it has been preNEWed by an archive admin before publishing that stack.")
                 return
-            f.write("Remember that this diff only represent packaging changes and build tools diff\n")
+            f.write("/!\ Remember that this diff only represents packaging changes and build tools diff, not the whole content diff!\n\n")
             diffinstance = subprocess.Popen(['debdiff', oldsource_dsc, newsource_dsc], stdout=subprocess.PIPE)
             (changes_to_publish, err) = subprocess.Popen(['filterdiff', '--remove-timestamps', '--clean', '-i', '*setup.py',
                                                           '-i', '*Makefile.am', '-i', '*configure.*', '-i', '*debian/*',

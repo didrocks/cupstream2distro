@@ -1,4 +1,5 @@
-Remember that this diff only represent packaging changes and build tools diff
+/!\ Remember that this diff only represents packaging changes and build tools diff, not the whole content diff!
+
 --- foo-42.0daily83.09.13.2/CMakeLists.txt
 +++ foo-42.0+13.10.20130709/CMakeLists.txt
 @@ -1,3 +1,4 @@
