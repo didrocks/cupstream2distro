@@ -177,7 +177,7 @@ if __name__ == '__main__':
         # FIXME: should be done with debdiff between all and new package
         logging.info("Generate a diff if meaningfull packaging changes")
         diff_filepath = get_packaging_diff_filename(source_package_name, packaging_version)
-        packagemanager.generate_diff_in_branch(diff_filepath, dest_source_package, newdsc_path)
+        packagemanager.generate_diff_between_dsc(diff_filepath, dest_source_package, newdsc_path)
 
     logging.info("Upload to the ppa")
     packagemanager.upload_package(source_package_name, packaging_version, ppa)
