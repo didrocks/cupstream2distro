@@ -166,10 +166,8 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
     logging.info("Grab code for {} ({}) from {}".format(source_package_name, dest_current_version, series_name))
     source_package_download_dir = os.path.join('ubuntu', source_package_name)
     series = launchpadmanager.get_series(series_name)
-    try:
+    with ignored(OSError):
         os.makedirs(source_package_download_dir)
-    except OSError:
-        pass
     os.chdir(source_package_download_dir)
 
     try:
@@ -233,7 +231,8 @@ def is_new_content_relevant_since_old_published_source(dest_version_source):
 def is_relevant_source_diff_from_previous_dest_version(newdsc_path, dest_version_source):
     '''Extract and check if the generated source diff different from previous one'''
 
-    os.makedirs("generated")
+    with ignored(OSError):
+        os.makedirs("generated")
     extracted_generated_source = os.path.join("generated", newdsc_path.split('_')[0])
     with ignored(OSError):
         shutil.rmtree(extracted_generated_source)
