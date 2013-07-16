@@ -44,7 +44,7 @@ class PackageInPPA():
             if arch_lists:
                 arch_lists = arch_lists[0]
                 if "any" in arch_lists:
-                    self.archs = available_archs_in_ppa
+                    self.archs = available_archs_in_ppa.copy()
                 elif arch_lists == "all":
                     self.archs = set([self.arch_all_arch])
                 else:
