@@ -42,6 +42,7 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
     parser.add_argument("-d", "--destppa", help="Consider this destppa instead of only the distro for finale destination", default='')
     parser.add_argument("-f", "--force-rebuild", help="Force rebuilding even if there is nothing to release", action='store_true')
+    parser.add_argument("--skip-dest-check", help="Skip destination version checking and call force rebuild", action='store_true')
     args = parser.parse_args()
 
     source_package_name = args.sourcename
@@ -60,6 +61,7 @@ if __name__ == '__main__':
     if not ppa:
         ppa = os.getenv("ppa")
     instance_info = "for source: {}, branch: {}, series: {}".format(source_package_name, branch, series)
+    force_rebuild = False
 
     if not source_package_name or not branch or not series or not ppa:
         logging.error("Missing compulsory environment variables (sourcename, branch, series, ppa) {}".format(instance_info))
@@ -105,16 +107,19 @@ if __name__ == '__main__':
         # TODO: if none, we should maybe take distro_version?
 
     # ensure that the previous release (in distro or in dest ppa) ended up in the vcs
-    with open("debian/changelog") as changelog:
-        if not packagemanager.is_version_in_changelog(previous_finaledest_version, changelog):
-            message = ("A version ({}) is available at the destination for that component but is not in trunk which is still at {}. "
-                       "Ignoring that component {}.".format(previous_finaledest_version, packaging_version_in_bzr, instance_info))
-            logging.info(message)
-            generate_xml_artefacts("Prepare",  [message], artefacts_file)
-            sys.exit(0)
+    if args.skip_dest_check:
+        logging.info("Skip destination version checking requested. Will overwrite even if destination has a newer version.")
+        force_rebuild = True
+    else:
+        with open("debian/changelog") as changelog:
+            if not packagemanager.is_version_in_changelog(previous_finaledest_version, changelog):
+                message = ("A version ({}) is available at the destination for that component but is not in trunk which is still at {}. "
+                           "Ignoring that component {}.".format(previous_finaledest_version, packaging_version_in_bzr, instance_info))
+                logging.info(message)
+                generate_xml_artefacts("Prepare",  [message], artefacts_file)
+                sys.exit(0)
 
-    force_rebuild = False
-    if args.force_rebuild:
+    if force_rebuild or args.force_rebuild:
         logging.info("The rebuild of that component is forced. Don't check if there is any newer changes to collect.")
         force_rebuild = True
     if args.destppa:
