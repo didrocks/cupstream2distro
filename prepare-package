@@ -160,7 +160,7 @@ if __name__ == '__main__':
         alreadyfixed_bugs = packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name)
     (authors_commits, bugs_set) = branchhandling.collect_author_commits(log_content, alreadyfixed_bugs)
     if force_rebuild:
-        authors_commits[BOT_DEBFULLNAME] = "New rebuild forced"
+        authors_commits[BOT_DEBFULLNAME] = ["New rebuild forced"]
     packagemanager.update_changelog(packaging_version, series, tip_bzr_rev, authors_commits, args.destppa)
 
     logging.info("Sync launchpad with current proposed work")
