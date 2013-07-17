@@ -41,7 +41,7 @@ if __name__ == '__main__':
     parser.add_argument("-V", "--series-version", help="set series versions")
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
     parser.add_argument("-d", "--destppa", help="Consider this destppa instead of only the distro for finale destination", default='')
-    parser.add_argument("-f", "--force-release", help="Force releasing even if there is nothing to release", action='store_true')
+    parser.add_argument("-f", "--force-rebuild", help="Force rebuilding even if there is nothing to release", action='store_true')
     args = parser.parse_args()
 
     source_package_name = args.sourcename
@@ -113,10 +113,10 @@ if __name__ == '__main__':
             generate_xml_artefacts("Prepare",  [message], artefacts_file)
             sys.exit(0)
 
-    force_release = False
-    if args.force_release:
+    force_rebuild = False
+    if args.force_rebuild:
         logging.info("The rebuild of that component is forced. Don't check if there is any newer changes to collect.")
-        force_release = True
+        force_rebuild = True
     if args.destppa:
         # if the version in the distro is higher than the previous packaging version (either the version in intermediate ppa or packaging bzr version
         # We are going to force releasing, but basing on this version
@@ -124,11 +124,11 @@ if __name__ == '__main__':
             logging.info("The version in distro ({}) is higher than what is proposed in the bzr version for that branch ({}). Basing on the distro version.".format(distro_version, previous_packaging_version))
             logging.info("Forcing release mode as the version in distro ({}) is higher than current destination ppa ({})".format(distro_version, previous_packaging_version))
             previous_packaging_version = distro_version
-            force_release = True
+            force_rebuild = True
 
     # Check if we need to republish
     tip_bzr_rev = branchhandling.get_tip_bzr_revision()
-    if not force_release:
+    if not force_rebuild:
         logging.info("Check if we need to release a new package")
         os.chdir('..')
         dest_source_package = packagemanager.get_source_package_from_dest(source_package_name, dest_archive, previous_finaledest_version, series)
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     with open("debian/changelog") as f:
         alreadyfixed_bugs = packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name)
     (authors_commits, bugs_set) = branchhandling.collect_author_commits(log_content, alreadyfixed_bugs)
-    if force_release:
+    if force_rebuild:
         authors_commits[settings.BOT_DEBFULLNAME] = "New rebuild forced"
     packagemanager.update_changelog(packaging_version, series, tip_bzr_rev, authors_commits, args.destppa)
 
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     newdsc_path = "{}_{}.dsc".format(source_package_name, packaging_version.split(':')[-1])
 
     # second diff step: in case the source package was created from nothing (like a diff between trunk and the source package, but none after newly .dsc created extraction)
-    if not force_release and dest_source_package:
+    if not force_rebuild and dest_source_package:
         logging.info("Check that the newly created source package has relevant diff")
         if not packagemanager.is_relevant_source_diff_from_previous_dest_version(newdsc_path, dest_source_package):
             message = ("There was a diff between trunk and the source package in ubuntu triggering a source package build. However, after that one was created, we diffed again "
