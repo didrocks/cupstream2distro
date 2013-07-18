@@ -54,6 +54,7 @@ class PackageInPPA():
                     self.archs = archs_supported_by_package.intersection(available_archs_in_ppa)
                 break
         # ignore some eventual archs if doesn't exist in latest published version in dest
+        archs_to_eventually_ignore = archs_to_eventually_ignore.copy()
         if archs_to_eventually_ignore:
             try:
                 previous_source = destarchive.getPublishedSources(exact_match=True, source_name=self.source_name,
