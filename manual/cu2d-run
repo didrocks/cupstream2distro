@@ -63,11 +63,10 @@ def run(jkcfg, stack, release, job, **kwargs):
     else:
         jkh = jenkins.Jenkins(jkcfg['url'])
 
+    jobname = "-".join((PREFIX, stack, release))
     if job == "publish":
-        jobname = "-".join((PREFIX, stack, release))
         args = {'FORCE_PUBLICATION': 'true'}  # publish even we have packaging changes or other dep stacks failing
     elif job == "run":
-        jobname = "-".join((PREFIX, stack, release))
         args = {'REBUILD_ONLY': kwargs['projects'], # only rebuild those projects
                 'CHECK_WITH_WHOLE_PPA': kwargs['check-with-whole-ppa']} # eventually, recheck against full ppa 
 
