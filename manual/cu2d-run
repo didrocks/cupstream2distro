@@ -64,8 +64,8 @@ def run(jkcfg, stack, release, job, **kwargs):
         jkh = jenkins.Jenkins(jkcfg['url'])
 
     if job == "publish":
-        jobname = "-".join((PREFIX, stack, release, '3.0publish'))
-        args = {'force': 'true'}  # publish even we have packaging changes
+        jobname = "-".join((PREFIX, stack, release))
+        args = {'FORCE_PUBLICATION': 'true'}  # publish even we have packaging changes or other dep stacks failing
     elif job == "run":
         jobname = "-".join((PREFIX, stack, release))
         args = {'REBUILD_ONLY': kwargs['projects'], # only rebuild those projects
