@@ -19,9 +19,10 @@
 
 from __future__ import unicode_literals
 
-import os
 from launchpadlib.launchpad import Launchpad
 import lazr
+import logging
+import os
 launchpad = None
 
 from .settings import ARCHS_TO_EVENTUALLY_IGNORE, VIRTUALIZED_PPA_ARCH, CRED_FILE_PATH, COMMON_LAUNCHPAD_CACHE_DIR
@@ -102,8 +103,9 @@ def open_bugs_for_source(bugs_list, source_name, series_name):
             bug = lp.bugs[bug_num]
             bug.addTask(target=package)
             bug.lp_save()
-        except (KeyError, lazr.restfulclient.errors.BadRequest):
-            pass  # ignore non existing or available bugs
+        except (KeyError, lazr.restfulclient.errors.BadRequest, lazr.restfulclient.errors.ServerError):
+            # ignore non existing or available bugs
+            logging.info("Can't synchronize upstream/downstream bugs for bug #{}. Not blocking on that.".format(bug_num))
 
 
 def get_available_all_and_ignored_archs(series, ppa=None):
