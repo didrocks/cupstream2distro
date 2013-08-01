@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     parser.add_argument("-s", "--series", help="Serie used to build the package")
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
-    parser.add_argument("-a", "--arch", action='store_true', help="Only consider the arch:all target")
+    parser.add_argument("-a", "--arch", default=None, help="Only consider the provided target")
     parser.add_argument("-d", "--destppa", help="Consider this destppa instead of {series}-proposed")
 
     args = parser.parse_args()

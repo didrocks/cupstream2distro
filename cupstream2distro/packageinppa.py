@@ -73,8 +73,10 @@ class PackageInPPA():
                 self.archs -= archs_to_eventually_ignore
 
 
-    def get_status(self, only_arch_all):
-        '''Look at the package status in the ppa'''
+    def get_status(self, on_particular_arch=None):
+        '''Look at the package status in the ppa
+
+        Can scope to a particular arch to watch for'''
 
         self._refresh_status()
         if not self.current_status:
@@ -83,7 +85,7 @@ class PackageInPPA():
         current_package_building = False
         current_package_failed = False
         for arch in self.current_status:
-            if only_arch_all and arch != self.arch_all_arch:
+            if on_particular_arch and arch != on_particular_arch:
                 continue
             str_status = "published"
             if self.current_status[arch] == PackageInPPA.BUILDING:

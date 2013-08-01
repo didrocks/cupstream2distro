@@ -52,12 +52,12 @@ def get_all_packages_uploaded():
     return result
 
 
-def update_all_packages_status(packages_not_in_ppa, packages_building, packages_failed, only_arch_all=False):
+def update_all_packages_status(packages_not_in_ppa, packages_building, packages_failed, particular_arch=None):
     '''Update all packages status, checking in the ppa'''
 
     for current_package in (packages_not_in_ppa.union(packages_building)):
         logging.info("current_package: " + current_package.source_name + " " + current_package.version)
-        package_status = current_package.get_status(only_arch_all)
+        package_status = current_package.get_status(particular_arch)
         if package_status != None:  # global package_status can be 0 (building), 1 (failed), 2 (published)
             # if one arch building, still considered as building
             if package_status == PackageInPPA.BUILDING:
