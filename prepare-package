@@ -133,6 +133,7 @@ if __name__ == '__main__':
 
     # Check if we need to republish
     tip_bzr_rev = branchhandling.get_tip_bzr_revision()
+    dest_source_package = None
     if not force_rebuild:
         logging.info("Check if we need to release a new package")
         os.chdir('..')
