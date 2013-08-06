@@ -25,7 +25,8 @@ import sys
 
 from cupstream2distro import launchpadmanager, packageinppamanager
 from cupstream2distro.branchhandling import propose_branch_for_merging
-from cupstream2distro.stacks import generate_dep_status_message, get_current_stack_infos, get_stack_packaging_change_status, is_stack_in_always_manual_publishing_mode
+from cupstream2distro.stacks import get_stack_packaging_change_status
+from cupstream2distro.stack import Stack
 from cupstream2distro.tools import generate_xml_artefacts, get_previous_distro_version_from_config, mark_project_as_published
 from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT, SRU_PPA
 
@@ -87,17 +88,16 @@ if __name__ == '__main__':
     manual_publish_cause_list.extend(get_stack_packaging_change_status(all_packages_uploaded))
 
     # Generate global stack status based on rdepends
-    (stackname, release) = get_current_stack_infos()
-    manual_publish_cause_list.extend(generate_dep_status_message(stackname, release))
+    stack = Stack.get_current_stack()
+    manual_publish_cause_list.extend(stack.generate_dep_status_message())
 
-    force_manual_publish = is_stack_in_always_manual_publishing_mode(stackname, release)
-    if force_manual_publish:
+    if stack.forced_manualpublish:
         message = "Manual publishing mode for this stack forced. Components ready for release are: {}".format(all_packages_uploaded)
         logging.info(message)
         manual_publish_cause_list.append(message)
 
     # we only go on manual publishing if we have something to publish
-    if not args.force and all_packages_uploaded and (manual_publish_cause_list or force_manual_publish):
+    if not args.force and all_packages_uploaded and (manual_publish_cause_list or stack.forced_manualpublish):
         logging.info("Don't upload the stack automatically.")
         generate_xml_artefacts("Publisher", manual_publish_cause_list, PUBLISHER_ARTEFACTS_FILENAME)
     else:
@@ -116,7 +116,7 @@ if __name__ == '__main__':
                 package_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(copy_from_ppa, copy_from_ppa_pocket, series, distro_pocket, series, source, version, distro_version))
             mark_project_as_published(source, version)
         if package_to_copy:
-            package_list_rsync_file = PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(stackname, release)
+            package_list_rsync_file = PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(stack.stack_name, stack.release)
             logging.info("Writing {} for being able to rsync from main machine".format(package_list_rsync_file))
             with open(package_list_rsync_file, 'w') as f:
                 f.write("\n".join(package_to_copy))
