@@ -70,7 +70,7 @@ if __name__ == '__main__':
                                   password=jkcfg['password'])
             jobname = "-".join("cu2d", stack.stack_name, stack.release)
             if not jkh.job_exists(jobname):
-                logging.warning("Job '%s' doesn't exists. Aborting automated publicatoin", jobname)
+                logging.warning("Job '%s' doesn't exists. Aborting automated publication", jobname)
                 continue
             jkh.build_job(jobname, {'AUTO_PUBLICATION': 'true'}, token=jkcfg['token'])
 
