@@ -23,7 +23,7 @@ import logging
 import sys
 import time
 
-from cupstream2distro.stacks import get_depending_stacks, get_stack_status, get_current_stack_infos
+from cupstream2distro.stacks import get_depending_stacks, is_stack_started, get_current_stack_infos
 from cupstream2distro.settings import TIME_BETWEEN_STACK_CHECKS
 
 
@@ -45,9 +45,8 @@ if __name__ == '__main__':
     while(True):
         logging.info("Waiting on {}".format(waiting_on_stacks))
         for (stackname, release) in waiting_on_stacks[:]:  # as we modify the list, makes a copy first
-            status = get_stack_status(stackname, release)
-            if status is not None:
-                logging.info("Stack {} ({}) has now finished".format(stackname, release))
+            if not is_stack_started(stackname, release):
+                logging.info("Stack {} ({}) is stopped".format(stackname, release))
                 waiting_on_stacks.remove((stackname, release))
         if not waiting_on_stacks:
             break

@@ -61,3 +61,4 @@ RSYNC_PATTERN = "rsync://RSYNCSVR/cu2d_out/{}*".format(PACKAGE_LIST_RSYNC_FILENA
 ROOT_CU2D = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 DEFAULT_CONFIG_STACKS_DIR = os.path.join(os.path.dirname(ROOT_CU2D), 'cupstream2distro-config', 'stacks')
 STACK_STATUS_FILENAME = "stack.status"
+STACK_STARTED_FILENAME = "stack.started"

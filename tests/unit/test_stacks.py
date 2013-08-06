@@ -123,6 +123,19 @@ class StackTests(BaseUnitTestCase):
         self.assertEquals(stacks.get_stack_status("stack2", "head"), 0)
         self.assertEquals(stacks.get_stack_status("stack4", "back"), 0)
 
+    def test_is_stack_started_not_started(self):
+        '''Ensure a non started stack isn't seen as started'''
+        shutil.copytree(self.workdir, 'workdir')
+        current_workdir = os.path.join('workdir', 'head', 'stack2')
+        os.chdir(current_workdir)
+        self.assertFalse(stacks.is_stack_started("stack1", "head"))
+
+    def test_is_stack_started_not_started(self):
+        '''Ensure a started stack is seen as started'''
+        shutil.copytree(self.workdir, 'workdir')
+        current_workdir = os.path.join('workdir', 'head', 'stack2')
+        os.chdir(current_workdir)
+        self.assertTrue(stacks.is_stack_started("stack3", "head"))
 
 class StackTestsWithOnline(BaseUnitTestCase):
 

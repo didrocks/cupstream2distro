@@ -22,7 +22,7 @@ import os
 import yaml
 import subprocess
 
-from .settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN, DEFAULT_CONFIG_STACKS_DIR, STACK_STATUS_FILENAME
+from .settings import PACKAGE_LIST_RSYNC_FILENAME_PREFIX, RSYNC_PATTERN, DEFAULT_CONFIG_STACKS_DIR, STACK_STATUS_FILENAME, STACK_STARTED_FILENAME
 from .tools import get_packaging_diff_filename
 from .utils import ignored
 
@@ -152,6 +152,15 @@ def get_stack_status(stackname, release):
         return None
     with open(statusfile, 'r') as f:
         return(int(f.read()))
+
+
+def is_stack_started(stackname, release):
+    '''Return True if the stack is started (dep-wait or building)'''
+
+    statusfile = os.path.join('..', '..', release, stackname, STACK_STARTED_FILENAME)
+    if os.path.isfile(statusfile):
+        return True
+    return False
 
 
 def generate_dep_status_message(stackname, release):
