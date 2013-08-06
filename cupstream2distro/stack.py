@@ -39,6 +39,7 @@ class Stack():
     	self.stack_name = stack_name
     	self.release = release
         self.statusfile = os.path.join('..', '..', release, stack_name, STACK_STATUS_FILENAME)
+        self.startedfile = os.path.join('..', '..', release, stack_name, STACK_STARTED_FILENAME)
         self.stack_file_path = None
         self._dependencies = None
         self._rdependencies = None
@@ -78,7 +79,7 @@ class Stack():
 
     def is_started(self):
         '''Return True if the stack is started (dep-wait or building)'''
-        if os.path.isfile(self.statusfile):
+        if os.path.isfile(self.startedfile):
             return True
         return False
 
