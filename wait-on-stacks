@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     while(True):
         for stack in waiting_on_stacks[:]:  # as we modify the list, makes a copy first
-            logging.info("Waiting on {} ({})".format(stack.stack_name, stack.release)))
+            logging.info("Waiting on {} ({})".format(stack.stack_name, stack.release))
             if not stack.is_started():
                 logging.info("Stack {} ({}) is stopped".format(stack.stack_name, stack.release))
                 waiting_on_stacks.remove(stack)
