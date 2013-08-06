@@ -1,0 +1,75 @@
+#!/usr/bin/python
+# -*- coding: UTF8 -*-
+# Copyright (C) 2013 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import jenkins
+import logging
+import sys
+
+
+DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
+
+def load_jenkins_credentials(path):
+    """ Load Credentials from credentials configuration file """
+    if not os.path.exists(path):
+        return False
+
+    logging.debug('Loading credentials from %s', path)
+    cred = yaml.load(file(path, 'r'))
+
+    for param in ('username', 'password', 'url', 'token'):
+        if not param in cred['jenkins']:
+            logging.error("Setting missing from jenkins credentials: %s. "
+                          "Aborting!", param)
+            sys.exit(1)
+    return False if not 'jenkins' in cred else cred['jenkins']
+
+
+from cupstream2distro.stack import Stack
+
+if __name__ == '__main__':
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+    parser = argparse.ArgumentParser(description="Return release-name from all reverse dependencies path",
+                                     epilog="This program only return 'release-name' pair for stacks that are supposed to be publishable (didn't fail or are not running).")
+    args = parser.parse_args()
+
+    stack = Stack.get_current_stack()
+
+    jkcfg = load_jenkins_credentials(DEFAULT_CREDENTIALS)
+    if not jkcfg:
+        logging.warning('Credentials not found. Aborting automated publication!')
+        sys.exit(0)
+
+    # check for each rdepends if we should try republish them
+    for rdep_stack in stack.get_direct_rdepends_stack():
+        logging.info("Considering publishing: {} ({})".format(rdep_stack.stack_name, stack.release))
+        if not rdep_stack.is_started() and rdep_stack.get_status() == 2:
+            logging.info("{} ({}) may be publishable, trying it".format(rdep_stack.stack_name, stack.release))
+            jkh = jenkins.Jenkins(jkcfg['url'],
+                                  username=jkcfg['username'],
+                                  password=jkcfg['password'])
+            jobname = "-".join("cu2d", stack.stack_name, stack.release)
+            if not jkh.job_exists(jobname):
+                logging.warning("Job '%s' doesn't exists. Aborting automated publicatoin", jobname)
+                continue
+            jkh.build_job(jobname, {'AUTO_PUBLICATION': 'true'}, token=jkcfg['token'])
+

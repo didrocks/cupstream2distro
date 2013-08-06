@@ -129,6 +129,13 @@ class StackTests(BaseUnitTestCase):
         dep_stacks = [Stack('head', 'stack2'), Stack('front', 'stack1')]
         self.assertEquals(stack.get_direct_depending_stacks(), dep_stacks)
 
+    def test_get_direct_rdepends_stack(self):
+        '''Get a list of direct rdepends'''
+        stack = Stack('head', 'stack2')
+        stack_rdepends = Stack('head', 'stack1')
+        self.assertEquals(stack.get_direct_rdepends_stack(), [stack_rdepends])
+
+
 class StackTestsErrors(BaseUnitTestCaseWithErrors):
 
     def test_get_exception_for_unexisting_file(self):

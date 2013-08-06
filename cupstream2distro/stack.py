@@ -24,8 +24,14 @@ import yaml
 from .settings import DEFAULT_CONFIG_STACKS_DIR, STACK_STATUS_FILENAME, STACK_STARTED_FILENAME
 from .utils import ignored
 
-stacks_ref = {}
+_stacks_ref = {}
 
+# TODO: should be used by a metaclass
+def get_stack(release, stack_name):
+    try:
+        return _stacks_ref[release][stack_name]
+    except KeyError:
+        return Stack(release, stack_name)
 
 class Stack():
 
@@ -34,6 +40,8 @@ class Stack():
     	self.release = release
         self.statusfile = os.path.join('..', '..', release, stack_name, STACK_STATUS_FILENAME)
         self.stack_file_path = None
+        self._dependencies = None
+        self._rdependencies = None
     	for stack_file_path in Stack.get_stacks_file_path(release):
             if stack_file_path.split(os.path.sep)[-1] == "{}.cfg".format(stack_name):
                 self.stack_file_path = stack_file_path
@@ -48,7 +56,7 @@ class Stack():
             except (TypeError, KeyError):
                 self.forced_manualpublish = False
         # register to the global dict
-        stacks_ref.setdefault(release, {})[stack_name] = self
+        _stacks_ref.setdefault(release, {})[stack_name] = self
 
     def get_status(self):
         '''Return a stack status
@@ -76,27 +84,39 @@ class Stack():
 
     def get_direct_depending_stacks(self):
         '''Get a list of direct depending stacks'''
+        if self._dependencies is not None:
+            return self._dependencies
 
         with open(self.stack_file_path, 'r') as f:
             cfg = yaml.load(f)
             try:
                 deps_list = cfg['stack']['dependencies']
-                return_list = []
+                self._dependencies = []
                 if not deps_list:
-                    return return_list
+                    return self._dependencies
                 for item in deps_list:
                     if isinstance(item, dict):
                         (stackname, release) = (item["name"], item["release"])
                     else:
                         (stackname, release) = (item, self.release)
-                    try:
-                        return_list.append(stacks_ref[release][stackname])
-                    except IndexError:
-                        return_list.append(Stack(release, stackname))
-                logging.info("dependency list is: {}".format(return_list))
-                return return_list
+                    self._dependencies.append(get_stack(release, stackname))
+                logging.info("dependency list is: {}".format(self._dependencies))
+                return self._dependencies
             except (TypeError, KeyError):
                 return []
+
+    def get_direct_rdepends_stack(self):
+        '''Get a list of direct rdepends'''
+        if self._rdependencies is not None:
+            return self._rdependencies
+
+        self._rdependencies = []
+        for stackfile in Stack.get_stacks_file_path(self.release):
+            path = stackfile.split(os.path.sep)
+            stack = get_stack(path[-2], path[-1].replace(".cfg", ""))
+            if self in stack.get_direct_depending_stacks():
+                self._rdependencies.append(stack)
+        return self._rdependencies
 
     def generate_dep_status_message(self):
         '''Return a list of potential problems from others stack which should block current publication'''
@@ -163,7 +183,4 @@ class Stack():
     def get_current_stack():
         '''Return current stack object based on current path (release/stackname)'''
         path = os.getcwd().split(os.path.sep)
-        try:
-            return stacks_ref[path[-2]][path[-1]]
-        except IndexError:
-            return Stack(path[-2], path[-1])
+        return get_stack(path[-2], path[-1])
