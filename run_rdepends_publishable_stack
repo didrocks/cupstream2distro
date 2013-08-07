@@ -69,7 +69,7 @@ if __name__ == '__main__':
             jkh = jenkins.Jenkins(jkcfg['url'],
                                   username=jkcfg['username'],
                                   password=jkcfg['password'])
-            jobname = "-".join("cu2d", stack.stack_name, stack.release)
+            jobname = "-".join(["cu2d", stack.stack_name, stack.release])
             if not jkh.job_exists(jobname):
                 logging.warning("Job '%s' doesn't exists. Aborting automated publication", jobname)
                 continue
