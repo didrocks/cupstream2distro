@@ -145,9 +145,5 @@ if __name__ == '__main__':
     JKH = jenkins.Jenkins(JKCFG['url'],
                           username=JKCFG['username'],
                           password=JKCFG['password'])
-<<<<<<< TREE
-    BUILD = BuildTree(JKH, args.release)
-=======
-    BUILD = BuildTree(JKH, JKCFG, 'head')
->>>>>>> MERGE-SOURCE
+    BUILD = BuildTree(JKH, JKCFG, args.release)
     BUILD.build()
