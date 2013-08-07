@@ -63,13 +63,13 @@ if __name__ == '__main__':
 
     # check for each rdepends if we should try republish them
     for rdep_stack in stack.get_direct_rdepends_stack():
-        logging.info("Considering publishing: {} ({})".format(rdep_stack.stack_name, stack.release))
+        logging.info("Considering publishing: {} ({})".format(rdep_stack.stack_name, rdep_stack.release))
         if not rdep_stack.is_started() and rdep_stack.get_status() == 2:
-            logging.info("{} ({}) may be publishable, trying it".format(rdep_stack.stack_name, stack.release))
+            logging.info("{} ({}) may be publishable, trying it".format(rdep_stack.stack_name, rdep_stack.release))
             jkh = jenkins.Jenkins(jkcfg['url'],
                                   username=jkcfg['username'],
                                   password=jkcfg['password'])
-            jobname = "-".join(["cu2d", stack.stack_name, stack.release])
+            jobname = "-".join(["cu2d", rdep_stack.stack_name, rdep_stack.release])
             if not jkh.job_exists(jobname):
                 logging.warning("Job '%s' doesn't exists. Aborting automated publication", jobname)
                 continue
