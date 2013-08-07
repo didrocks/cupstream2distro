@@ -94,7 +94,8 @@ class BuildTree(object):
         Build the tree
         """
         ddeps = self.depends.copy()
-        while True:
+        tries = 30
+        while tries > 0:
             to_build = []
             for k, v in ddeps.items():
                 if v == set():
@@ -112,10 +113,15 @@ class BuildTree(object):
                 for k, v in ddeps.items():
                     if s in v:
                         ddeps[k].remove(s)
-            sleep(10)  # Gives jenkins some breath
             if ddeps == {}:
                 logging.info("All done. break")
                 break
+            tries -= 1
+            sleep(10)  # Gives jenkins some breath
+
+        if tries <= 0:
+            logging.error("Maximum number of iterations reached, this may "
+                          "mean there is a dependency loop")
 
 
 if __name__ == '__main__':
@@ -125,6 +131,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Build all the stacks starting by the deepest "
         "dependency level")
+    parser.add_argument("release", metavar="RELEASE", default = "head",
+                        help="Name of the release or head for development"
+                        " release")
     args = parser.parse_args()
 
     JKCFG = load_jenkins_credentials(DEFAULT_CREDENTIALS)
@@ -135,5 +144,5 @@ if __name__ == '__main__':
     JKH = jenkins.Jenkins(JKCFG['url'],
                           username=JKCFG['username'],
                           password=JKCFG['password'])
-    BUILD = BuildTree(JKH, 'head')
+    BUILD = BuildTree(JKH, args.release)
     BUILD.build()
