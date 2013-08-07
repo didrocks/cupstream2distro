@@ -112,7 +112,7 @@ class Stack():
                     else:
                         (stackname, release) = (item, self.release)
                     self._dependencies.append(get_stack(release, stackname))
-                logging.info("dependency list is: {}".format(self._dependencies))
+                logging.info("dependency list is: {}".format(["{} ({})".format(stack.stack_name, stack.release) for stack in self._dependencies]))
                 return self._dependencies
             except (TypeError, KeyError):
                 return []
