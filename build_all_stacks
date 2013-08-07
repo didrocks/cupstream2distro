@@ -68,7 +68,7 @@ class BuildTree(object):
         self.release = release
         self.jenkins = jkh
         self.jkcfg = jkcfg
-        self.jenkins_url = "%s/job/%%s/build?token=%s" \
+        self.jenkins_url = "%s/job/%%s/buildWithParameters?token=%s" \
                     % (self.jkcfg['url'], self.jkcfg['token'])
         self.stacks = None
         for stackfile in Stack.get_stacks_file_path(release):
