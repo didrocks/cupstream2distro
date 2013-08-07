@@ -1,0 +1,139 @@
+#!/usr/bin/python
+# -*- coding: UTF8 -*-
+
+"""
+    Build all the stacks starting at the deepest dependency level
+"""
+# Copyright (C) 2013 Canonical
+#
+# Authors:
+#   Jean-Baptiste Lallement <jean-baptiste.lallement@canonical.com>
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import jenkins
+import logging
+import sys
+import os
+import yaml
+from cupstream2distro.stack import Stack, get_stack, _stacks_ref
+from time import sleep
+
+
+DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
+
+
+def load_jenkins_credentials(path):
+    """ Load Credentials from credentials configuration file """
+    if not os.path.exists(path):
+        return False
+
+    logging.debug('Loading credentials from %s', path)
+    cred = yaml.load(file(path, 'r'))
+
+    for param in ('username', 'password', 'url', 'token'):
+        if not param in cred['jenkins']:
+            logging.error("Setting missing from jenkins credentials: %s. "
+                          "Aborting!", param)
+            sys.exit(1)
+    return False if not 'jenkins' in cred else cred['jenkins']
+
+
+class BuildTree(object):
+    """
+    Representation of the stacks dependencies
+    """
+    def __init__(self, jkh, release):
+        """
+        Constructor
+
+        Args:
+            - release: Name of the release or head
+        Returns:
+            Nothing
+        """
+        self.release = release
+        self.jenkins = jkh
+        self.stacks = None
+        for stackfile in Stack.get_stacks_file_path(release):
+            path = stackfile.split(os.path.sep)
+            get_stack(path[-2], path[-1].replace(".cfg", ""))
+        self.stacks = _stacks_ref
+        self.depends = self.depends_tree()
+
+    def depends_tree(self):
+        """
+        Build a complete dependency tree
+        """
+        ddeps = {}
+        for stk, stko in self.stacks[self.release].items():
+            if not stko.is_enabled():
+                continue
+            if stko.is_started():
+                logging.warning("Stack %s is already running. Aborting!", stk)
+                sys.exit(1)
+            ddeps[stk] = set([s.stack_name
+                              for s in stko.get_direct_depending_stacks()
+                              if s.is_enabled()])
+        return ddeps
+
+    def build(self):
+        """
+        Build the tree
+        """
+        ddeps = self.depends.copy()
+        while True:
+            to_build = []
+            for k, v in ddeps.items():
+                if v == set():
+                    # Adds to build list
+                    to_build.append(k)
+                    del ddeps[k]
+            for s in to_build:
+                jobname = "-".join(("cu2d", s, self.release))
+                if not self.jenkins.job_exists(jobname):
+                    logging.warning("Job '%s' doesn't exists. Aborting!",
+                                    jobname)
+                    continue
+                logging.info("Triggering %s", jobname)
+                self.jenkins.build_job(jobname, token=jkcfg['token'])
+                for k, v in ddeps.items():
+                    if s in v:
+                        ddeps[k].remove(s)
+            sleep(10)  # Gives jenkins some breath
+            if ddeps == {}:
+                logging.info("All done. break")
+                break
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s %(levelname)s %(message)s")
+
+    parser = argparse.ArgumentParser(
+        description="Build all the stacks starting by the deepest "
+        "dependency level")
+    args = parser.parse_args()
+
+    JKCFG = load_jenkins_credentials(DEFAULT_CREDENTIALS)
+    if not JKCFG:
+        logging.warning('Credentials not found. Aborting!')
+        sys.exit(1)
+
+    JKH = jenkins.Jenkins(JKCFG['url'],
+                          username=JKCFG['username'],
+                          password=JKCFG['password'])
+    BUILD = BuildTree(JKH, 'head')
+    BUILD.build()
