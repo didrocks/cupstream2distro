@@ -30,6 +30,7 @@ import os
 import yaml
 from cupstream2distro.stack import Stack, get_stack, _stacks_ref
 from time import sleep
+from urllib2 import urlopen
 
 
 DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
@@ -67,6 +68,8 @@ class BuildTree(object):
         self.release = release
         self.jenkins = jkh
         self.jkcfg = jkcfg
+        self.jenkins_url = "%s/job/%%s/build?token=%s" \
+                    % (self.jkcfg['url'], self.jkcfg['token'])
         self.stacks = None
         for stackfile in Stack.get_stacks_file_path(release):
             path = stackfile.split(os.path.sep)
@@ -110,7 +113,7 @@ class BuildTree(object):
                                     jobname)
                     continue
                 logging.info("Triggering %s", jobname)
-                self.jenkins.build_job(jobname, token=self.jkcfg['token'])
+                urlopen(self.jenkins_url % jobname)
                 for k, v in ddeps.items():
                     if s in v:
                         ddeps[k].remove(s)
