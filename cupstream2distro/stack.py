@@ -83,6 +83,15 @@ class Stack():
             return True
         return False
 
+    def is_enabled(self):
+        '''Return True if the stack is enabled for daily release'''
+        try:
+            if not cfg['stack']['enabled']:
+                return False
+        except KeyError:
+            pass
+        return True
+
     def get_direct_depending_stacks(self):
         '''Get a list of direct depending stacks'''
         if self._dependencies is not None:
