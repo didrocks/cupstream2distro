@@ -85,11 +85,13 @@ class Stack():
 
     def is_enabled(self):
         '''Return True if the stack is enabled for daily release'''
-        try:
-            if not cfg['stack']['enabled']:
-                return False
-        except KeyError:
-            pass
+        with open(self.stack_file_path, 'r') as f:
+            cfg = yaml.load(f)
+            try:
+                if not cfg['stack']['enabled']:
+                    return False
+            except KeyError:
+                pass
         return True
 
     def get_direct_depending_stacks(self):
