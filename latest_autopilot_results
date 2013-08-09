@@ -2,18 +2,25 @@
 
 if [ $# -lt 2 ]; then
    cat>&2 <<EOF
-usage: $(basename $0) jobname card_brand
+usage: $(basename $0) JOBNAME NODENAME
 Returns the path to the junit result file of latest build of autopilot
 
+Arguments:
+   JOBNAME  : Name of the job that runs the check
+   NODENAME : Name of the jenkins node on which this test has run e.g autopilot-ati
+
 example:
-  \$ $(basename $0) ps-unity-autopilot-release-testing intel
+  \$ $(basename $0) autopilot-raring-daily_release autopilot-intel
 EOF
 
     exit 1
 fi
 
+JOBNAME=$1
+NODENAME=$2
+
 BASEDIR=/var/lib/jenkins/jobs
-SEARCHPATH=${BASEDIR}/${1}/configurations/axis-label/autopilot-${2}/builds/
+SEARCHPATH=${BASEDIR}/${JOBNAME}/configurations/axis-label/${NODENAME}/builds/
 RESULTFILE=junitResult.xml
 if [ ! -d "$SEARCHPATH" ]; then
     echo "Result directory doesn't exists, exiting!">&2
