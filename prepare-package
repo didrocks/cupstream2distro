@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import argparse
+import glob
 import logging
 import os
 import sys
@@ -42,7 +43,9 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
     parser.add_argument("-d", "--destppa", help="Consider this destppa instead of only the distro for finale destination", default='')
     parser.add_argument("-f", "--force-rebuild", help="Force rebuilding even if there is nothing to release", action='store_true')
-    parser.add_argument("--skip-dest-check", help="Skip destination version checking and call force rebuild", action='store_true')
+    parser.add_argument("--condition-force-rebuild", help="Only force rebuild if the conditional file is present (* and other blobs are allowed)", nargs='*')
+    parser.add_argument("--skip-checks", help="Skip destination version and conditional checking and call force rebuild", action='store_true')
+
     args = parser.parse_args()
 
     source_package_name = args.sourcename
@@ -107,8 +110,8 @@ if __name__ == '__main__':
         # TODO: if none, we should maybe take distro_version?
 
     # ensure that the previous release (in distro or in dest ppa) ended up in the vcs
-    if args.skip_dest_check:
-        logging.info("Skip destination version checking requested. Will overwrite even if destination has a newer version.")
+    if args.skip_checks:
+        logging.info("Skip destination version and conditional checking requested. Will overwrite even if destination has a newer version or the (optional) condition isn't met.")
         force_rebuild = True
     else:
         with open("debian/changelog") as changelog:
@@ -134,18 +137,31 @@ if __name__ == '__main__':
     # Check if we need to republish
     tip_bzr_rev = branchhandling.get_tip_bzr_revision()
     dest_source_package = None
-    if not force_rebuild:
-        logging.info("Check if we need to release a new package")
-        os.chdir('..')
-        dest_source_package = packagemanager.get_source_package_from_dest(source_package_name, dest_archive, previous_finaledest_version, series)
-        # TODO: all paths, on all projects, should have the stack dir as root, and only chdir in the script, not the functions.
-        if dest_source_package:
-            dest_source_package = os.path.abspath(dest_source_package)
-        os.chdir(source_package_name)
-        if not packagemanager.is_new_content_relevant_since_old_published_source(dest_source_package):
+    logging.info("Check if we need to release a new package")
+    os.chdir('..')
+    dest_source_package = packagemanager.get_source_package_from_dest(source_package_name, dest_archive, previous_finaledest_version, series)
+    # TODO: all paths, on all projects, should have the stack dir as root, and only chdir in the script, not the functions.
+    if dest_source_package:
+        dest_source_package = os.path.abspath(dest_source_package)
+    os.chdir(source_package_name)
+    # nothing to release
+    if not packagemanager.is_new_content_relevant_since_old_published_source(dest_source_package):
+        if not force_rebuild:
             logging.info("No new useful revision published since last daily push, no need to upload this component")
             generate_xml_artefacts("Prepare",  [], artefacts_file)
             sys.exit(0)
+        logging.info("No new useful revision published but force rebuilding is set")
+        if not args.skip_checks and args.condition_force_rebuild:
+            logging.info("Condition found without skip check, verifying that files exists")
+            message = []
+            for glob_filename in args.condition_force_rebuild:
+                if not os.path.isfile(glob.glob(glob_filename))
+                    msg = "{} doesn't exist".format(glob_filename)
+                    logging.info(msg)
+                    message.append(msg)
+            if message:
+                generate_xml_artefacts("Prepare",  message, artefacts_file)
+                sys.exit(0)
 
     packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=args.destppa, series_version=series_version)
 
