@@ -155,7 +155,7 @@ if __name__ == '__main__':
             logging.info("Condition found without skip check, verifying that files exists")
             message = []
             for glob_filename in args.condition_force_rebuild:
-                if not os.path.isfile(glob.glob(glob_filename))
+                if not os.path.isfile(glob.glob(glob_filename)):
                     msg = "{} doesn't exist".format(glob_filename)
                     logging.info(msg)
                     message.append(msg)
