@@ -163,8 +163,9 @@ if __name__ == '__main__':
                     msg = "{} doesn't exist".format(glob_filename)
                     logging.info(msg)
                     message.append(msg)
+            # exit 0 as the precondition isn't there
             if message:
-                generate_xml_artefacts("Prepare",  message, artefacts_file)
+                generate_xml_artefacts("Prepare",  [], artefacts_file)
                 sys.exit(0)
 
     packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=args.destppa, series_version=series_version)
