@@ -123,7 +123,7 @@ if __name__ == '__main__':
                 sys.exit(0)
 
     if force_rebuild or args.force_rebuild:
-        logging.info("The rebuild of that component is forced. Don't check if there is any newer changes to collect.")
+        logging.info("The rebuild of that component is forced.")
         force_rebuild = True
     if args.destppa:
         # if the version in the distro is higher than the previous packaging version (either the version in intermediate ppa or packaging bzr version
