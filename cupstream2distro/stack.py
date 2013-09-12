@@ -144,7 +144,7 @@ class Stack():
             message = None
             # We should have a status for every stack
             if status is None:
-                message = "Can't find status for {depstack} ({deprel}). This shouldn't happen apart if the stack is currently running. If this is the case, it means that current stack shouldn't be uploaded as the state is unknown.".format(depstack=stack, deprel=rel)
+                message = "Can't find status for {depstack} ({deprel}). This shouldn't happen apart if the stack is currently running. If this is the case, it means that current stack shouldn't be uploaded as the state is unknown.".format(depstack=stack, deprel=stack.release)
             elif status == 1:
                 message = '''{depstack} ({deprel}) failed to publish. Possible cause are:
         * the stack really didn't build/can't be prepared at all.
