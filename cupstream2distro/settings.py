@@ -62,3 +62,7 @@ ROOT_CU2D = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file
 DEFAULT_CONFIG_STACKS_DIR = os.path.join(os.path.dirname(ROOT_CU2D), 'cupstream2distro-config', 'stacks')
 STACK_STATUS_FILENAME = "stack.status"
 STACK_STARTED_FILENAME = "stack.started"
+STACK_BUILDING_FILENAME = "stack.building"
+
+STACK_RUNNING_DIR = "/var/lib/jenkins/cu2d/work"
+STACK_STATUS_PUBLISHING_DIR = "/var/lib/jenkins/cu2d/result_publishing"
