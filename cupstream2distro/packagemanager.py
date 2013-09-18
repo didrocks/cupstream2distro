@@ -1,4 +1,4 @@
-# -*- coding: UTF8 -*-
+# -*- coding: utf-8 -*-
 # Copyright (C) 2012 Canonical
 #
 # Authors:
@@ -406,15 +406,19 @@ def build_source_package(series, distro_version, ppa=None):
     instance = subprocess.Popen(cmd, env=cowbuilder_env)
     instance.communicate()
     if instance.returncode != 0:
-        raise Exception("The above command returned an error.")
+        raise Exception("%r returned: %s\n\tstdout: %s \n\tstderr: %s"
+                        % (cmd, instance.returncode, instance.stdout,
+                           instance.stderr))
 
 
 def upload_package(source, version, ppa):
     '''Upload the new package to a ppa'''
     # remove epoch is there is one
     version_for_source_file = version.split(':')[-1]
-    if subprocess.call(["dput", "ppa:{}".format(ppa), "{}_{}_source.changes".format(source, version_for_source_file)]) != 0:
-        raise Exception("The above command returned an error.")
+    cmd = ["dput", "ppa:{}".format(ppa),
+           "{}_{}_source.changes".format(source, version_for_source_file)]
+    if subprocess.call(cmd) != 0:
+        raise Exception("%r returned an error." % (cmd,))
 
 
 def refresh_symbol_files(packaging_version):
