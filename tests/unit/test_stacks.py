@@ -1,4 +1,4 @@
-# -*- coding: UTF8 -*-
+# -*- coding: utf-8 -*-
 # Copyright: (C) 2013 Canonical
 #
 # Authors:
@@ -19,9 +19,8 @@
 
 from . import BaseUnitTestCase, BaseUnitTestCaseWithErrors
 import os
-import shutil
 
-from cupstream2distro import stacks, settings
+from cupstream2distro import stacks
 
 
 class StackTests(BaseUnitTestCase):
@@ -56,27 +55,33 @@ class StackTestsWithOnline(BaseUnitTestCase):
         super(StackTestsWithOnline, cls).setUpClass()
         os.environ.pop('CU2D_RSYNCSVR')
 
+    def assertDirContent(self, expected, directory='.'):
+        actual = sorted(os.listdir(directory))
+        self.assertEquals(expected, actual)
+
     def test_rsync_file(self):
         '''We rsync multiple files from the network'''
         stacks._rsync_stack_files()
-        self.assertEquals(os.listdir('.'), ['packagelist_rsync_foo-front', 'packagelist_rsync_oif-head'])
+        self.assertDirContent(['packagelist_rsync_foo-front',
+                               'packagelist_rsync_oif-head'])
 
     def test_rsync_file_nothing_to_rsync(self):
         '''We get nothing through rsync'''
         os.environ['CU2D_RSYNCSVR'] = "nothing"
         stacks._rsync_stack_files()
-        self.assertEquals(os.listdir('.'), [])
+        self.assertDirContent([])
 
     def test_get_stack_files_to_sync(self):
         '''We get the default tuple for stack files to sync'''
-        self.assertEquals(list(stacks.get_stack_files_to_sync()), [('packagelist_rsync_foo-front', 'front'),
-                                                                   ('packagelist_rsync_oif-head', 'head')])
+        self.assertEquals([('packagelist_rsync_foo-front', 'front'),
+                           ('packagelist_rsync_oif-head', 'head')],
+                          sorted(list(stacks.get_stack_files_to_sync())))
 
     def test_get_stack_files_to_sync_nothing_to_sync(self):
         '''Empty result if nothing to sync'''
         os.environ['CU2D_RSYNCSVR'] = "nothing"
         stacks._rsync_stack_files()
-        self.assertEquals(list(stacks.get_stack_files_to_sync()), [])
+        self.assertEquals([], sorted(list(stacks.get_stack_files_to_sync())))
 
 
 class StackTestsWithOnlineErrors(BaseUnitTestCaseWithErrors):
