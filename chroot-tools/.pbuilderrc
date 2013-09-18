@@ -27,5 +27,7 @@ COMPONENTS="main restricted universe multiverse"
 OTHERMIRROR=""
 
 # Enable eatmydata
-EXTRAPACKAGES="eatmydata pbuilder bzr bzr-builddeb"
+# EXTRAPACKAGES is not obeyed by 'cowbuilder --create' but running
+# 'cowbuilder--update' will happily fix that.
+EXTRAPACKAGES="eatmydata pbuilder bzr bzr-builddeb debhelper apt-utils"
 export LD_PRELOAD="${LD_PRELOAD:+$LD_PRELOAD:}/usr/lib/libeatmydata/libeatmydata.so"
