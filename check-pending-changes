@@ -24,11 +24,14 @@ Reports what is pending publishing
 
 from cupstream2distro import stack, settings
 
-import os, yaml
+import os, yaml, time
+
 
 def get_releases_name():
     """Get current release names"""
     return os.listdir(settings.STACK_RUNNING_DIR)
+
+print("Pending changes in daily release\n")
 
 os.chdir(settings.STACK_RUNNING_DIR)
 # reverse the list to always have latest release on top
@@ -42,15 +45,15 @@ for release_name in get_releases_name()[::-1]:
 
         msg = ""
         if not s.is_enabled():
-            msg = "- Currently disabled"
+            msg = "- Currently disabled\n"
         if s.is_building():
-            msg = "- Currently building"
+            msg = "- Currently building\n"
         else:
             dep_stat_msgs = s.generate_dep_status_message()
             if dep_stat_msgs:
                 msg = "\n\n".join(dep_stat_msgs)
         if s.forced_manualpublish:
-            msg += "- Manual publishing mode for this stack forced."
+            msg += "- Manual publishing mode for this stack forced.\n"
 
         with open(file_path, 'r') as f:
             cfg = yaml.load(f)
@@ -73,3 +76,5 @@ for release_name in get_releases_name()[::-1]:
                         changelog = f.readline()
                         print(changelog.rstrip())
                 print("")
+
+print("Last updated: {}".format(time.strftime('%A %B %d %Y %H:%M:%S %z')))
