@@ -122,5 +122,6 @@ class BaseTestCase(unittest.TestCase):
                 linefile2 = linefile2.split(">  ")[0]
             lines1.append(linefile1)
             lines2.append(linefile2)
+        # Don't restrict the output so we get all differences
         self.maxDiff = None
         self.assertListEqual(lines1, lines2)
