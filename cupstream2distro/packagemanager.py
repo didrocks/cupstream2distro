@@ -398,17 +398,20 @@ def build_source_package(series, distro_version, ppa=None):
     cowbuilder_env = os.environ.copy()
     cowbuilder_env["HOME"] = chroot_tool_dir  # take the internal .pbuilderrc
     cowbuilder_env["DIST"] = series
-    cmd = ["sudo", "-E", "cowbuilder", "--execute", "--bindmounts", parent_dir, "--bindmounts", settings.GNUPG_DIR,
-           "--", buildsource, branch_dir, "--gnupg-parentdir", settings.GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
-           "--gnupg-keyid", settings.BOT_KEY, "--distro-version", distro_version]
+    cmd = ["sudo", "-E", "cowbuilder", "--execute",
+           "--bindmounts", parent_dir,
+           "--bindmounts", settings.GNUPG_DIR,
+           "--", buildsource, branch_dir,
+           "--gnupg-parentdir", settings.GNUPG_DIR,
+           "--uid", str(os.getuid()), "--gid", str(os.getgid()),
+           "--gnupg-keyid", settings.BOT_KEY,
+           "--distro-version", distro_version]
     if ppa:
         cmd.extend(["--ppa", ppa])
     instance = subprocess.Popen(cmd, env=cowbuilder_env)
     instance.communicate()
     if instance.returncode != 0:
-        raise Exception("%r returned: %s\n\tstdout: %s \n\tstderr: %s"
-                        % (cmd, instance.returncode, instance.stdout,
-                           instance.stderr))
+        raise Exception("%r returned: %s." % (cmd, instance.returncode))
 
 
 def upload_package(source, version, ppa):
