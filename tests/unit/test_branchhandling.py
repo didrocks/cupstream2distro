@@ -102,7 +102,8 @@ class BranchHandlingTests(BaseUnitTestCase):
     lp #12353, lp#12354, lp12355, lp 12356,
     Fix #12357, Fix 12358, Fix: 12359, Fix12360, Fix: #12361,
     Fixes #12362, Fixes 12363, Fixes: 12364, Fixes:12365, Fixes: #12366
-    #12367 (but not 12368 for false positive)'''), set([12345 + x for x in xrange(23)]))
+    BUG: 12367
+    #12368 (but not 12369 for false positive) '''), set([12345 + x for x in xrange(24)]))
 
     def test_extract_commit_bugs(self):
         '''Extra commit and bugs from a traditional commit message merged by the upstream merger'''
@@ -127,6 +128,16 @@ class BranchHandlingTests(BaseUnitTestCase):
 
             lines      with extra spaces
             and more.'''), ("UnityWindow: don't draw the panel shadow above multiple lines with extra spaces and more.", set([])))
+
+    def test_collect_author_commits_starting_with_dash(self):
+        '''Collect author commits and bugs when the msg starts with '-'.'''
+        with open(os.path.join(self.data_dir, 'bzrlogs', 'withdashlogdiff')) as f:
+            self.maxDiff = None
+            self.assertEquals(branchhandling.collect_author_commits(f.read(), set()),
+                             ({'Diego Sarmentero': ["- Update download manager API (BUG: #1224538). (LP: #1224538)"],
+                              'Manuel de la Pena': ["- Update download manager API (BUG: #1224538). (LP: #1224538)"] },
+                              set([1224538])))
+
 
     def test_collect_author_commits_regular(self):
         '''Collect author commits and bugs for a normal bzr log'''
