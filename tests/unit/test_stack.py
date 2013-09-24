@@ -59,9 +59,10 @@ class StackTests(BaseUnitTestCase):
         '''Detect stack files a simple directory structure filtering the none cfg ones'''
         simple_path = os.path.join(self.data_dir, 'stack_configs', 'simple')
         os.environ['CONFIG_STACKS_DIR'] = simple_path
-        self.assertEquals(list(Stack.get_stacks_file_path('foo')),
-                          [os.path.join(simple_path, 'foo', 'webapp.cfg'),
-                           os.path.join(simple_path, 'foo', 'unity.cfg')])
+        self.maxDiff = None # Helps diagnostic by showing the full diff
+        self.assertEquals(sorted(list(Stack.get_stacks_file_path('foo'))),
+                          [os.path.join(simple_path, 'foo', 'unity.cfg'),
+                           os.path.join(simple_path, 'foo', 'webapp.cfg')])
 
     def test_detect_stack_files_regular(self):
         '''Return the expected stack files in a nested environment'''
