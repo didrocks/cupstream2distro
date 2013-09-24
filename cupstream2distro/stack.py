@@ -83,6 +83,12 @@ class Stack():
             return True
         return False
 
+    def is_building(self):
+        '''Return True if the stack is building'''
+        if os.path.isfile(self.startedfile):
+            return True
+        return False
+
     def is_enabled(self):
         '''Return True if the stack is enabled for daily release'''
         with open(self.stack_file_path, 'r') as f:

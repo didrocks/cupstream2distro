@@ -1,0 +1,80 @@
+#!/usr/bin/python
+"""
+Reports what is pending publishing
+"""
+#
+# Copyright (C) 2013, Canonical Ltd (http://www.canonical.com/)
+#
+# This file is part of cupstream2distro.
+#
+# This program is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, version 3 of
+# the License.
+#
+# This program is distributed in the hope that it will
+# be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with This program.  If not, see
+# <http://www.gnu.org/licenses/>.
+#
+
+from cupstream2distro import stack, settings
+
+import os, yaml, time
+
+
+def get_releases_name():
+    """Get current release names"""
+    return os.listdir(settings.STACK_RUNNING_DIR)
+
+print("Pending changes in daily release\n")
+
+os.chdir(settings.STACK_RUNNING_DIR)
+# reverse the list to always have latest release on top
+for release_name in get_releases_name()[::-1]:
+    print("====== {} ======".format(release_name))
+    for file_path in stack.Stack.get_stacks_file_path(release_name):
+        stack_name = file_path.split(os.path.sep)[-1][:-4]
+        s = stack.get_stack(release_name, stack_name)
+        stack_header_written = False
+        os.chdir(os.path.join(settings.STACK_RUNNING_DIR, release_name, stack_name))
+
+        msg = ""
+        if not s.is_enabled():
+            msg = "- Currently disabled\n"
+        if s.is_building():
+            msg = "- Currently building\n"
+        else:
+            dep_stat_msgs = s.generate_dep_status_message()
+            if dep_stat_msgs:
+                msg = "\n\n".join(dep_stat_msgs)
+        if s.forced_manualpublish:
+            msg += "- Manual publishing mode for this stack forced.\n"
+
+        with open(file_path, 'r') as f:
+            cfg = yaml.load(f)
+            try:
+                projects_list = cfg['stack']['projects']
+            except (TypeError, KeyError):
+                logging.warning("{} seems broken in not having stack or projects keys".format(file_path))
+                continue
+        if not projects_list:
+            continue
+        for project_name in projects_list:
+            if os.path.isfile("{}.project".format(project_name)):
+                if not stack_header_written:
+                    stack_header_written = True
+                    print("==== {} ====".format(stack_name))
+                    print(msg)
+                with open(os.path.join(project_name, 'debian', 'changelog')) as f:
+                    changelog = ""
+                    while not changelog.startswith(" --"):
+                        changelog = f.readline()
+                        print(changelog.rstrip())
+                print("")
+
+print("Last updated: {}".format(time.strftime('%A %B %d %Y %H:%M:%S %z')))
