@@ -113,9 +113,15 @@ class BaseTestCase(unittest.TestCase):
     def assertChangelogFilesAreIdenticals(self, filename1, filename2):
         '''assert that the changelog files are identicals, removing days/hours'''
         file2 = open(filename2)
+        lines1, lines2 = [], []
         for linefile1 in open(filename1).readlines():
             linefile2 = file2.readline()
             if linefile1.startswith(" -- "):
                 linefile1 = linefile1.split(">  ")[0]
+            if linefile2.startswith(" -- "):
                 linefile2 = linefile2.split(">  ")[0]
-            self.assertEquals(linefile1, linefile2)
+            lines1.append(linefile1)
+            lines2.append(linefile2)
+        # Don't restrict the output so we get all differences
+        self.maxDiff = None
+        self.assertListEqual(lines1, lines2)

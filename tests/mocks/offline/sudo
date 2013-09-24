@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
         # this mode should have the ppa call
         if os.environ.get("MOCK_MODE") == "1":
-            if "--ppa ubuntu-unity/foo" in command:
+            if "--ppa ubuntu-unity/next" in command:
                 copy_data_file("foo_1.2-0ubuntu1_source.changes.lastcontent", dest_dir, dest_filename="foo_1.2-0ubuntu1_source.changes")
                 sys.exit(0)
 

@@ -678,14 +678,14 @@ class PackageManagerTests(BaseUnitTestCase):
         authors = {"Foo": ["One fix for LP: #12345"]}
         packagemanager.update_changelog("1.2daily83.09.14-0ubuntu1", "raring", 42, authors)
         result_file = os.path.join(self.result_dir, "simple_changelog_update")
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+        self.assertChangelogFilesAreIdenticals(result_file, "debian/changelog")
 
     def test_update_changelog_simple_no_author(self):
         '''Update a changelog from a list with no bug fix'''
         self.get_data_branch('dummypackage')
         packagemanager.update_changelog("1.2daily83.09.14-0ubuntu1", "raring", 42, {})
         result_file = os.path.join(self.result_dir, "no_bug_changelog_update")
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+        self.assertChangelogFilesAreIdenticals(result_file, "debian/changelog")
 
     def test_update_changelog_one_author_multiple_bugs(self):
         '''Update a changelog from a list of one author with multiple bugs'''
@@ -693,7 +693,7 @@ class PackageManagerTests(BaseUnitTestCase):
         authors = {"Foo": ["One fix for LP: #12345", "Another fix for LP: #23456"]}
         packagemanager.update_changelog("1.2daily83.09.14-0ubuntu1", "raring", 42, authors)
         result_file = os.path.join(self.result_dir, "multiple_bugs_one_author_changelog_update")
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+        self.assertChangelogFilesAreIdenticals(result_file, "debian/changelog")
 
     def test_update_changelog_multiple_authors(self):
         '''Update a changelog from a list of multiple authors with multiple bugs'''
@@ -701,7 +701,7 @@ class PackageManagerTests(BaseUnitTestCase):
         authors = {"Foo": ["One fix for LP: #12345", "Another fix for LP: #23456"], "Bar": ["Another fix for LP: #23456"], "Baz baz": ["and another Fix on LP: #34567"]}
         packagemanager.update_changelog("1.2daily83.09.14-0ubuntu1", "raring", 42, authors)
         result_file = os.path.join(self.result_dir, "multiple_authors_bugs_changelog_update")
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+        self.assertChangelogFilesAreIdenticals(result_file, "debian/changelog")
 
     def test_update_changelog_with_existing_content(self):
         '''Update a changelog when we already have existing content'''
@@ -709,7 +709,7 @@ class PackageManagerTests(BaseUnitTestCase):
         authors = {"Foo": ["One fix for LP: #12345", "Another fix for LP: #23456"], "Bar": ["Another fix for LP: #23456"], "Baz baz": ["and another Fix on LP: #34567"]}
         packagemanager.update_changelog("42.0daily83.09.14-0ubuntu1", "raring", 42, authors)
         result_file = os.path.join(self.result_dir, "existing_content_changelog_update")
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+        self.assertChangelogFilesAreIdenticals(result_file, "debian/changelog")
 
     def test_update_changelog_with_existing_content_existing_author(self):
         '''Update a changelog when we already have existing content and author'''
@@ -717,22 +717,28 @@ class PackageManagerTests(BaseUnitTestCase):
         authors = {"Didier Roche": ["One fix for LP: #12345", "Another fix for LP: #23456"], "Bar": ["Another fix for LP: #23456"], "Baz baz": ["and another Fix on LP: #34567"]}
         packagemanager.update_changelog("42.0daily83.09.14-0ubuntu1", "raring", 42, authors)
         result_file = os.path.join(self.result_dir, "existing_content_author_changelog_update")
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+        self.assertChangelogFilesAreIdenticals(result_file, "debian/changelog")
 
     def test_update_changelog_with_existing_content_existing_multiple_authors(self):
         '''Update a changelog when we already have existing content and multiple existing authors'''
         self.get_data_branch('basic_multiple_contents')
-        authors = {"Didier Roche": ["One fix for LP: #12345", "Another fix for LP: #23456"], "Bar": ["Another fix for LP: #23456"], "Baz baz": ["and another Fix on LP: #34567"]}
-        packagemanager.update_changelog("42.0daily83.09.14-0ubuntu1", "raring", 42, authors)
-        result_file = os.path.join(self.result_dir, "existing_content_multiple_authors_changelog_update")
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+        authors = {"Didier Roche": ["One fix for LP: #12345",
+                                    "Another fix for LP: #23456"],
+                   "Bar": ["Another fix for LP: #23456"],
+                   "Baz baz": ["and another Fix on LP: #34567"]}
+        packagemanager.update_changelog(
+            "42.0daily83.09.14-0ubuntu1", "raring", 42, authors)
+        result_file = os.path.join(
+            self.result_dir,
+            "existing_content_multiple_authors_changelog_update")
+        self.assertChangelogFilesAreIdenticals(result_file, "debian/changelog")
 
     def test_update_changelog_with_dest_ppa(self):
         '''Update a changelog from a list with a destination ppa'''
         self.get_data_branch('dummypackage')
         packagemanager.update_changelog("1.2daily83.09.14.ubuntu.unity.next-0ubuntu1", "raring", 42, {}, "ubuntu-unity/next")
         result_file = os.path.join(self.result_dir, "changelog_with_dest_ppa")
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_file)
+        self.assertChangelogFilesAreIdenticals(result_file, "debian/changelog")
 
 
 class PackageManagerOfflineTests(BaseUnitTestCase):
@@ -743,11 +749,15 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         self.get_data_branch('basic_symbols')
         packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
         result_symbols = os.path.join(self.result_dir, "simple_update.symbols")
-        result_changelog = os.path.join(self.result_dir, "simple_update.changelog")
+        result_changelog = os.path.join(self.result_dir,
+                                        "simple_update.changelog")
         self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        self.assertChangelogFilesAreIdenticals(result_changelog,
+                                               "debian/changelog")
         os.environ["MOCK_MODE"] = "1"
-        self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
+        self.assertEqual(
+            subprocess.Popen(['bzr', 'revno'],
+                             stdout=subprocess.PIPE).communicate()[0], "8\n")
 
     def test_refresh_symbols_files_multiple_replace_tag_in_symbol(self):
         '''Update the symbols file having multiple replace tag with the new version'''
@@ -756,7 +766,8 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         result_symbols = os.path.join(self.result_dir, "multiplesymbols_update.symbols")
         result_changelog = os.path.join(self.result_dir, "simple_update.changelog")
         self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        self.assertChangelogFilesAreIdenticals(result_changelog,
+                                               "debian/changelog")
         os.environ["MOCK_MODE"] = "1"
         self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
 
@@ -767,7 +778,8 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         result_symbols = os.path.join(self.result_dir, "simple_update.symbols")
         result_changelog = os.path.join(self.result_dir, "simple_update_with_existing_content.changelog")
         self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        self.assertChangelogFilesAreIdenticals(result_changelog,
+                                               "debian/changelog")
         os.environ["MOCK_MODE"] = "1"
         self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
 
@@ -776,7 +788,8 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         self.get_data_branch('simple')
         packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
         result_changelog = os.path.join(self.data_dir, "branches", "simple", "debian", "changelog")
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        self.assertChangelogFilesAreIdenticals(result_changelog,
+                                               "debian/changelog")
         os.environ["MOCK_MODE"] = "1"
         # 8 is tip on "simple branch" means no commit done
         self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
@@ -788,7 +801,8 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         result_changelog = os.path.join(self.data_dir, "branches", "no_symbols_to_update", "debian", "changelog")
         result_symbols = os.path.join(self.data_dir, "branches", "no_symbols_to_update", "debian", "foo.symbols")
         self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        self.assertChangelogFilesAreIdenticals(result_changelog,
+                                               "debian/changelog")
         os.environ["MOCK_MODE"] = "2"
         self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "7\n")
 
@@ -800,7 +814,8 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         result_changelog = os.path.join(self.result_dir, "simple_update.changelog")
         self.assertFilesAreIdenticals("debian/foo.symbols", result_symbols)
         self.assertFilesAreIdenticals("debian/bar.symbols", result_symbols)
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        self.assertChangelogFilesAreIdenticals(result_changelog,
+                                               "debian/changelog")
         os.environ["MOCK_MODE"] = "1"
         self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
 
@@ -809,7 +824,7 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         self.get_data_branch('multiple_symbols_with_changelog')
         packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
         original_install_file = os.path.join(self.data_dir, "branches", "multiple_symbols_with_changelog", "debian", "install")
-        self.assertChangelogFilesAreIdenticals("debian/install", original_install_file)
+        self.assertFilesAreIdenticals(original_install_file, "debian/install")
 
     def test_refresh_symbols_files_alone_symbol(self):
         '''Update a symbols (not <package>.symbols) file'''
@@ -818,7 +833,8 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         result_symbols = os.path.join(self.result_dir, "simple_update.symbols")
         result_changelog = os.path.join(self.result_dir, "simple_update.changelog")
         self.assertFilesAreIdenticals("debian/symbols", result_symbols)
-        self.assertChangelogFilesAreIdenticals("debian/changelog", result_changelog)
+        self.assertChangelogFilesAreIdenticals(result_changelog,
+                                               "debian/changelog")
         os.environ["MOCK_MODE"] = "1"
         self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
 
@@ -856,7 +872,7 @@ class PackageManagerOnlineTests(BaseUnitTestCase):
         self.setup_settings_mock(settings_mock)
         self.get_data_branch('dummypackage')
         os.environ["MOCK_MODE"] = "1"
-        packagemanager.build_source_package("raring", "1.1-0ubuntu1", "ubuntu-unity/foo")
+        packagemanager.build_source_package("raring", "1.1-0ubuntu1", "ubuntu-unity/next")
         os.chdir('..')
         self.assertChangesFilesAreIdenticals('foo_1.2-0ubuntu1_source.changes', os.path.join(self.data_dir, "results", 'foo_1.2-0ubuntu1_source.changes.lastcontent'))
 

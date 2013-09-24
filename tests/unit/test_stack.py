@@ -46,47 +46,59 @@ class StackTests(BaseUnitTestCase):
     def test_get_root_stacks_dir_default(self):
         '''Default root stacks dir is the expected one'''
         os.environ.pop('CONFIG_STACKS_DIR')
-        self.assertEquals(Stack.get_root_stacks_dir(), os.path.join(os.path.dirname(settings.ROOT_CU2D), 'cupstream2distro-config', 'stacks'))
+        self.assertEquals(Stack.get_root_stacks_dir(),
+                          os.path.join(os.path.dirname(settings.ROOT_CU2D),
+                                       'cupstream2distro-config', 'stacks'))
 
     def test_tweak_stacks_dir(self):
         '''Can override the stack dir with CONFIG_STACKS_DIR'''
-        self.assertEquals(Stack.get_root_stacks_dir(), os.environ['CONFIG_STACKS_DIR'])
+        self.assertEquals(Stack.get_root_stacks_dir(),
+                          os.environ['CONFIG_STACKS_DIR'])
 
     def test_detect_stack_files_simple(self):
         '''Detect stack files a simple directory structure filtering the none cfg ones'''
         simple_path = os.path.join(self.data_dir, 'stack_configs', 'simple')
         os.environ['CONFIG_STACKS_DIR'] = simple_path
-        self.assertEquals(list(Stack.get_stacks_file_path('foo')), [os.path.join(simple_path, 'foo', 'webapp.cfg'),
-                                                                    os.path.join(simple_path, 'foo', 'unity.cfg')])
+        self.maxDiff = None # Helps diagnostic by showing the full diff
+        self.assertEquals(sorted(list(Stack.get_stacks_file_path('foo'))),
+                          [os.path.join(simple_path, 'foo', 'unity.cfg'),
+                           os.path.join(simple_path, 'foo', 'webapp.cfg')])
 
     def test_detect_stack_files_regular(self):
         '''Return the expected stack files in a nested environment'''
+        self.maxDiff = None
         stack_path = os.environ['CONFIG_STACKS_DIR']
-        self.assertEquals(list(Stack.get_stacks_file_path('front')), [os.path.join(stack_path, 'front', 'stack1.cfg')])
-        self.assertEquals(list(Stack.get_stacks_file_path('back')), [os.path.join(stack_path, 'back', 'stack4.cfg')])
-        self.assertEquals(list(Stack.get_stacks_file_path('head')), [os.path.join(stack_path, 'head', 'stack2.cfg'),
-                                                                     os.path.join(stack_path, 'head', 'stack3.cfg'),
-                                                                     os.path.join(stack_path, 'head', 'stack1.cfg')])
+        self.assertEquals(list(Stack.get_stacks_file_path('front')),
+                          [os.path.join(stack_path, 'front', 'stack1.cfg')])
+        self.assertEquals(list(Stack.get_stacks_file_path('back')),
+                          [os.path.join(stack_path, 'back', 'stack4.cfg')])
+        self.assertEquals(sorted(list(Stack.get_stacks_file_path('head'))),
+                          [os.path.join(stack_path, 'head', 'stack1.cfg'),
+                           os.path.join(stack_path, 'head', 'stack2.cfg'),
+                           os.path.join(stack_path, 'head', 'stack3.cfg')])
 
     def test_get_stack_file_path(self):
         '''Return the right file in a nested stack environment'''
         stack_path = os.environ['CONFIG_STACKS_DIR']
-        self.assertEquals(Stack('back', 'stack4').stack_file_path, os.path.join(stack_path, 'back', 'stack4.cfg'))
+        self.assertEquals(Stack('back', 'stack4').stack_file_path,
+                          os.path.join(stack_path, 'back', 'stack4.cfg'))
 
     def test_get_stack_file_path_duplicated(self):
         '''Return the right file corresponding to the right release for duplicated filename'''
         stack_path = os.environ['CONFIG_STACKS_DIR']
-        self.assertEquals(Stack('front', 'stack1').stack_file_path, os.path.join(stack_path, 'front', 'stack1.cfg'))
-        self.assertEquals(Stack('head', 'stack1').stack_file_path, os.path.join(stack_path, 'head', 'stack1.cfg'))
+        self.assertEquals(Stack('front', 'stack1').stack_file_path,
+                          os.path.join(stack_path, 'front', 'stack1.cfg'))
+        self.assertEquals(Stack('head', 'stack1').stack_file_path,
+                          os.path.join(stack_path, 'head', 'stack1.cfg'))
 
-    def test_is_started_not_started(self):
+    def test_stack1_not_started(self):
         '''Ensure a non started stack isn't seen as started'''
         shutil.copytree(self.workdir, 'workdir')
         current_workdir = os.path.join('workdir', 'head', 'stack2')
         os.chdir(current_workdir)
         self.assertFalse(Stack("head", "stack1").is_started())
 
-    def test_is_started_not_started(self):
+    def test_stack3_not_started(self):
         '''Ensure a started stack is seen as started'''
         shutil.copytree(self.workdir, 'workdir')
         current_workdir = os.path.join('workdir', 'head', 'stack2')

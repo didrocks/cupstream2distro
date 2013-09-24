@@ -370,7 +370,7 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_commits, 
     for author in authors_commits:
         dch_env["DEBFULLNAME"] = author
         for bug_desc in authors_commits[author]:
-            subprocess.Popen(["dch", "-v{}".format(new_package_version), bug_desc], env=dch_env).communicate()
+            subprocess.Popen(["dch", "--multimaint-merge", "-v{}".format(new_package_version), bug_desc], env=dch_env).communicate()
 
     commit_message = "{} {}".format(settings.REV_STRING_FORMAT, tip_bzr_rev)
     if dest_ppa:
@@ -398,23 +398,30 @@ def build_source_package(series, distro_version, ppa=None):
     cowbuilder_env = os.environ.copy()
     cowbuilder_env["HOME"] = chroot_tool_dir  # take the internal .pbuilderrc
     cowbuilder_env["DIST"] = series
-    cmd = ["sudo", "-E", "cowbuilder", "--execute", "--bindmounts", parent_dir, "--bindmounts", settings.GNUPG_DIR,
-           "--", buildsource, branch_dir, "--gnupg-parentdir", settings.GNUPG_DIR, "--uid", str(os.getuid()), "--gid", str(os.getgid()),
-           "--gnupg-keyid", settings.BOT_KEY, "--distro-version", distro_version]
+    cmd = ["sudo", "-E", "cowbuilder", "--execute",
+           "--bindmounts", parent_dir,
+           "--bindmounts", settings.GNUPG_DIR,
+           "--", buildsource, branch_dir,
+           "--gnupg-parentdir", settings.GNUPG_DIR,
+           "--uid", str(os.getuid()), "--gid", str(os.getgid()),
+           "--gnupg-keyid", settings.BOT_KEY,
+           "--distro-version", distro_version]
     if ppa:
         cmd.extend(["--ppa", ppa])
     instance = subprocess.Popen(cmd, env=cowbuilder_env)
     instance.communicate()
     if instance.returncode != 0:
-        raise Exception("The above command returned an error.")
+        raise Exception("%r returned: %s." % (cmd, instance.returncode))
 
 
 def upload_package(source, version, ppa):
     '''Upload the new package to a ppa'''
     # remove epoch is there is one
     version_for_source_file = version.split(':')[-1]
-    if subprocess.call(["dput", "ppa:{}".format(ppa), "{}_{}_source.changes".format(source, version_for_source_file)]) != 0:
-        raise Exception("The above command returned an error.")
+    cmd = ["dput", "ppa:{}".format(ppa),
+           "{}_{}_source.changes".format(source, version_for_source_file)]
+    if subprocess.call(cmd) != 0:
+        raise Exception("%r returned an error." % (cmd,))
 
 
 def refresh_symbol_files(packaging_version):
