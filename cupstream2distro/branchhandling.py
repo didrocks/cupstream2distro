@@ -29,8 +29,7 @@ from .settings import BRANCH_URL, IGNORECHANGELOG_COMMIT, PACKAGING_MERGE_COMMIT
 
 def get_branch(branch_url, dest_dir):
     '''Grab a branch'''
-    instance = subprocess.Popen(["bzr", "branch", branch_url, dest_dir],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    instance = subprocess.Popen(["bzr", "branch", branch_url, dest_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8").strip())
@@ -38,8 +37,7 @@ def get_branch(branch_url, dest_dir):
 
 def get_tip_bzr_revision():
     '''Get latest revision in bzr'''
-    instance = subprocess.Popen(["bzr", "log", "-c", "-1", "--line"],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    instance = subprocess.Popen(["bzr", "log", "-c", "-1", "--line"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8").strip())
