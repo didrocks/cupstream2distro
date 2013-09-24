@@ -68,7 +68,7 @@ def run(jkcfg, stack, release, job, **kwargs):
         args = {'FORCE_PUBLICATION': 'true'}  # publish even we have packaging changes or other dep stacks failing
     elif job == "run":
         args = {'REBUILD_ONLY': kwargs['projects'], # only rebuild those projects
-                'CHECK_WITH_WHOLE_PPA': kwargs['check-with-whole-ppa']} # eventually, recheck against full ppa 
+                'CHECK_WITH_WHOLE_PPA': kwargs['check-with-whole-ppa']} # eventually, recheck against full ppa
 
     if not jkh.job_exists(jobname):
         logging.info("Job '%s' doesn't exists.", jobname)
@@ -109,6 +109,8 @@ def main():
                         help='Run a full stack limited to the provided projects')
     parser.add_argument('--check-with-whole-ppa', action='store_true', default=False,
                         help="don't rebuild the current stack, only rerun it with the whole ppa content for the check step")
+    parser.add_argument('--really-build-whole-stack', action='store_true', default=False,
+                        help="Rebuild the whole stack from scratch.")
     parser.add_argument('stack', help='Name of the stack to publish')
     parser.add_argument('projects', nargs='*', help='Name of the projects (source packages) to rerun against (only with -R)')
 
@@ -121,9 +123,10 @@ def main():
         action = "publish"
     if args.run:
         action = "run"
-        if not args.projects and not args.check_with_whole_ppa:
-            logging.error('No project or check-with-whole-ppa parameter specified on the command line.'
-                          ' This tool is used for those cases. Aborting!')
+        if not (args.projects or args.check_with_whole_ppa or args.really_build_whole_stack):
+            logging.error(
+                'You must specify either a list of projects to build, or '
+                '--check-with-whole-ppa, or --really-build-whole-stack. Aborting!')
             sys.exit(1)
         args_for_run = {'projects': " ".join(args.projects), 'check-with-whole-ppa': args.check_with_whole_ppa}
 
