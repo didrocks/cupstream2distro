@@ -1,0 +1,53 @@
+------------------------------------------------------------
+revno: 8 [merge]
+author: Diego Sarmentero <diego.sarmentero@gmail.com>, Manuel de la Pena <manuel@canonical.com>
+committer: Tarmac
+branch nick: trunk
+timestamp: Fri 2013-09-20 15:20:22 +0000
+message:
+  - Update download manager API (BUG: #1224538).
+  
+  Approved by PS Jenkins bot, Roberto Alsina.
+diff:
+=== modified file 'src/download/com.canonical.applications.download_manager.xml'
+--- src/download/com.canonical.applications.download_manager.xml	2013-09-11 16:55:11 +0000
++++ src/download/com.canonical.applications.download_manager.xml	2013-09-13 11:00:50 +0000
+@@ -1,5 +1,5 @@
+ <node>
+-  <interface name="com.canonical.applications.DownloaderManager">
++  <interface name="com.canonical.applications.DownloadManager">
+     <method name="createDownload">
+         <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="DownloadStruct"/>
+         <arg name="download" type="(sssa{sv}a{ss})" direction="in" />
+
+=== modified file 'src/download/downloadmanager.h'
+--- src/download/downloadmanager.h	2013-09-11 16:55:11 +0000
++++ src/download/downloadmanager.h	2013-09-13 11:00:50 +0000
+@@ -24,14 +24,14 @@
+ #include "metatypes.h"
+ 
+ /*
+- * Proxy class for interface com.canonical.applications.DownloaderManager
++ * Proxy class for interface com.canonical.applications.DownloadManager
+  */
+ class DownloadManager: public QDBusAbstractInterface
+ {
+     Q_OBJECT
+ public:
+     static inline const char *staticInterfaceName()
+-    { return "com.canonical.applications.DownloaderManager"; }
++    { return "com.canonical.applications.DownloadManager"; }
+ 
+ public:
+     DownloadManager(const QString &service, const QString &path, const QDBusConnection &connection, QObject *parent = 0);
+@@ -99,7 +99,7 @@
+ namespace com {
+   namespace canonical {
+     namespace applications {
+-      typedef ::DownloadManager DownloaderManager;
++      typedef ::DownloadManager DownloadManager;
+     }
+   }
+ }
+------------------------------------------------------------
+Use --include-merged or -n0 to see merged revisions.
