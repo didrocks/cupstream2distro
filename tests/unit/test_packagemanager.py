@@ -872,7 +872,7 @@ class PackageManagerOnlineTests(BaseUnitTestCase):
         self.setup_settings_mock(settings_mock)
         self.get_data_branch('dummypackage')
         os.environ["MOCK_MODE"] = "1"
-        packagemanager.build_source_package("raring", "1.1-0ubuntu1", "ubuntu-unity/foo")
+        packagemanager.build_source_package("raring", "1.1-0ubuntu1", "ubuntu-unity/next")
         os.chdir('..')
         self.assertChangesFilesAreIdenticals('foo_1.2-0ubuntu1_source.changes', os.path.join(self.data_dir, "results", 'foo_1.2-0ubuntu1_source.changes.lastcontent'))
 
