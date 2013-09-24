@@ -370,7 +370,16 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_commits, 
     for author in authors_commits:
         dch_env["DEBFULLNAME"] = author
         for bug_desc in authors_commits[author]:
-            subprocess.Popen(["dch", "--multimaint-merge", "-v{}".format(new_package_version), bug_desc], env=dch_env).communicate()
+            if bug_desc.startswith('-'):
+                # Remove leading '-' or dch thinks (rightly) that it's an option
+                bug_desc = bug_desc[1:]
+            if bug_desc.startswith(' '):
+                # Remove leading spaces, there are useless and the result is
+                # prettier without them anyway ;)
+                bug_desc = bug_desc.strip()
+            cmd = ["dch", "--multimaint-merge",
+                   "-v{}".format(new_package_version), bug_desc]
+            subprocess.Popen(cmd, env=dch_env).communicate()
 
     commit_message = "{} {}".format(settings.REV_STRING_FORMAT, tip_bzr_rev)
     if dest_ppa:

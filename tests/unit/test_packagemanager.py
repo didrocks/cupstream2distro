@@ -703,6 +703,14 @@ class PackageManagerTests(BaseUnitTestCase):
         result_file = os.path.join(self.result_dir, "multiple_authors_bugs_changelog_update")
         self.assertChangelogFilesAreIdenticals(result_file, "debian/changelog")
 
+    def test_update_changelog_with_msg_starting_with_dash(self):
+        '''Update a changelog with a message starting with '-'.'''
+        self.get_data_branch('basic')
+        authors = {"Foo": ["- One fix for LP: #12345"]}
+        packagemanager.update_changelog("42.0daily83.09.14-0ubuntu1", "raring", 42, authors)
+        result_file = os.path.join(self.result_dir, "message_starting_with_dash")
+        self.assertChangelogFilesAreIdenticals(result_file, "debian/changelog")
+
     def test_update_changelog_with_existing_content(self):
         '''Update a changelog when we already have existing content'''
         self.get_data_branch('basic')
