@@ -150,34 +150,34 @@ class Stack():
             message = None
             # We should have a status for every stack
             if status is None:
-                message = "Can't find status for {depstack} ({deprel}). This shouldn't happen apart if the stack is currently running. If this is the case, it means that current stack shouldn't be uploaded as the state is unknown.".format(depstack=stack, deprel=stack.release)
+                message = "Can't find status for {depstack} ({deprel}). This shouldn't happen unless the stack is currently running. If this is the case, it means that the current stack shouldn't be uploaded as the state is unknown.".format(depstack=stack, deprel=stack.release)
             elif status == 1:
-                message = '''{depstack} ({deprel}) failed to publish. Possible cause are:
+                message = '''{depstack} ({deprel}) failed to publish. Possible causes are:
         * the stack really didn't build/can't be prepared at all.
-        * the stack have integration tests not working with this previous stack.
+        * the stack has integration tests not working with this previous stack.
 
-    What's need to be done:
+    What needs to be done:
     Either:
-        * If we want to publish both stacks: retry the integration tests for {depstack} ({deprel}), including components from this stack (check with whole ppa). If that works, both stacks should be published at the same time.
+        * If we want to publish both stacks: retry the integration tests for {depstack} ({deprel}), including components from this stack (check with the whole PPA). If that works, both stacks should be published at the same time.
     Or:
-        * If we only want to publish this stack: check that we can safely publish it by itself (e.g without the stacks it depends on). The trick there is to make sure that the stack is not relying on, or impacted by, a change that happened in one of its depends. Example: if the {depstack} ({deprel}) api changed in a way that impacts any component of the current stack, and both stacks got updated in trunk, we need to make sure we don't land only one of the two stacks which would result in a broken state. Think as well about ABI potential changes.'''.format(depstack=stack.stack_name, deprel=stack.release)
+        * If we only want to publish this stack: check that we can safely publish it by itself (e.g. without the stacks it depends on). The trick there is to make sure that the stack is not relying on, or affected by, a change that happened in one of its dependencies. Example: if the {depstack} ({deprel}) API changed in a way that affects any component of the current stack, and both stacks got updated in trunk, we need to make sure we don't land only one of the two stacks which would result in a broken state. Also think about potential ABI changes.'''.format(depstack=stack.stack_name, deprel=stack.release)
             elif status == 2:
-                message = '''{depstack} ({deprel}) is in manually publish mode. Possible cause are:
+                message = '''{depstack} ({deprel}) is in manually publish mode. Possible causes are:
         * Some part of the stack has packaging changes
         * This stack is depending on another stack not being published
 
-    What's need to be done:
+    What needs to be done:
     Either:
         * If {depstack} ({deprel}) can be published, we should publish both stacks at the same time.
     Or:
-        * If we only want to publish this stack: check that we can safely publish it by itself (e.g without the stacks it depends on). The trick there is to make sure that the stack is not relying on, or impacted by, a change that happened in one of its depends. Example: if the {depstack} ({deprel}) api changed in a way that impacts any component of the current stack, and both stacks got updated in trunk, we need to make sure we don't land only one of the two stacks which would result in a broken state. Think as well about ABI potential changes.'''.format(depstack=stack.stack_name, deprel=stack.release)
+        * If we only want to publish this stack: check that we can safely publish it by itself (e.g. without the stacks it depends on). The trick there is to make sure that the stack is not relying on, or affected by, a change that happened in one of its dependencies. Example: if the {depstack} ({deprel}) API changed in a way that affects any component of the current stack, and both stacks got updated in trunk, we need to make sure we don't land only one of the two stacks which would result in a broken state. Also think about potential ABI changes.'''.format(depstack=stack.stack_name, deprel=stack.release)
             elif status == 3 or status == -1:
-                message = '''{depstack} ({deprel}) has been manually aborted or failed for an unknown reason. Possible cause are:
+                message = '''{depstack} ({deprel}) has been manually aborted or failed for an unknown reason. Possible causes are:
         * A job of this stack was stopped manually
         * Jenkins had an internal error/shutdown
 
-    What's need to be done:
-        * If we only want to publish this stack: check that we can safely publish it by itself (e.g without the stacks it depends on). The trick there is to make sure that the stack is not relying on, or impacted by, a change that happened in one of its depends. Example: if the {depstack} ({deprel}) api changed in a way that impacts any component of the current stack, and both stacks got updated in trunk, we need to make sure we don't land only one of the two stacks which would result in a broken state. Think as well about ABI potential changes.'''.format(depstack=stack.stack_name, deprel=stack.release)
+    What needs to be done:
+        * If we only want to publish this stack: check that we can safely publish it by itself (e.g. without the stacks it depends on). The trick there is to make sure that the stack is not relying on, or affected by, a change that happened in one of its dependencies. Example: if the {depstack} ({deprel}) API changed in a way that affects any component of the current stack, and both stacks got updated in trunk, we need to make sure we don't land only one of the two stacks which would result in a broken state. Also think about potential ABI changes.'''.format(depstack=stack.stack_name, deprel=stack.release)
 
             if message:
                 logging.warning(message)
