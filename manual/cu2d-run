@@ -65,9 +65,10 @@ def run(jkcfg, stack, release, job, **kwargs):
 
     jobname = "-".join((PREFIX, stack, release))
     if job == "publish":
-        args = {'FORCE_PUBLICATION': 'true'}  # publish even we have packaging changes or other dep stacks failing
+        args = {'ON_PACKAGES': kwargs['projects'], # optionnally only publish those projects
+                'FORCE_PUBLICATION': 'true'}  # publish even we have packaging changes or other dep stacks failing
     elif job == "run":
-        args = {'REBUILD_ONLY': kwargs['projects'], # only rebuild those projects
+        args = {'ON_PACKAGES': kwargs['projects'], # only rebuild those projects
                 'CHECK_WITH_WHOLE_PPA': kwargs['check-with-whole-ppa']} # eventually, recheck against full ppa
 
     if not jkh.job_exists(jobname):
@@ -112,7 +113,7 @@ def main():
     parser.add_argument('--really-build-whole-stack', action='store_true', default=False,
                         help="Rebuild the whole stack from scratch.")
     parser.add_argument('stack', help='Name of the stack to publish')
-    parser.add_argument('projects', nargs='*', help='Name of the projects (source packages) to rerun against (only with -R)')
+    parser.add_argument('projects', nargs='*', help='Name of the projects (source packages) to rebuild or publish')
 
     args = parser.parse_args()
     set_logging(args.debug)
@@ -121,6 +122,8 @@ def main():
     args_for_run = {}
     if args.publish:
         action = "publish"
+        if args.projects:
+            args_for_run = {'projects': " ".join(args.projects))
     if args.run:
         action = "run"
         if not (args.projects or args.check_with_whole_ppa or args.really_build_whole_stack):
