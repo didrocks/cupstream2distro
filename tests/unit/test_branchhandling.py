@@ -26,6 +26,11 @@ from cupstream2distro import branchhandling
 
 class BranchHandlingTests(BaseUnitTestCase):
 
+    def setUp(self):
+        super(BranchHandlingTests, self).setUp()
+        # We want the full diff on failures
+        self.maxDiff = None
+
     def test_branching(self):
         '''We correcly try to branch a branch'''
         source_branch = self.get_data_branch('basic', cd_in_branch=False)
@@ -132,12 +137,17 @@ class BranchHandlingTests(BaseUnitTestCase):
     def test_collect_author_commits_starting_with_dash(self):
         '''Collect author commits and bugs when the msg starts with '-'.'''
         with open(os.path.join(self.data_dir, 'bzrlogs', 'withdashlogdiff')) as f:
-            self.maxDiff = None
             self.assertEquals(branchhandling.collect_author_commits(f.read(), set()),
                              ({'Diego Sarmentero': ["- Update download manager API (BUG: #1224538). (LP: #1224538)"],
                               'Manuel de la Pena': ["- Update download manager API (BUG: #1224538). (LP: #1224538)"] },
                               set([1224538])))
 
+    def test_collect_author_commits_starting_with_star(self):
+        '''Collect author commits and bugs when the msg starts with '-'.'''
+        with open(os.path.join(self.data_dir, 'bzrlogs', 'withstarlogdiff')) as f:
+            self.assertEquals(branchhandling.collect_author_commits(f.read(), set()),
+                             ({'Jim Hodapp': ["* Drop support for thumbnail as we can't depend on gstreamer directly until qtmultimedia supports gst1.0 (currently only the -touch fork supports it)", "* Remove gstreamer related packages from build-dependencies."], },
+                              set()))
 
     def test_collect_author_commits_regular(self):
         '''Collect author commits and bugs for a normal bzr log'''

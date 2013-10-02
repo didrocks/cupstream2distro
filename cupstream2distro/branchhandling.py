@@ -62,7 +62,7 @@ def collect_author_commits(content_to_parse, bugs_to_skip):
         # new revision, collect what we have found
         if line.startswith("------------------------------------------------------------"):
             commit_message = ""
-            # try to decipher a special case: we have some commits which was already in bugs_to_skip,
+            # try to decipher a special case: we have some commits which were already in bugs_to_skip,
             # so we eliminate them.
             # Also ignore when having IGNORECHANGELOG_COMMIT
             if (current_bugs and not (current_bugs - bugs_to_skip)) or IGNORECHANGELOG_COMMIT in current_commit:
@@ -101,7 +101,11 @@ def collect_author_commits(content_to_parse, bugs_to_skip):
                 commit_message_stenza = False
                 current_commit, current_bugs = _extract_commit_bugs(current_commit)
             else:
+                line = line[2:] # Dedent the message provided by bzr
+                line = line + ' ' # Add a space to preserve lines
                 current_commit += line
+                if not line:
+                    line
         elif line.startswith("message:"):
             commit_message_stenza = True
         elif line.startswith("fixes bug: "):
