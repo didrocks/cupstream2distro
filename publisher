@@ -42,7 +42,7 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--series", help="Serie used to build the package")
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
     parser.add_argument("-d", "--destppa", help="Consider this destppa instead of {series}-proposed")
-    parser.add_argument("--filter", help="Only consider those packages (space separated list)")
+    parser.add_argument("--filter", nargs='*', help="Only consider those packages (space separated list)")
 
 
     args = parser.parse_args()
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     if args.filter:
         logging.info("Restricted list of publication was requested: {}".format(args.filter))
         for packages_info in all_packages_uploaded.copy():
-            if packages_info[0] not in args.filter.split():
+            if packages_info[0] not in args.filter:
                 logging.info("{} was ready to be published but not in the filtered list".format(packages_info[0]))
                 all_packages_uploaded.remove(packages_info)
     # Generate global packaging change status
