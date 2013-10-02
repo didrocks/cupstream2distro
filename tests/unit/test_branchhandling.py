@@ -138,15 +138,15 @@ class BranchHandlingTests(BaseUnitTestCase):
         '''Collect author commits and bugs when the msg starts with '-'.'''
         with open(os.path.join(self.data_dir, 'bzrlogs', 'withdashlogdiff')) as f:
             self.assertEquals(branchhandling.collect_author_commits(f.read(), set()),
-                             ({'Diego Sarmentero': ["- Update download manager API (BUG: #1224538). (LP: #1224538)"],
-                              'Manuel de la Pena': ["- Update download manager API (BUG: #1224538). (LP: #1224538)"] },
+                             ({'Diego Sarmentero': ["Update download manager API (BUG: #1224538). (LP: #1224538)"],
+                              'Manuel de la Pena': ["Update download manager API (BUG: #1224538). (LP: #1224538)"] },
                               set([1224538])))
 
     def test_collect_author_commits_starting_with_star(self):
         '''Collect author commits and bugs when the msg starts with '-'.'''
         with open(os.path.join(self.data_dir, 'bzrlogs', 'withstarlogdiff')) as f:
             self.assertEquals(branchhandling.collect_author_commits(f.read(), set()),
-                             ({'Jim Hodapp': ["* Drop support for thumbnail as we can't depend on gstreamer directly until qtmultimedia supports gst1.0 (currently only the -touch fork supports it)", "* Remove gstreamer related packages from build-dependencies."], },
+                             ({'Jim Hodapp': ["Drop support for thumbnail as we can't depend on gstreamer directly until qtmultimedia supports gst1.0 (currently only the -touch fork supports it). Remove gstreamer related packages from build-dependencies."], },
                               set()))
 
     def test_collect_author_commits_regular(self):

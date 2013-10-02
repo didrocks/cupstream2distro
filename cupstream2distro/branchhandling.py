@@ -61,7 +61,6 @@ def collect_author_commits(content_to_parse, bugs_to_skip):
     for line in content_to_parse.splitlines():
         # new revision, collect what we have found
         if line.startswith("------------------------------------------------------------"):
-            commit_message = ""
             # try to decipher a special case: we have some commits which were already in bugs_to_skip,
             # so we eliminate them.
             # Also ignore when having IGNORECHANGELOG_COMMIT
@@ -71,11 +70,7 @@ def collect_author_commits(content_to_parse, bugs_to_skip):
                 current_bugs = set()
                 continue
             current_bugs -= bugs_to_skip
-            for bug in current_bugs:
-                commit_message += "#{}, ".format(bug)
-            if commit_message:
-                commit_message = " (LP: {})".format(commit_message[:-2])
-            commit_message = "{}{}".format(current_commit, commit_message)
+            commit_message = current_commit + _format_bugs(current_bugs)
             for author in current_authors:
                 if not author.startswith("Launchpad "):
                     author_commit[author].append(commit_message)
@@ -102,16 +97,27 @@ def collect_author_commits(content_to_parse, bugs_to_skip):
                 current_commit, current_bugs = _extract_commit_bugs(current_commit)
             else:
                 line = line[2:] # Dedent the message provided by bzr
+                if line[0:2] in ('* ', '- '): # paragraph line.
+                    line = line[2:] # Remove bullet
+                    if line[-1] != '.': # Grammar nazi...
+                        line += '.' # ... or the lines will be merged.
                 line = line + ' ' # Add a space to preserve lines
                 current_commit += line
-                if not line:
-                    line
         elif line.startswith("message:"):
             commit_message_stenza = True
         elif line.startswith("fixes bug: "):
             current_bugs = current_bugs.union(_return_bugs(line[11:]))
 
     return (dict(author_commit), all_bugs)
+
+
+def _format_bugs(bugs):
+    '''Format a list of launchpad bugs.'''
+    if bugs:
+        msg = ' (LP: {})'.format(', '.join(['#{}'.format(b) for b in bugs]))
+    else:
+        msg = ''
+    return msg
 
 
 def _extract_commit_bugs(commit_message):

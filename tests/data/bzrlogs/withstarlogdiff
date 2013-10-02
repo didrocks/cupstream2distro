@@ -1,0 +1,213 @@
+------------------------------------------------------------
+revno: 140 [merge]
+author: Jim Hodapp <jim.hodapp@canonical.com>
+committer: Tarmac
+branch nick: trunk
+timestamp: Thu 2013-09-26 04:54:16 +0000
+message:
+  * Drop support for thumbnail as we can't depend on gstreamer directly until qtmultimedia supports gst1.0 (currently only the -touch fork supports it)
+  * Remove gstreamer related packages from build-dependencies.
+  
+  Approved by PS Jenkins bot, Ricardo Salveti.
+diff:
+=== modified file 'CMakeLists.txt'
+--- CMakeLists.txt	2013-07-29 11:31:35 +0000
++++ CMakeLists.txt	2013-09-25 23:08:08 +0000
+@@ -30,7 +30,7 @@
+ find_package(Qt5Quick)
+ 
+ include(FindPkgConfig)
+-pkg_check_modules(GSTLIB REQUIRED gstreamer-0.10)
++#pkg_check_modules(GSTLIB REQUIRED gstreamer-1.0)
+ 
+ # Standard install paths
+ include(GNUInstallDirs)
+
+=== modified file 'debian/control'
+--- debian/control	2013-09-09 14:37:58 +0000
++++ debian/control	2013-09-25 23:08:08 +0000
+@@ -7,7 +7,7 @@
+                dh-translations,
+                libgl1-mesa-dev[i386 amd64] | libgl-dev[i386 amd64],
+                libgles2-mesa-dev[armhf],
+-               libgstreamer0.10-dev,
++               pkg-config,
+                python,
+                qtbase5-dev,
+                qtdeclarative5-dev,
+@@ -23,9 +23,6 @@
+ Architecture: i386 amd64 armhf
+ Depends: ${misc:Depends},
+          ${shlibs:Depends},
+-         gstreamer0.10-plugins-base,
+-         gstreamer0.10-plugins-good,
+-         gstreamer0.10-ffmpeg,
+          qtdeclarative5-qtmultimedia-plugin | libqt5declarative5-qtmultimedia-plugin,
+          qtdeclarative5-ubuntu-ui-toolkit-plugin | qt-components-ubuntu,
+          qtdeclarative5-ubuntu-ui-extras0.1,
+
+=== modified file 'src/CMakeLists.txt'
+--- src/CMakeLists.txt	2013-05-20 19:46:02 +0000
++++ src/CMakeLists.txt	2013-09-25 23:08:08 +0000
+@@ -5,17 +5,17 @@
+ include_directories(
+     ${CMAKE_BINARY_DIR}
+     ${sdkhelper_SOURCE_DIR}
+-    ${GSTLIB_INCLUDE_DIRS}
++    #${GSTLIB_INCLUDE_DIRS}
+     )
+ 
+ set(mediaplayer_HDRS
+-    thumbnail-provider.h
+-    thumbnail-pipeline-gst.h
++    #thumbnail-provider.h
++    #thumbnail-pipeline-gst.h
+     mediaplayer.h)
+ 
+ set(mediaplayer_SRCS
+-    thumbnail-provider.cpp
+-    thumbnail-pipeline-gst.cpp
++    #thumbnail-provider.cpp
++    #thumbnail-pipeline-gst.cpp
+     mediaplayer.cpp
+     main.cpp)
+ 
+@@ -28,7 +28,7 @@
+ 
+ target_link_libraries(${MEDIAPLAYER}
+     sdkhelper
+-    ${GSTLIB_LDFLAGS}
++    #${GSTLIB_LDFLAGS}
+     )
+ 
+ install(TARGETS ${MEDIAPLAYER}
+
+=== modified file 'src/mediaplayer.cpp'
+--- src/mediaplayer.cpp	2013-05-23 20:20:10 +0000
++++ src/mediaplayer.cpp	2013-09-25 23:08:08 +0000
+@@ -14,7 +14,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ #include "mediaplayer.h"
+-#include "thumbnail-provider.h"
++//#include "thumbnail-provider.h"
+ #include "sharefile.h"
+ 
+ #include <QtCore/QDir>
+@@ -77,7 +77,7 @@
+     qmlRegisterType<ShareFile>("SDKHelper", 1, 0, "ShareFile");
+ 
+     m_view = new QQuickView();
+-    m_view->engine()->addImageProvider("video", new ThumbnailProvider);
++    //m_view->engine()->addImageProvider("video", new ThumbnailProvider);
+     m_view->setColor(QColor("black"));
+     m_view->setResizeMode(QQuickView::SizeRootObjectToView);
+     m_view->setTitle("Media Player");
+@@ -87,7 +87,7 @@
+             uri = QUrl::fromLocalFile(QDir::current().absoluteFilePath(args[1]));
+         }
+ 
+-        // For now we only accept local files
++        // Check if it's a local file
+         if (uri.isValid() && uri.isLocalFile()) {
+             QFileInfo info(uri.toLocalFile());
+             if (info.exists() && info.isFile()) {
+@@ -95,6 +95,9 @@
+             } else {
+                 qWarning() << "File not found:" << uri << info.exists() << info.isFile();
+             }
++        // Otherwise see if it's a remote stream
++        } else if (uri.isValid()) {
++            m_view->rootContext()->setContextProperty("playUri", uri);
+         } else {
+             qWarning() << "Invalid uri:" << uri;
+         }
+
+=== modified file 'src/qml/player/Controls.qml'
+--- src/qml/player/Controls.qml	2013-09-02 08:55:48 +0000
++++ src/qml/player/Controls.qml	2013-09-25 23:19:16 +0000
+@@ -64,10 +64,16 @@
+ 
+         property bool parentActive: _controls.active
+ 
++        function selectSceneAt(time) {
++            // SKIP it for now, we need to fix hybris bug #1231147
++            return
++        }
++
+         objectName: "Controls.SceneSelector"
+         opacity: 0
+         visible: opacity > 0
+-        model: _sceneSelectorModel
++        // SKIP it for now, we need to fix hybris bug #1231147
++        //model: _sceneSelectorModel
+         anchors {
+             left: parent.left
+             right: parent.right
+@@ -84,7 +90,8 @@
+         ParallelAnimation {
+             id: _showAnimation
+ 
+-            running: _sceneSelector.show
++            // SKIP it for now, we need to fix hybris bug #1231147
++            running: false //_sceneSelector.show
+             NumberAnimation { target: _sceneSelector; property: "opacity"; to: 1; duration: 175 }
+             NumberAnimation { target: controls; property: "heightOffset"; to: 0; duration: 175 }
+         }
+@@ -92,7 +99,8 @@
+         ParallelAnimation {
+             id: _hideAnimation
+ 
+-            running: !_sceneSelector.show
++            // SKIP it for now, we need to fix hybris bug #1231147
++            running: false //!_sceneSelector.show
+             NumberAnimation { target: _sceneSelector; property: "opacity"; to: 0; duration: 175 }
+             NumberAnimation { target: controls; property: "heightOffset"; to: units.gu(2); duration: 175 }
+         }
+@@ -151,7 +159,7 @@
+         Item {
+             id: _timeLineAnchor
+ 
+-            anchors {                
++            anchors {
+                 left: _playbackButtom.right
+                 leftMargin: units.gu(2)
+                 right: _shareButton.left
+
+=== modified file 'src/qml/player/VideoPlayer.qml'
+--- src/qml/player/VideoPlayer.qml	2013-09-03 15:28:59 +0000
++++ src/qml/player/VideoPlayer.qml	2013-09-25 23:04:03 +0000
+@@ -33,7 +33,7 @@
+     property int pressCount: 0
+     property bool wasPlaying: false
+     property string uri
+-    property bool rotating: false   
++    property bool rotating: false
+     property alias controlsActive: _controls.active
+     property bool componentLoaded: false
+ 
+
+=== modified file 'tests/CMakeLists.txt'
+--- tests/CMakeLists.txt	2013-04-04 22:18:39 +0000
++++ tests/CMakeLists.txt	2013-09-25 23:08:08 +0000
+@@ -1,4 +1,4 @@
+ add_subdirectory(videos)
+ add_subdirectory(images)
+ add_subdirectory(autopilot)
+-add_subdirectory(unittest)
++#add_subdirectory(unittest)
+
+=== modified file 'tests/autopilot/mediaplayer_app/tests/test_player_with_video.py'
+--- tests/autopilot/mediaplayer_app/tests/test_player_with_video.py	2013-09-10 14:36:10 +0000
++++ tests/autopilot/mediaplayer_app/tests/test_player_with_video.py	2013-09-25 21:19:34 +0000
+@@ -74,7 +74,7 @@
+         self.assertProperty(player, playing=True, paused=False)
+         self.assertProperty(playback_buttom, icon="pause")
+ 
+-    @skipIf(model() == 'Nexus 4' or model() == 'Galaxy Nexus', 'Screen width not enough for seekbar')
++    @skip("New backend work needed. bug 1231147")
+     def test_scene_selector_visibility(self):
+         self.show_controls()
+         self.pause_video()
+------------------------------------------------------------
+Use --include-merged or -n0 to see merged revisions.
