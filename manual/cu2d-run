@@ -65,9 +65,14 @@ def run(jkcfg, stack, release, job, **kwargs):
 
     jobname = "-".join((PREFIX, stack, release))
     if job == "publish":
-        args = {'FORCE_PUBLICATION': 'true'}  # publish even we have packaging changes or other dep stacks failing
+        if kwargs['force']:
+            args = {'ON_PACKAGES': kwargs['projects'], # optionnally only publish those projects
+                    'FORCE_PUBLICATION': 'true'}  # publish even we have packaging changes or other dep stacks failing
+        else:
+            args = {'ON_PACKAGES': 'foo', # so that this package don't exist
+                    'AUTO_PUBLICATION': 'true'} # so that we try a regular publication
     elif job == "run":
-        args = {'REBUILD_ONLY': kwargs['projects'], # only rebuild those projects
+        args = {'ON_PACKAGES': kwargs['projects'], # only rebuild those projects
                 'CHECK_WITH_WHOLE_PPA': kwargs['check-with-whole-ppa']} # eventually, recheck against full ppa
 
     if not jkh.job_exists(jobname):
@@ -103,8 +108,10 @@ def main():
                         '(default: %s)' % DEFAULT_RELEASE)
     parser.add_argument('-d', '--debug', action='store_true', default=False,
                         help='enable debug mode')
+    parser.add_argument('-f', '--force', action='store_true', default=False,
+                        help='Force the publication of a stack (only with -P)')
     parser.add_argument('-P', '--publish', action='store_true', default=False,
-                        help='Force the publication of a stack')
+                        help='Try a publication of a stack')
     parser.add_argument('-R', '--run', action='store_true', default=False,
                         help='Run a full stack limited to the provided projects')
     parser.add_argument('--check-with-whole-ppa', action='store_true', default=False,
@@ -112,7 +119,7 @@ def main():
     parser.add_argument('--really-build-whole-stack', action='store_true', default=False,
                         help="Rebuild the whole stack from scratch.")
     parser.add_argument('stack', help='Name of the stack to publish')
-    parser.add_argument('projects', nargs='*', help='Name of the projects (source packages) to rerun against (only with -R)')
+    parser.add_argument('projects', nargs='*', help='Name of the projects (source packages) to rebuild or publish')
 
     args = parser.parse_args()
     set_logging(args.debug)
@@ -121,6 +128,12 @@ def main():
     args_for_run = {}
     if args.publish:
         action = "publish"
+        if not args.force and args.projects:
+            logging.error("You can only specify partial projects to publish with the force parameter. Otherwise, use a normal publication.")
+            sys.exit(1)
+        args_for_run = {'force': args.force}
+        if args.projects:
+            args_for_run['projects'] = " ".join(args.projects)
     if args.run:
         action = "run"
         if not (args.projects or args.check_with_whole_ppa or args.really_build_whole_stack):

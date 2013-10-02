@@ -42,6 +42,8 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--series", help="Serie used to build the package")
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
     parser.add_argument("-d", "--destppa", help="Consider this destppa instead of {series}-proposed")
+    parser.add_argument("--filter", nargs='*', help="Only consider those packages (space separated list)")
+
 
     args = parser.parse_args()
 
@@ -83,8 +85,14 @@ if __name__ == '__main__':
 
     manual_publish_cause_list = []
 
-    # Generate global packaging change status
     all_packages_uploaded = packageinppamanager.get_all_packages_uploaded()
+    if args.filter:
+        logging.info("Restricted list of publication was requested: {}".format(args.filter))
+        for packages_info in all_packages_uploaded.copy():
+            if packages_info[0] not in args.filter:
+                logging.info("{} was ready to be published but not in the filtered list".format(packages_info[0]))
+                all_packages_uploaded.remove(packages_info)
+    # Generate global packaging change status
     manual_publish_cause_list.extend(get_stack_packaging_change_status(all_packages_uploaded))
 
     # Generate global stack status based on rdepends
