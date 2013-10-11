@@ -27,7 +27,8 @@ class PackageInPPA():
     (BUILDING, FAILED, PUBLISHED) = range(3)
 
     def __init__(self, source_name, version, ppa, destarchive, series,
-                 available_archs_in_ppa, arch_all_arch, archs_to_eventually_ignore):
+                 available_archs_in_ppa, arch_all_arch, archs_to_eventually_ignore,
+                 archs_to_unconditionually_ignore):
         self.source_name = source_name
         self.version = version
         self.series = series
@@ -71,6 +72,8 @@ class PackageInPPA():
             # remove from the inspection remaining archs to ignore
             if archs_to_eventually_ignore:
                 self.archs -= archs_to_eventually_ignore
+            if archs_to_unconditionually_ignore:
+                self.archs -= archs_to_unconditionually_ignore
 
 
     def get_status(self, on_particular_arch=None):

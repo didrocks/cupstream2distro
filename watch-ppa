@@ -64,7 +64,7 @@ if __name__ == '__main__':
         dest_archive = launchpadmanager.get_ppa(args.destppa)
     else:
         dest_archive = launchpadmanager.get_ubuntu_archive()
-    (available_archs_in_ppa, arch_all_arch, archs_to_eventually_ignore) = launchpadmanager.get_available_all_and_ignored_archs(lp_series, monitored_ppa)
+    (available_archs_in_ppa, arch_all_arch, archs_to_eventually_ignore, archs_to_unconditionally_ignore) = launchpadmanager.get_available_all_and_ignored_archs(lp_series, monitored_ppa)
 
     # Collecting all packages that have been uploaded to the ppa
     packages_not_in_ppa = set()
@@ -72,7 +72,8 @@ if __name__ == '__main__':
     packages_failed = set()
     for (source, version, tip_rev, target_branch) in packageinppamanager.get_all_packages_uploaded():
         packages_not_in_ppa.add(PackageInPPA(source, version, monitored_ppa, dest_archive, lp_series,
-                                             available_archs_in_ppa, arch_all_arch, archs_to_eventually_ignore))
+                                             available_archs_in_ppa, arch_all_arch, archs_to_eventually_ignore,
+                                             archs_to_unconditionally_ignore))
 
     # Check the status regularly on all packages
     time_start_watching = time.time()

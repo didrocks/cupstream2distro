@@ -25,7 +25,7 @@ import logging
 import os
 launchpad = None
 
-from .settings import ARCHS_TO_EVENTUALLY_IGNORE, VIRTUALIZED_PPA_ARCH, CRED_FILE_PATH, COMMON_LAUNCHPAD_CACHE_DIR
+from .settings import ARCHS_TO_EVENTUALLY_IGNORE, ARCHS_TO_UNCONDITIONALLY_IGNORE, VIRTUALIZED_PPA_ARCH, CRED_FILE_PATH, COMMON_LAUNCHPAD_CACHE_DIR
 
 
 def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_PATH)):
@@ -123,7 +123,7 @@ def get_available_all_and_ignored_archs(series, ppa=None):
             if arch.is_nominated_arch_indep:
                 arch_all_arch = arch.architecture_tag
 
-    return (available_arch, arch_all_arch, ARCHS_TO_EVENTUALLY_IGNORE)
+    return (available_arch, arch_all_arch, ARCHS_TO_EVENTUALLY_IGNORE, ARCHS_TO_UNCONDITIONALLY_IGNORE)
 
 
 def get_ppa(ppa_name):
