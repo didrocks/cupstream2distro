@@ -54,9 +54,7 @@ timestamp: Fri 2013-02-08 02:46:52 +0000
 message:
   EdgeBarrierController: add multiple types of subscriber results, fix edges on autohide
   
-  Now when sticky keys are disabled, and the launcher is set to autohide, the mouse will hit both sides of the screen (instead of just the left side o
-f the barrier); at that point we'll release the events coming from the launcher-less side of the monitor, but we'll use them to temporary keep the bar
-rier "broken". Fixes: https://bugs.launchpad.net/bugs/1064945.
+  Now when sticky keys are disabled, and the launcher is set to autohide, the mouse will hit both sides of the screen (instead of just the left side of the barrier); at that point we'll release the events coming from the launcher-less side of the monitor, but we'll use them to temporary keep the barrier "broken". Fixes: https://bugs.launchpad.net/bugs/1064945.
   
   Approved by Brandon Schaefer.
 diff:
