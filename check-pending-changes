@@ -34,8 +34,11 @@ def get_releases_name():
 print("Pending changes in daily release\n")
 
 os.chdir(settings.STACK_RUNNING_DIR)
-# reverse the list to always have latest release on top
-for release_name in get_releases_name()[::-1]:
+# reverse the list to always have latest releases on top (but put head first)
+releases = get_releases_name()[::-1]
+releases.remove("head")
+releases.insert(0, "head")
+for release_name in releases:
     print("====== {} ======".format(release_name))
     for file_path in stack.Stack.get_stacks_file_path(release_name):
         stack_name = file_path.split(os.path.sep)[-1][:-4]
