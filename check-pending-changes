@@ -40,7 +40,9 @@ releases.remove("head")
 releases.insert(0, "head")
 for release_name in releases:
     print("====== {} ======".format(release_name))
-    for file_path in stack.Stack.get_stacks_file_path(release_name):
+    stack_paths = [s for s in stack.Stack.get_stacks_file_path(release_name)]
+    stack_paths.sort()
+    for file_path in stack_paths:
         stack_name = file_path.split(os.path.sep)[-1][:-4]
         s = stack.get_stack(release_name, stack_name)
         stack_header_written = False
