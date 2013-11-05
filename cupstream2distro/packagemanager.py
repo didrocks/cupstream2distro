@@ -35,21 +35,17 @@ from .utils import ignored
 def get_current_version_for_series(source_package_name, series_name, ppa_name=None):
     '''Get current version for a package name in that series'''
     series = launchpadmanager.get_series(series_name)
-    version = None
     if ppa_name:
         dest = launchpadmanager.get_ppa(ppa_name)
     else:
         dest = launchpadmanager.get_ubuntu_archive()
-    for source in dest.getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=series):
-        if version:
-            if is_version1_higher_than_version2(source.source_package_version, version):
-                version = source.source_package_version
-        else:
-            version = source.source_package_version
+    source_collection = dest.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series)
+    try:
+        # cjwatson told that list always have the more recently published first (even if removed)
+        return source_collection[0].source_package_version
     # was never in the dest, set the lowest possible version
-    if version is None:
-        version = "0"
-    return version
+    except IndexError:
+        return "0"
 
 
 def is_version1_higher_than_version2(version1, version2):

@@ -35,9 +35,9 @@ class PackageManagerTests(BaseUnitTestCase):
         '''Get the newest version in any pocket'''
 
         source1 = Mock()
-        source1.source_package_version = "83.09.13-0ubuntu1"
+        source1.source_package_version = "83.09.14-0ubuntu1"
         source2 = Mock()
-        source2.source_package_version = "83.09.14-0ubuntu1"
+        source2.source_package_version = "83.09.13-0ubuntu1"
         mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.return_value = [source1, source2]
 
         return_version = packagemanager.get_current_version_for_series("foo", "rolling")
@@ -45,26 +45,7 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertEquals(mocklaunchpadmanager.get_ppa.call_count, 0)
         mocklaunchpadmanager.get_series.assert_called_with("rolling")
         mocklaunchpadmanager.get_ubuntu_archive.assert_called_once_with()
-        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
-                                                                                                    source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
-        self.assertEquals("83.09.14-0ubuntu1", return_version)
-
-    @patch('cupstream2distro.packagemanager.launchpadmanager')
-    def test_get_current_version_for_series_distro_inverse(self, mocklaunchpadmanager):
-        '''Get the newest version in any pocket, inversing them'''
-
-        source1 = Mock()
-        source1.source_package_version = "83.09.13-0ubuntu1"
-        source2 = Mock()
-        source2.source_package_version = "83.09.14-0ubuntu1"
-        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.return_value = [source2, source1]
-
-        return_version = packagemanager.get_current_version_for_series("foo", "rolling")
-
-        self.assertEquals(mocklaunchpadmanager.get_ppa.call_count, 0)
-        mocklaunchpadmanager.get_series.assert_called_with("rolling")
-        mocklaunchpadmanager.get_ubuntu_archive.assert_called_once_with()
-        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
+        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(exact_match=True,
                                                                                                     source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
         self.assertEquals("83.09.14-0ubuntu1", return_version)
 
@@ -79,7 +60,7 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertEquals(mocklaunchpadmanager.get_ppa.call_count, 0)
         mocklaunchpadmanager.get_series.assert_called_with("rolling")
         mocklaunchpadmanager.get_ubuntu_archive.assert_called_once_with()
-        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
+        mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(exact_match=True,
                                                                                                     source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
         self.assertEquals("0", return_version)
 
@@ -95,7 +76,7 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertEquals(mocklaunchpadmanager.get_ubuntu_archive.call_count, 0)
         mocklaunchpadmanager.get_series.assert_called_with("rolling")
         mocklaunchpadmanager.get_ppa.assert_called_once_with("didppa")
-        mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
+        mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.assert_called_with(exact_match=True,
                                                                                          source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
         self.assertEquals("83.09.13-0ubuntu1", return_version)
 
@@ -110,7 +91,7 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertEquals(mocklaunchpadmanager.get_ubuntu_archive.call_count, 0)
         mocklaunchpadmanager.get_series.assert_called_with("rolling")
         mocklaunchpadmanager.get_ppa.assert_called_once_with("didppa")
-        mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.assert_called_with(status="Published", exact_match=True,
+        mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.assert_called_with(exact_match=True,
                                                                                          source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
         self.assertEquals("0", return_version)
 
