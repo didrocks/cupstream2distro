@@ -65,5 +65,5 @@ STACK_STATUS_FILENAME = "stack.status"
 STACK_STARTED_FILENAME = "stack.started"
 STACK_BUILDING_FILENAME = "stack.building"
 
-STACK_RUNNING_DIR = "/var/lib/jenkins/cu2d/work"
-STACK_STATUS_PUBLISHING_DIR = "/var/lib/jenkins/cu2d/result_publishing"
+STACK_RUNNING_DIR = "/iSCSI/jenkins/cu2d/work"
+STACK_STATUS_PUBLISHING_DIR = "/iSCSI/jenkins/cu2d/result_publishing"

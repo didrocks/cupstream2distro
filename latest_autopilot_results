@@ -1,25 +1,27 @@
 #!/bin/sh
 
-if [ $# -lt 2 ]; then
+if [ $# -ne 3 ]; then
    cat>&2 <<EOF
-usage: $(basename $0) JOBNAME NODENAME
+usage: $(basename $0) JENKINSROOT JOBNAME NODENAME
 Returns the path to the junit result file of latest build of autopilot
 
 Arguments:
+   JENKINSROOT : Root of the jenkins directory
    JOBNAME  : Name of the job that runs the check
    NODENAME : Name of the jenkins node on which this test has run e.g autopilot-ati
 
 example:
-  \$ $(basename $0) autopilot-raring-daily_release autopilot-intel
+  \$ $(basename $0) /iSCSI/jenkins autopilot-raring-daily_release autopilot-intel
 EOF
 
     exit 1
 fi
 
-JOBNAME=$1
-NODENAME=$2
+JENKINSROOT=$1
+JOBNAME=$2
+NODENAME=$3
 
-BASEDIR=/var/lib/jenkins/jobs
+BASEDIR=${JENKINSROOT}/jobs
 SEARCHPATH=${BASEDIR}/${JOBNAME}/configurations/axis-label/${NODENAME}/builds/
 RESULTFILE=junitResult.xml
 if [ ! -d "$SEARCHPATH" ]; then
