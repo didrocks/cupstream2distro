@@ -79,7 +79,14 @@ def get_config_step(config):
     """Get configuration step"""
     return config["global"]["step"]
 
-def set_config_step(config, new_step):
+def set_config_step(config, new_step, uri=''):
     """Set configuration step to new_step"""
     config["global"]["step"] = new_step
-    return save_config(config)
+    return save_config(config, uri)
+
+def get_all_projects(config):
+    """Get a list of all projets"""
+    projects = []
+    projects.extend(config["mps"])
+    projects.extend(config["sources"])
+    return projects

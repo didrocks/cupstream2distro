@@ -136,11 +136,16 @@ def is_series_current(series_name):
     return get_ubuntu().current_series.name == series_name
 
 def get_resource_from_url(url):
-    '''Return a lp resource from an url'''
+    '''Return a lp resource from a launchpad url'''
     lp = get_launchpad()
     url = lp.resource_type_link.replace("/#service-root", "") + url.split("launchpad.net")[1]
     return lp.load(url)
 
+def get_resource_from_token(url):
+    '''Return a lp resource from a launchpad token'''
+    lp = get_launchpad()
+    return lp.load(url)
+
 def is_dest_ubuntu_archive(series_link):
     '''return if series_link is the ubuntu archive'''
-    return series_link == launchpadmanager.get_ubuntu_archive().self_link
+    return series_link == get_ubuntu_archive().self_link

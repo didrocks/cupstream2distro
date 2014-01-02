@@ -32,13 +32,14 @@ import settings
 from .utils import ignored
 
 
-def get_current_version_for_series(source_package_name, series_name, ppa_name=None):
+def get_current_version_for_series(source_package_name, series_name, ppa_name=None, dest=None):
     '''Get current version for a package name in that series'''
     series = launchpadmanager.get_series(series_name)
-    if ppa_name:
-        dest = launchpadmanager.get_ppa(ppa_name)
-    else:
-        dest = launchpadmanager.get_ubuntu_archive()
+    if not dest:
+        if ppa_name:
+            dest = launchpadmanager.get_ppa(ppa_name)
+        else:
+            dest = launchpadmanager.get_ubuntu_archive()
     source_collection = dest.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series)
     try:
         # cjwatson told that list always have the more recently published first (even if removed)

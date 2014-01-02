@@ -1,0 +1,175 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2012-2014 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import logging
+import os
+import sys
+
+
+from cupstream2distro import launchpadmanager, packageinppamanager, packagemanager, silomanager
+from cupstream2distro.stacks import get_stack_packaging_change_status
+from cupstream2distro.tools import generate_xml_artefacts, get_previous_distro_version_from_config, mark_project_as_published
+from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT, SRU_PPA, SILO_BUILTCHECKED, SILO_PUBLISHED
+from cupstream2distro.utils import ignored
+
+
+if __name__ == '__main__':
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+    parser = argparse.ArgumentParser(description="Watch for published package in a ppa. Create a xml artefact if manual copy is needed.")
+
+    parser.add_argument("--ackpackaging", action='store_true', help="Publish even if there are packaging change. Only done after manual reviews of the diff.")
+    parser.add_argument("--ignoremissingprojects", action='store_true', help="Ignore if some projects are not part of the set (and free the lock for them).")
+    parser.add_argument("--ignorestep", action='store_true', help="Ignore if previous step didn't successfully end.")
+    parser.add_argument("--ignoreversiondestination", action='store_true', help="Ignore if the latest version in destination doesn't match when prepare was started.")
+    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
+
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+                        format="%(asctime)s %(levelname)s %(message)s")
+    if args.debug:
+        logging.debug("Debug mode enabled")
+
+    silo_config = silomanager.load_config()
+    series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"]).name
+    src_ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
+    src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
+    src_pocket = 'Release'
+    dest_link = silo_config["global"]["dest"]
+
+
+    if silomanager.get_config_step(silo_config) != SILO_BUILTCHECKED:
+        if args.ignorestep:
+            logging.error("Last step didn't finish successfully, but the ignore flag is set.")
+        else:
+            logging.error("Last step didn't finish successfully. You need to either ignore that the previous step didn't finished successfully or ensuring that prepare, build and checked passed.")
+            sys.exit(1)
+        # reset it
+        if not silomanager.set_config_step(silo_config, SILO_BUILTCHECKED):
+            logging.error("Couldn't reset the step in the configuration file.")
+            sys.exit(1)
+    all_silo_projects = silomanager.get_all_projects(silo_config)
+
+    # getting the archives and series objects
+    is_sru = not launchpadmanager.is_series_current(series)
+    # FIXME: TO TEST
+    is_sru = False
+    dest_archive = launchpadmanager.get_resource_from_token(dest_link)
+    if not launchpadmanager.is_dest_ubuntu_archive(dest_link):
+        dest_pocket = 'Release'
+        logging.info("Direct copy from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series".format(
+                      src_archive=src_ppa.name, src_pocket=src_pocket, dest_archive=dest_archive.name, dest_pocket=dest_pocket,
+                      series=series))
+    else:
+        logging.info("Copy from {src_archive} ({src_pocket}) to {series} series in distro".format(
+                      src_archive=src_ppa.name, src_pocket=src_pocket, series=series))
+        distro = launchpadmanager.get_resource_from_token(dest_link)
+        distro_pocket = 'Proposed'
+        src_ppa_pocket = src_pocket
+        if is_sru:
+            logging.info("This upload is part of a SRU. The {} ppa will be used as a staging archive".format(SRU_PPA))
+            dest_archive = launchpadmanager.get_ppa(SRU_PPA)
+            src_ppa_name = SRU_PPA
+            dest_pocket = 'Release'
+            src_ppa_pocket = dest_pocket
+
+    manual_publish_cause_list = []
+
+    all_packages_uploaded = packageinppamanager.get_all_packages_uploaded()
+
+    # Generate global packaging change status
+    manual_publish_cause_list.extend(get_stack_packaging_change_status(all_packages_uploaded))
+
+    # we only go on manual publishing if we have something to publish
+    if not args.ackpackaging and all_packages_uploaded and manual_publish_cause_list:
+        logging.info("Don't upload the silo automatically.")
+        generate_xml_artefacts("Publisher", manual_publish_cause_list, PUBLISHER_ARTEFACTS_FILENAME)
+        sys.exit(0)
+
+    packagelist_to_copy = []
+    version_check_fail = False
+
+    # check and generate metadata
+    for (source, version, tip_rev, branch) in all_packages_uploaded:
+        logging.info("Checking {} ({})".format(source, version))
+        try:
+            all_silo_projects.remove(source)
+        except valueError:
+            logging.error("{} wasn't in the initiale configuration. You have messed with the file system directly.\nUnknown state. Please reconfigure and reprepare the silo.")
+            sys.exit(1)
+        supposed_dest_version = get_previous_distro_version_from_config(source)
+
+        # generate a file for distro that will be rsynced from another place
+        message = "Previous available version ({}) is not the latest version anymore in [] ([]).\nPlease ensure that this version has been merged back in trunk and relaunch prepare or use ignore version destination option.".format(supposed_dest_version)
+        if launchpadmanager.is_dest_ubuntu_archive(dest_link):
+            # Check that we don't skip a version unintendly
+            version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=launchpadmanager.get_ubuntu_archive())
+            if not version_in_dest == supposed_dest_version:
+                logging.warning(message.replace('[]', '{}').format("the archive", version_in_dest))
+                version_check_fail = True
+            packagelist_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(src_ppa_name, src_ppa_pocket, series, distro_pocket, series, source, version, version_in_dest))
+        else:
+            version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=dest_archive)
+            if not version_in_dest == supposed_dest_version:
+                logging.warning(message.replace('[]', '{}').format(dest_archive.name, version_in_dest))
+                version_check_fail = True
+
+    if all_silo_projects:
+        message = "Some projects ({}) that were in the silo configuration list were not built. ".format(", ".join(all_silo_projects))
+        if args.ignoremissingprojects:
+            logging.info(message + "The ignore missing projects flag was set and we free the lock on those projects.")
+            for remaining_project in all_silo_projects:
+                with ignored(KeyError):
+                    silo_config["mps"].pop(remaining_project)
+                with ignored(ValueError):
+                    silo_config["sources"].remove(remaining_project)
+        else:
+            logging.error(message + "Prepare either prepare the latest missing projects or use the ignore missing projects flag which will release the lock on them.")
+            sys.exit(1)
+
+    if version_check_fail:
+        if args.ignoreversiondestination:
+            logging.info("Some version destination don't match the latest available in dest, but ignore flag was set.")
+        else:
+            logging.error("Not all versions when starting prepare are the latest at destination. Read above and either use ignore version destination option or rerun prepare")
+            sys.exit(1)
+
+    #  now ack the changes (if copy is needed)
+    if not launchpadmanager.is_dest_ubuntu_archive(dest_link) or is_sru:
+        for (source, version, tip_rev, branch) in all_packages_uploaded:
+            dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=series,
+                                     include_binaries=True, to_pocket=dest_pocket, to_series=series,
+                                     source_name=source, version=version)
+    if packagelist_to_copy:
+        package_list_rsync_file = PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(os.path.abspath('').split(os.path.sep)[-1], series)
+        logging.info("Writing {} for being able to rsync from main machine".format(package_list_rsync_file))
+        with open(package_list_rsync_file, 'w') as f:
+            f.write("\n".join(packagelist_to_copy))
+
+    # mark now all packages as published
+    for (source, version, tip_rev, branch) in all_packages_uploaded:
+        mark_project_as_published(source, version)
+    generate_xml_artefacts("Publisher", [], PUBLISHER_ARTEFACTS_FILENAME)
+    if not silomanager.set_config_step(silo_config, SILO_PUBLISHED):
+        logging.error("Couldn't save the step in the configuration file.")
+        sys.exit(1)

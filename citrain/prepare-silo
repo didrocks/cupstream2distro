@@ -22,11 +22,12 @@ import argparse
 import glob
 import lazr
 import logging
+import os
 import sys
 
 from cupstream2distro import launchpadmanager
 from cupstream2distro import silomanager
-from cupstream2distro.settings import SILO_BUILDPPA_SCHEME, SILOS_DIR
+from cupstream2distro.settings import SILO_BUILDPPA_SCHEME, SILOS_DIR, SILO_EMPTY
 
 
 if __name__ == '__main__':
@@ -115,7 +116,8 @@ if __name__ == '__main__':
         logging.error("PPA {} not found".format(ppa_uri))
         sys.exit(1)
     config["global"]["ppa"] = ppa.self_link
-    if not silomanager.save_config(config, os.path.join(SILOS_DIR, silo_name)):
+    config_path = os.path.join(SILOS_DIR, silo_name)
+    if not silomanager.save_config(config, config_path):
         sys.exit(1)
     logging.info("Affecting \"{}\" as silo. Build PPA is available at {}".format(silo_name, ppa.web_link))
-    silomanager.set_config_step(config, SILO_EMPTY)
+    silomanager.set_config_step(config, SILO_EMPTY, uri=config_path)

@@ -13,13 +13,23 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.BooleanParameterDefinition>
-          <name>ACKPACKAGING</name>
+          <name>ACK_PACKAGING</name>
           <description>Ack packaging changes</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
-          <name>IGNORESTEP</name>
+          <name>IGNORE_MISSINGPROJECTS</name>
+          <description>Ignore if some projects are not part of the set (and free the lock for them).</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>IGNORE_STEP</name>
           <description>Ignore if previous step hasn't completed successfully</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>IGNORE_VERSIONDESTINATION</name>
+          <description>Ignore if the latest version in destination doesn't match when prepare was started</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -45,11 +55,17 @@ export WORKSPACE="$PWD"
 cd {{ SILOS_DIR }}/{{ SILO_NAME }}
 
 OPTS=""
-if [ "$ACKPACKAGING" == "true" ]; then
+if [ "${ACK_PACKAGING}" == "true" ]; then
   OPTS="$OPTS --ackpackaging"
 fi
-if [ "$IGNORESTEP" == "true" ]; then
+if [ "${IGNORE_MISSINGPROJECTS}" == "true" ]; then
+  OPTS="$OPTS --ignoremissingprojects"
+fi
+if [ "${IGNORE_STEP}" == "true" ]; then
   OPTS="$OPTS --ignorestep"
+fi
+if [ "${IGNORE_VERSIONDESTINATION}" == "true" ]; then
+  OPTS="$OPTS --ignoreversiondestination"
 fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"
