@@ -140,3 +140,7 @@ def get_resource_from_url(url):
     lp = get_launchpad()
     url = lp.resource_type_link.replace("/#service-root", "") + url.split("launchpad.net")[1]
     return lp.load(url)
+
+def is_dest_ubuntu_archive(series_link):
+    '''return if series_link is the ubuntu archive'''
+    return series_link == launchpadmanager.get_ubuntu_archive().self_link

@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import argparse
+import glob
 import lazr
 import logging
 import sys
@@ -74,7 +75,9 @@ if __name__ == '__main__':
     # first, check that a silo is available
     if args.reconfiguresilo:
         silo_name = args.reconfiguresilo
-        logging.info("Reconfiguring {} as an existing silo".format(silo_name))
+        logging.info("Reconfiguring {} as an existing silo and remove all existing configuration.".format(silo_name))
+        for project_file in glob.glob("{}/*{}".format(os.path.join(SILOS_DIR, silo_name), PROJECT_CONFIG_SUFFIX)):
+            os.remove(project_file)
     else:
         logging.info("Checking that a silo is available")
         silo_name = silomanager.return_first_available_silo(SILOS_DIR)
@@ -115,3 +118,4 @@ if __name__ == '__main__':
     if not silomanager.save_config(config, os.path.join(SILOS_DIR, silo_name)):
         sys.exit(1)
     logging.info("Affecting \"{}\" as silo. Build PPA is available at {}".format(silo_name, ppa.web_link))
+    silomanager.set_config_step(config, SILO_EMPTY)

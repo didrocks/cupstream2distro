@@ -75,6 +75,7 @@ SILO_CONFIG_FILENAME = "config"
 SILO_BUILDPPA_SCHEME = "didrocks/{}"
 #SILO_DIR = os.path.expanduser("~/silos")
 CITRAIN_BINDIR = os.path.expanduser("~/citrain/citrain")
+(SILO_EMPTY, SILO_BUILTCHECKED, SILO_PUBLISHED) = range(3)
 
 # for testing
 SILO_NAME_LIST = ("ppa", "staging", "proposed")

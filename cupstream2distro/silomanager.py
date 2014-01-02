@@ -25,7 +25,7 @@ from cupstream2distro.settings import SILO_CONFIG_FILENAME, SILO_NAME_LIST
 from cupstream2distro.utils import ignored
 
 
-def save_config(config, uri):
+def save_config(config, uri=''):
     """Save config in uri"""
     silo_config_path = os.path.join(uri, SILO_CONFIG_FILENAME)
     with ignored(OSError):
@@ -74,3 +74,12 @@ def return_first_available_silo(base_silo_uri):
         if not os.path.isfile(os.path.join(base_silo_uri, silo_name, SILO_CONFIG_FILENAME)):
             return silo_name
     return None
+
+def get_config_step(config):
+    """Get configuration step"""
+    return config["global"]["step"]
+
+def set_config_step(config, new_step):
+    """Set configuration step to new_step"""
+    config["global"]["step"] = new_step
+    return save_config(config)
