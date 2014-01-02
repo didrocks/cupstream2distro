@@ -72,8 +72,6 @@ if __name__ == '__main__':
 
     # getting the archives and series objects
     is_sru = not launchpadmanager.is_series_current(series)
-    # FIXME: TO TEST
-    is_sru = False
     dest_archive = launchpadmanager.get_resource_from_token(dest_link)
     if not launchpadmanager.is_dest_ubuntu_archive(dest_link):
         dest_pocket = 'Release'
@@ -107,7 +105,8 @@ if __name__ == '__main__':
         sys.exit(0)
 
     packagelist_to_copy = []
-    version_check_fail = False
+    src_version_check_fail = False
+    dest_version_check_fail = False
 
     # check and generate metadata
     for (source, version, tip_rev, branch) in all_packages_uploaded:
@@ -119,20 +118,26 @@ if __name__ == '__main__':
             sys.exit(1)
         supposed_dest_version = get_previous_distro_version_from_config(source)
 
-        # generate a file for distro that will be rsynced from another place
+        # check source version
+        version_in_src = packagemanager.get_current_version_for_series(source, series, dest=src_ppa)
+        if version_in_src != version:
+            logging.error("Version in {}/{} ({}) is not the last one prepared ({}) (direct upload?).".format(src_ppa.owner.name, src_ppa.name, version_in_src, version))
+            src_version_check_fail = True
+
+        # check destination version
         message = "Previous available version ({}) is not the latest version anymore in [] ([]).\nPlease ensure that this version has been merged back in trunk and relaunch prepare or use ignore version destination option.".format(supposed_dest_version)
         if launchpadmanager.is_dest_ubuntu_archive(dest_link):
             # Check that we don't skip a version unintendly
             version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=launchpadmanager.get_ubuntu_archive())
             if not version_in_dest == supposed_dest_version:
-                logging.warning(message.replace('[]', '{}').format("the archive", version_in_dest))
-                version_check_fail = True
+                logging.error(message.replace('[]', '{}').format("the archive", version_in_dest))
+                dest_version_check_fail = True
             packagelist_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(src_ppa_name, src_ppa_pocket, series, distro_pocket, series, source, version, version_in_dest))
         else:
             version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=dest_archive)
             if not version_in_dest == supposed_dest_version:
                 logging.warning(message.replace('[]', '{}').format(dest_archive.name, version_in_dest))
-                version_check_fail = True
+                dest_version_check_fail = True
 
     if all_silo_projects:
         message = "Some projects ({}) that were in the silo configuration list were not built. ".format(", ".join(all_silo_projects))
@@ -147,7 +152,11 @@ if __name__ == '__main__':
             logging.error(message + "Prepare either prepare the latest missing projects or use the ignore missing projects flag which will release the lock on them.")
             sys.exit(1)
 
-    if version_check_fail:
+    if src_version_check_fail:
+        logging.error("Some packages in the ppa are not at the latest version. Please rerun the prepare job, eventually only with that project.")
+        sys.exit(1)
+
+    if dest_version_check_fail:
         if args.ignoreversiondestination:
             logging.info("Some version destination don't match the latest available in dest, but ignore flag was set.")
         else:
@@ -160,6 +169,7 @@ if __name__ == '__main__':
             dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=series,
                                      include_binaries=True, to_pocket=dest_pocket, to_series=series,
                                      source_name=source, version=version)
+    # generate a file for distro that will be rsynced from another place
     if packagelist_to_copy:
         package_list_rsync_file = PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(os.path.abspath('').split(os.path.sep)[-1], series)
         logging.info("Writing {} for being able to rsync from main machine".format(package_list_rsync_file))
