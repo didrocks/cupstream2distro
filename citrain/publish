@@ -36,10 +36,16 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Watch for published package in a ppa. Create a xml artefact if manual copy is needed.")
 
+    parser.add_argument("--ackpackaging", action='store_true', help="Publish even if there are packaging change. Only done after manual reviews of the diff.")
     parser.add_argument("--ignorestep", action='store_true', help="Ignore if previous step didn't successfully end.")
-    parser.add_argument("-f", "--force", action='store_true', help="Publish even if there are packaging change. Only done after manual reviews of the diff.")
+    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
     args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+                        format="%(asctime)s %(levelname)s %(message)s")
+    if args.debug:
+        logging.debug("Debug mode enabled")
 
     silo_config = silomanager.load_config()
 
@@ -85,14 +91,9 @@ if __name__ == '__main__':
     # Generate global packaging change status
     manual_publish_cause_list.extend(get_stack_packaging_change_status(all_packages_uploaded))
 
-    if stack.forced_manualpublish:
-        message = "Manual publishing mode for this stack forced. Components ready for release are: {}".format(all_packages_uploaded)
-        logging.info(message)
-        manual_publish_cause_list.append(message)
-
     # we only go on manual publishing if we have something to publish
-    if not args.force and all_packages_uploaded and (manual_publish_cause_list or stack.forced_manualpublish):
-        logging.info("Don't upload the stack automatically.")
+    if not args.ackpackaging and all_packages_uploaded and manual_publish_cause_list:
+        logging.info("Don't upload the silo automatically.")
         generate_xml_artefacts("Publisher", manual_publish_cause_list, PUBLISHER_ARTEFACTS_FILENAME)
     else:
         package_to_copy = []
