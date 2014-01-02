@@ -1,0 +1,149 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2012-2014 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import jenkins
+import jinja2
+import os
+import logging
+import yaml
+import sys
+import urllib2
+
+sys.path.append('..')  # add local cupstream2distro
+
+from cupstream2distro.settings import CITRAIN_BINDIR, SILO_NAME_LIST, SILOS_DIR
+
+DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
+JENKINS_DAILY_CONFIG_NAME = 'citrain'
+TEMPLATES = {
+    'prepare-silo': 'prepare-silo.xml.tmpl',
+    'build': 'build.xml.tmpl',
+    'publish': 'publish.xml.tmpl',
+    'merge-clean': 'merge-clean.xml.tmpl'
+}
+
+def load_jenkins_credentials(path, jenkins_name):
+    """Load credentials from credentials configuration file"""
+    if not os.path.exists(path):
+        logging.error("No credential file found in {}".format(path))
+        return False
+
+    logging.debug("Loading credentials from {}".format(path))
+    cred = yaml.safe_load(file(path, 'r'))
+    return False if not jenkins_name in cred else cred[jenkins_name]
+
+
+def get_jenkins_handle(jenkins_config):
+    """Get jenkins object"""
+    if not jenkins_config['url']:
+        logging.error("Please provide a URL to the jenkins instance.")
+        return False
+    if 'username' in jenkins_config:
+        jenkins_handle = jenkins.Jenkins(
+            jenkins_config['url'],
+            username=jenkins_config['username'],
+            password=jenkins_config['password'])
+    else:
+        jenkins_handle = jenkins.Jenkins(jenkins_config['url'])
+    return jenkins_handle
+
+
+def setup_job(jenkins_handle, jjenv, jobname, template_name, ctx={}):
+    """ Generate template and create or update jenkins job
+
+    :param jenkins_handle: jenkins handle
+    :param jjenv: handle to jinja environment
+    :param jobname: jenkins' job name
+    :param template_name: template name
+    :param ctx: additional context
+    """
+    logging.debug("Generating job: {}".format(jobname))
+    tmpl = jjenv.get_template(template_name)
+    ctx['BINDIR'] = CITRAIN_BINDIR
+    jkcfg = tmpl.render(ctx)
+    jkcfg = jkcfg.replace(' \n', '')
+    jkcfg = jkcfg.replace('>\n\n', '>\n')
+    jobname = urllib2.quote(jobname)
+    print("Test job {}".format(jobname))
+    if not jenkins_handle.job_exists(jobname):
+        logging.info("Creating Jenkins Job %{}".format(jobname))
+        jenkins_handle.create_job(jobname, jkcfg)
+    else:
+        logging.info("Reconfiguring Jenkins Job %{}".format(jobname))
+        jenkins_handle.reconfig_job(jobname, jkcfg)
+
+
+def setup_silo(jenkins_handle, jjenv, silo_name):
+    """Setup a silo jenkins job"""
+    logging.info("Configure {}".format(silo_name))
+    ctx = {"SILOS_DIR": SILOS_DIR,
+           "SILO_NAME": silo_name}
+    setup_job(jenkins_handle, jjenv, "{}-1-build", TEMPLATES["build"], ctx)
+    setup_job(jenkins_handle, jjenv, "{}-2-publish", TEMPLATES["publish"], ctx)
+    setup_job(jenkins_handle, jjenv, "{}-3-merge-clean", TEMPLATES["merge-clean"], ctx)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Create/Update the configuration of the Jenkins jobs for citrain")
+    parser.add_argument('--prepare', action='store_true',
+                        default=False,
+                        help='Only configure main prepare silo job.')
+    parser.add_argument('--silos', nargs='+',
+                        help='Only configure the provided silos')
+    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
+
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+                        format="%(asctime)s %(levelname)s %(message)s")
+    if args.debug:
+        logging.debug("Debug mode enabled")
+
+
+    credentials = None
+    credentials = load_jenkins_credentials(
+        os.path.expanduser(DEFAULT_CREDENTIALS), JENKINS_DAILY_CONFIG_NAME)
+    if not credentials:
+        sys.exit(1)
+    jkh = get_jenkins_handle(credentials)
+    if not jkh:
+        logging.error("Could not acquire connection to jenkins.")
+        sys.exit(1)
+    template_dir = os.path.join(os.path.dirname(__file__), 'jenkins-templates')
+    jjenv = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
+
+    configure_all = True
+    if args.prepare:
+        configure_all = False
+        logging.info("Configure prepare silos job")
+        setup_job(jkh, jjenv, "prepare-silo", TEMPLATES["prepare-silo"])
+    if args.silos:
+        configure_all = False
+        for silo_name in args.silos:
+            if silo_name not in SILO_NAME_LIST:
+                logging.error("silo {} doesn't exist in {}".format(silo_name, SILO_NAME_LIST))
+                sys.exit(1)
+            setup_silo(jkh, jjenv, silo_name)
+
+    if configure_all:
+        for silo_name in SILO_NAME_LIST:
+            setup_silo(jkh, jjenv, silo_name)

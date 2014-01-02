@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Prepare and attribute a silo</description>
+  <logRotator>
+    <daysToKeep>15</daysToKeep>
+    <numToKeep>-1</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>SERIES</name>
+          <description>Publish for this series</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>SERIES</name>
+          <description>Publish for this series</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MERGE_PROPOSALS</name>
+          <description>Merge proposal urls</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>SOURCES</name>
+          <description>Source package that will be directly uploaded</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DEST</name>
+          <description>Set destination ppa if not Ubuntu archive</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>RECONFIGURE_SILO</name>
+          <description>Don't instantiante a new silo, but reconfigure that one</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DEBUG</name>
+          <description>Debug mode</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -eu
+export LANG=en_US.UTF-8
+export WORKSPACE="$PWD"
+
+OPTS=""
+SERIES=${SERIES-}
+MERGE_PROPOSALS=${MERGE_PROPOSALS-}
+SOURCES=${SOURCES-}
+DEST=${DEST-}
+
+if [ -z "$DEST" ]; then
+  OPTS="$OPTS --destppa $DEST"
+fi
+if [ -z "${RECONFIGURE_SILO}" ]; then
+  OPTS="$OPTS --reconfiguresilo ${RECONFIGURE_SILO}"
+fi
+if [ "$DEBUG" == "true" ]; then
+  OPTS="$OPTS --debug"
+fi
+
+{{ BINDIR }}/prepare-silo $SERIES --addmps ${MERGE_PROPOSALS} --addsources $SOURCES $OPTS
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.build__publisher.BuildPublisher>
+      <publishUnstableBuilds>true</publishUnstableBuilds>
+      <publishFailedBuilds>true</publishFailedBuilds>
+      <postActions class="vector"/>
+    </hudson.plugins.build__publisher.BuildPublisher>
+  </publishers>
+  <buildWrappers/>
+</project>
