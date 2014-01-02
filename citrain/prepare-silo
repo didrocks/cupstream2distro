@@ -1,0 +1,111 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2014 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import lazr
+import logging
+import sys
+
+from cupstream2distro import launchpadmanager
+from cupstream2distro import silomanager
+from cupstream2distro.settings import SILO_BUILDPPA_SCHEME
+
+
+if __name__ == '__main__':
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+    parser = argparse.ArgumentParser(description="Prepare and assign a free silo from a ppa",
+                                     epilog="series and ppa options can be set by the corresponding long option name env variables as well")
+
+    parser.add_argument("series", help="Serie used to build the package")
+
+    parser.add_argument("-d", "--destppa", help="Consider this destppa instead of {series}-proposed")
+    parser.add_argument("--addmps", nargs='+', default = [], help="Merge proposal urls")
+    parser.add_argument("--addsources", nargs='+', default = [], help="Add sources packages that will be uploaded later manually to the ppa")
+    parser.add_argument("--reconfiguresilo", help="Reconfigure an existing silo")
+
+    args = parser.parse_args()
+
+
+    series = launchpadmanager.get_series(args.series)
+    if args.destppa:
+        dest = launchpadmanager.get_ppa(args.destppa)
+    else:
+        dest = launchpadmanager.get_ubuntu_archive()
+
+    if not args.addmps and not args.addsources:
+        logging.error("You need at least specify a MP or a source")
+        sys.exit(1)
+
+    project_urls = args.addmps[:]
+    project_urls.extend(args.addsources)
+    logging.info("Configuring for {} ({}) in {}".format(", ".join(project_urls), series.name, dest.name))
+
+    config = {"global": { "dest": dest.self_link,
+                          "series": series.self_link },
+              "sources": [],
+              "mps": {}
+    }
+
+    # first, check that a silo is available
+    if args.reconfiguresilo:
+        silo_name = args.reconfiguresilo
+        logging.info("Reconfiguring {} as an existing silo".format(silo_name))
+    else:
+        logging.info("Checking that a silo is available")
+        silo_name = silomanager.return_first_available_silo()
+        if not silo_name:
+            logging.error("No silo is available")
+            sys.exit(1)
+
+    if args.addsources:
+        logging.info("Additional packages will be directly uploaded to the ppa: {}".format(", ".join(args.addsources)))
+        config["sources"] = args.addsources
+
+    one_project_already_in_use = False
+    # grab the project name of all MP
+    for mp_url in args.addmps:
+        mp = launchpadmanager.get_resource_from_url(mp_url)
+        config["mps"][mp.target_branch.project.name] = mp.self_link
+
+        # check that any of those components are part of any current transaction
+        if not silomanager.is_project_not_in_any_configs(mp.target_branch.project.name, series, dest):
+            one_project_already_in_use = True
+
+    # check that addtional sources are not as well already in use
+    for source in config["sources"]:
+        if not silomanager.is_project_not_in_any_configs(source, series, dest):
+            one_project_already_in_use = True
+
+    if one_project_already_in_use:
+        logging.error("One or more projects are already in use for the same destination and series in another silo (see above)")
+        sys.exit(1)
+
+    ppa_uri = SILO_BUILDPPA_SCHEME.format(silo_name)
+    try:
+        ppa = launchpadmanager.get_ppa(ppa_uri)
+    except lazr.restfulclient.errors.NotFound:
+        logging.error("PPA {} not found".format(ppa_uri))
+        sys.exit(1)
+    config["global"]["ppa"] = ppa.self_link
+    if not silomanager.save_config(config, silo_name):
+        sys.exit(1)
+    logging.info("Affecting \"{}\" as silo. Build PPA is available at {}".format(silo_name, ppa.web_link))

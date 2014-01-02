@@ -134,3 +134,9 @@ def get_ppa(ppa_name):
 def is_series_current(series_name):
     '''Return if series_name is the edge development version'''
     return get_ubuntu().current_series.name == series_name
+
+def get_resource_from_url(url):
+    '''Return a lp resource from an url'''
+    lp = get_launchpad()
+    url = lp.resource_type_link.replace("/#service-root", "") + url.split("launchpad.net")[1]
+    return lp.load(url)

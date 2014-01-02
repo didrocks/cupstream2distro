@@ -67,3 +67,11 @@ STACK_BUILDING_FILENAME = "stack.building"
 
 STACK_RUNNING_DIR = "/iSCSI/jenkins/cu2d/work"
 STACK_STATUS_PUBLISHING_DIR = "/iSCSI/jenkins/cu2d/result_publishing"
+
+# for citrain
+#SILO_NAME_LIST = ("Aquaria", "Aerilon", "Canceron", "Caprica", "Gemenon", "Leonis", "Libra", "Picon",
+#                  "Sagitarron", "Scorpia", "Tauron", "Virgon")
+# for testing
+SILO_NAME_LIST = ("ppa", "staging", "proposed")
+SILO_CONFIG_FILENAME = "config"
+SILO_BUILDPPA_SCHEME = "didrocks/{}"
