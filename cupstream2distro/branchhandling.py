@@ -200,3 +200,41 @@ def propose_branch_for_merging(source_package_name, version, tip_rev, branch):
     if mergeinstance.returncode != 0:
         raise Exception("The lp-propose command returned an error.")
     os.chdir('..')
+
+
+def merge_branch_with_parent_into(local_branch_uri, lp_parent_branch, dest_uri, commit_message, revision):
+    """Merge local branch into lp_parent_branch at revision"""
+    success = False
+    cur_dir = os.path.abspath('.')
+    subprocess.call(["bzr", "branch", "-r", str(revision), lp_parent_branch, dest_uri])
+    os.chdir(dest_uri)
+    if subprocess.call(["bzr", "merge", local_branch_uri]) == 0:
+        subprocess.call(["bzr", "commit", "-m", commit_message])
+        success = True
+    os.chdir(cur_dir)
+    return success
+
+
+def reconcile_with_branch(uri_to_merge, lp_parent_branch):
+    """Resync with targeted branch if possible"""
+    success = False
+    cur_dir = os.path.abspath('.')
+    os.chdir(uri_to_merge)
+    if subprocess.call(["bzr", "merge", lp_parent_branch]) == 0:
+        subprocess.call(["bzr", "commit", "-m", "Resync trunk", "--unchanged"])
+        success = True
+    os.chdir(cur_dir)
+    return success
+
+def push_to_branch(source_uri, lp_parent_branch, overwrite=False):
+    """Push source to parent branch"""
+    success = False
+    os.chdir(source_uri)
+    lp_parent_branch = lp_parent_branch.replace("https://code.launchpad.net/", "lp:")
+    command = ["bzr", "push", lp_parent_branch]
+    if overwrite:
+        command.append("--overwrite")
+    if subprocess.call(command) == 0:
+        success = True
+    os.chdir("..")
+    return success

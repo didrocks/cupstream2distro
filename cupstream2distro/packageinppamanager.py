@@ -52,6 +52,22 @@ def get_all_packages_uploaded():
     return result
 
 
+def get_packages_and_versions_uploaded():
+    '''Get (package, version) of all packages uploaded. We can have duplicates'''
+
+    # we do not rely on the .changes files but in the config file
+    # because we need the exact version (which can have an epoch)
+    result = set()
+    source_package_regexp = re.compile("(.*).{}.*$".format(PROJECT_CONFIG_SUFFIX))
+    for file in os.listdir('.'):
+        substract = source_package_regexp.findall(file)
+        if substract:
+            config = ConfigParser.RawConfigParser()
+            config.read(file)
+            result.add((substract[0], config.get('Package', 'packaging_version')))
+    return result
+
+
 def update_all_packages_status(packages_not_in_ppa, packages_building, packages_failed, particular_arch=None):
     '''Update all packages status, checking in the ppa'''
 

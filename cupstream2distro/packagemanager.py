@@ -49,6 +49,12 @@ def get_current_version_for_series(source_package_name, series_name, ppa_name=No
         return "0"
 
 
+def is_version_for_series_in_dest(source_package_name, version, series, dest, pocket="Release"):
+    '''Return if version for a package name in that series is in dest'''
+    return dest.getPublishedSources(exact_match=True, source_name=source_package_name, version=version,
+                                    distro_series=series, pocket=pocket).total_size > 0
+
+
 def is_version1_higher_than_version2(version1, version2):
     '''return if version1 is higher than version2'''
     return (subprocess.call(["dpkg", "--compare-versions", version1, 'gt', version2], stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0)
