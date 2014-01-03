@@ -32,11 +32,11 @@
           <description>Set destination ppa if not Ubuntu archive</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>RECONFIGURE_SILO</name>
           <description>Don't instantiante a new silo, but reconfigure that one</description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>DEBUG</name>
           <description>Debug mode</description>
@@ -64,11 +64,11 @@ MERGE_PROPOSALS=${MERGE_PROPOSALS-}
 SOURCES=${SOURCES-}
 DEST=${DEST-}
 
-if [ -z "$DEST" ]; then
+if [ ! -z "$DEST" ]; then
   OPTS="$OPTS --destppa $DEST"
 fi
-if [ -z "${RECONFIGURE_SILO}" ]; then
-  OPTS="$OPTS --reconfiguresilo ${RECONFIGURE_SILO}"
+if [ "${RECONFIGURE_SILO}" == "true" ]; then
+  OPTS="$OPTS --reconfiguresilo"
 fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"

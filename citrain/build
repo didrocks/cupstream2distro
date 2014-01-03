@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--prepareonly", nargs='+', default = [], help="Don't rebuild everything and only rescan MPS provided (source packages)")
     parser.add_argument("--watchonly", action='store_true', help="Only watch the current ppa")
-    parser.add_argument("--forcerebuild", action='store_true', help="Force rebuilding components associated to a MP even if there is no diff with distro")
+    parser.add_argument("--forcerebuild", action='store_true', help="Force rebuilding components associated to a MP even if there is no diff with dest")
     parser.add_argument("--ignorestep", action='store_true', help="Ack a whole rebuild even if one was already requested.")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
@@ -136,7 +136,3 @@ if __name__ == '__main__':
         call_params.extend(["--destppa", "{}/{}".format(dest.owner.name, dest.name)])
     if subprocess.call(call_params) != 0:
         sys.exit(1)
-
-    # launch the upstream check with parameters
-
-    ## after built check: call mark-as-builtcheck

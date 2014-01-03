@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Build and check "{{ SILO_NAME }}" projects</description>
+  <logRotator>
+    <daysToKeep>15</daysToKeep>
+    <numToKeep>-1</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>PREPARE_ONLY</name>
+          <description>Don't rebuild everything and only rescan MPS provided (source packages)</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>WATCH_ONLY</name>
+          <description>Only watch the current ppa and run tests</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>FORCE_REBUILD</name>
+          <description>Force rebuilding components associated to a MP even if there is no diff with dest</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>IGNORE_STEP</name>
+          <description>Ignore if previous step hasn't completed successfully</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DEBUG</name>
+          <description>Debug mode</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -eu
+export LANG=en_US.UTF-8
+export WORKSPACE="$PWD"
+
+cd {{ SILOS_DIR }}/{{ SILO_NAME }}
+
+PREPARE_ONLY=${PREPARE_ONLY-}
+OPTS=""
+if [ ! -z "$PREPARE_ONLY" ]; then
+  OPTS="$OPTS --prepareonly $PREPARE_ONLY"
+fi
+if [ "${WATCH_ONLY}" == "true" ]; then
+  OPTS="$OPTS --watchonly"
+fi
+if [ "${FORCE_REBUILD}" == "true" ]; then
+  OPTS="$OPTS --forcerebuild"
+fi
+if [ "${IGNORE_STEP}" == "true" ]; then
+  OPTS="$OPTS --ignorestep"
+fi
+if [ "$DEBUG" == "true" ]; then
+  OPTS="$OPTS --debug"
+fi
+
+{{ BINDIR }}/build $OPTS
+</command>
+    </hudson.tasks.Shell>
+    <!--parametrize build: we can't build for now as parameters are not in the same file
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder>
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>{{ checkparameters }}</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+            <hudson.plugins.parameterizedtrigger.FileBuildParameters>
+                <propertiesFile>/tmp/autopilot.{{ release }}.{{ stack }}.check.run</propertiesFile>
+                <failTriggerOnMissing>true</failTriggerOnMissing>
+            </hudson.plugins.parameterizedtrigger.FileBuildParameters>
+          </configs>
+          <projects>{{ extracheck }}</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <block>
+            <buildStepFailureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+            </buildStepFailureThreshold>
+            <failureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+            </failureThreshold>
+          </block>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.TriggerBuilder>-->
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -eu
+export LANG=en_US.UTF-8
+export WORKSPACE="$PWD"
+
+cd {{ SILOS_DIR }}/{{ SILO_NAME }}
+
+{{ BINDIR }}/mark-as-builtchecked
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.build__publisher.BuildPublisher>
+      <publishUnstableBuilds>true</publishUnstableBuilds>
+      <publishFailedBuilds>true</publishFailedBuilds>
+      <postActions class="vector"/>
+    </hudson.plugins.build__publisher.BuildPublisher>
+  </publishers>
+  <buildWrappers/>
+</project>
