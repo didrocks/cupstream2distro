@@ -73,10 +73,15 @@ STACK_STATUS_PUBLISHING_DIR = "/iSCSI/jenkins/cu2d/result_publishing"
 #                  "Sagitarron", "Scorpia", "Tauron", "Virgon")
 SILO_CONFIG_FILENAME = "config"
 SILO_BUILDPPA_SCHEME = "didrocks/{}"
-SILO_DIR = os.path.expanduser("~/silos")
+SILOS_DIR = os.path.expanduser("~/silos")
 SILO_RSYNCDIR = os.path.expanduser("~/rsync")
 CITRAIN_BINDIR = os.path.expanduser("~/citrain/citrain")
 (SILO_EMPTY, SILO_BUILTCHECKED, SILO_PUBLISHED, SILO_DONE) = range(4)
+
+SERIES_VERSION = {
+    'trusty': '14.04'
+}
+
 
 # for testing
 SILO_NAME_LIST = ("ppa", "staging", "proposed")

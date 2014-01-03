@@ -25,9 +25,9 @@ import logging
 import os
 import sys
 
-from cupstream2distro import launchpadmanager
-from cupstream2distro import silomanager
+from cupstream2distro import launchpadmanager, packageinppamanager, silomanager
 from cupstream2distro.settings import SILO_BUILDPPA_SCHEME, SILOS_DIR, SILO_EMPTY
+from cupstream2distro.tools import clean_source
 
 
 if __name__ == '__main__':
@@ -76,9 +76,7 @@ if __name__ == '__main__':
     # first, check that a silo is available
     if args.reconfiguresilo:
         silo_name = args.reconfiguresilo
-        logging.info("Reconfiguring {} as an existing silo and remove all existing configuration.".format(silo_name))
-        for project_file in glob.glob("{}/*{}".format(os.path.join(SILOS_DIR, silo_name), PROJECT_CONFIG_SUFFIX)):
-            os.remove(project_file)
+        logging.info("Reconfiguring {} as an existing silo".format(silo_name))
     else:
         logging.info("Checking that a silo is available")
         silo_name = silomanager.return_first_available_silo(SILOS_DIR)
@@ -100,7 +98,7 @@ if __name__ == '__main__':
         if not silomanager.is_project_not_in_any_configs(mp.target_branch.project.name, series, dest, SILOS_DIR):
             one_project_already_in_use = True
 
-    # check that addtional sources are not as well already in use
+    # check that additional sources are not as well already in use
     for source in config["sources"]:
         if not silomanager.is_project_not_in_any_configs(source, series, dest, SILOS_DIR):
             one_project_already_in_use = True
@@ -120,4 +118,19 @@ if __name__ == '__main__':
     if not silomanager.save_config(config, config_path):
         sys.exit(1)
     logging.info("Affecting \"{}\" as silo. Build PPA is available at {}".format(silo_name, ppa.web_link))
+
+    # if reconfigure, ensure we remove all projects file and packages from the ppa that are not to take into account anymore
+    if args.reconfiguresilo:
+        logging.info("Check and clean all removed sources")
+        silo_name = args.reconfiguresilo
+        all_silo_projects = silomanager.get_all_projects(config)
+        # remove all files related to sources that are not in the configuration anymore
+        for (source, version, rev, branch) in packageinppamanager.get_all_packages_uploaded():
+            if source not in all_silo_projects:
+                logging.info("Removing {} from ppa and configuration".format(source))
+                clean_source(source)
+                for pkg in ppa.getPublishedSources(exact_match=True, distro_series=series, source_name=source):
+                    pkg.requestDeletion()
+        # NOTE: we don't wait for the removal to be published. Shouldn't be an issue
+
     silomanager.set_config_step(config, SILO_EMPTY, uri=config_path)

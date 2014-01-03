@@ -19,6 +19,7 @@
 
 import ConfigParser
 import os
+import shutil
 from xml.sax.saxutils import quoteattr, escape
 
 from .settings import PROJECT_CONFIG_SUFFIX
@@ -75,3 +76,13 @@ def mark_project_as_published(source_package_name, packaging_version):
     diff_filename = get_packaging_diff_filename(source_package_name, packaging_version)
     if os.path.isfile(diff_filename):
         os.rename(diff_filename, "{}.published".format(diff_filename))
+
+
+def clean_source(source):
+    """clean all related source content from current silos"""
+    with ignored(OSError):
+        shutil.rmtree(source)
+    with ignored(OSError):
+        os.remove("{}.{}".format(source, PROJECT_CONFIG_SUFFIX))
+    with ignored(OSError):
+        shutil.rmtree("ubuntu/{}".format(source))

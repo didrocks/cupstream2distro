@@ -1,0 +1,129 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2014 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+import argparse
+import logging
+import os
+import shutil
+import sys
+
+from cupstream2distro import launchpadmanager, packagemanager, silomanager, tools
+from cupstream2distro.settings import PROJECT_CONFIG_SUFFIX, SILO_EMPTY
+from cupstream2distro.utils import ignored
+from cupstream2distro.tools import clean_source
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Prepare, build and check packages")
+
+    parser.add_argument("--prepareonly", nargs='+', default = [], help="Don't rebuild everything and only rescan MPS provided (source packages)")
+    parser.add_argument("--watchonly", action='store_true', help="Only watch the current ppa")
+    parser.add_argument("--forcerebuild", action='store_true', help="Force rebuilding components associated to a MP even if there is no diff with distro")
+    parser.add_argument("--ignorestep", action='store_true', help="Ack a whole rebuild even if one was already requested.")
+    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
+
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+                        format="%(asctime)s %(levelname)s %(message)s")
+    if args.debug:
+        logging.debug("Debug mode enabled")
+
+    silo_config = silomanager.load_config()
+    src_ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
+    dest = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
+    series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"]).name
+
+    if not args.prepareonly and not args.watchonly:
+        if silomanager.get_config_step(silo_config) != SILO_EMPTY:
+            if args.ignorestep:
+                logging.warning("You already tried to build everything. But the ignore flag is set.")
+            else:
+                logging.error("You already tried to build everything. You need to either:\n - use the ignore step flag \n - use --prepareonly to rebuild a selection \n - use --watchonly to check ppa status and run the tests.")
+                sys.exit(1)
+        # remove everything but the archived .project_ files
+        logging.info("Whole rebuild, ensuring that the silo is in a coherent state. Keep the published files")
+        for filename in os.listdir("."):
+            # don't remove archive file and config file
+            if (not ".{}_".format(PROJECT_CONFIG_SUFFIX) in filename and not "config" in filename
+               and not "dest_branches" in filename):
+                try:
+                    shutil.rmtree(filename)
+                except OSError:
+                    os.remove(filename)
+
+    # reset the status
+    if not silomanager.set_config_step(silo_config, SILO_EMPTY):
+        logging.error("Couldn't reset the step in the configuration file.")
+        sys.exit(1)
+
+
+    # detect if we have a prepare only source not in configuration
+    components_not_in_config = []
+    for source in args.prepareonly:
+        if source not in silo_config["mps"]:
+            components_not_in_config.append(source)
+    if components_not_in_config:
+        logging.error("One or more components provided in prepareonly ({}) are not in the silo configuration. Ask for a reconfiguration of the silo with the new MPs to add please.".format(", ".join(components_not_in_config)))
+        sys.exit(1)
+
+    # cycle through all branches and prepare them
+    components_to_prepare = {}
+    for source in silo_config["mps"]:
+        if (not args.prepareonly and not args.watchonly) or source in args.prepareonly:
+            logging.info("Adding {} as a branch to prepare".format(source))
+            mp_branch = launchpadmanager.get_resource_from_token(silo_config['mps'][source]).source_branch
+            components_to_prepare[source] = mp_branch.web_link
+            # cleaning (in case of partial rebuild)
+            clean_source(source)
+
+    # prepare one by one
+    for source in components_to_prepare:
+        logging.info("Trying to prepare {}".format(component_to_prepare))
+        # TODO: prepare source and dput
+        
+
+        
+
+    # look at the ppa and generate .projects
+    logging.info("Detecting other published sources in ppa")
+    logging.info("Looking at the ppa {} ({}) content".format(ppa.web_link, series.name))
+    direct_upload_not_in_list = []
+    for pkg in src_ppa.getPublishedSources(distro_series=series, status="Published"):
+        if pkg.source_package_name in silo_config["mps"]:
+            continue
+        if pkg.source_package_name in silo_config["sources"]:
+            dest_current_version = packagemanager.get_current_version_for_series(pkg.source_package_name, series, dest=dest)
+            tools.save_project_config(pkg.source_package_name, "", "", dest_current_version, pkg.source_package_version)
+        else:
+            direct_upload_not_in_list.append(pkg.source_package_name)
+
+    if direct_upload_not_in_list:
+        logging.error("Some packages ({}) that are not in the MP or not in sources list have been detected in the ppa. Please remove them from the ppa or ask for a reconfiguration.".format(", ".join(direct_upload_not_in_list)))
+        sys.exit(1)
+
+
+    # watch ppa
+
+
+    # launch the upstream check with parameters
+
+    ## built check: small program after

@@ -30,7 +30,7 @@ import urllib2
 import ConfigParser
 
 from cupstream2distro import branchhandling, launchpadmanager, packageinppamanager, packagemanager, silomanager
-from cupstream2distro.settings import SILO_PUBLISHED, SILO_DONE, SILO_PACKAGING_MERGE_COMMIT_MESSAGE, BRANCH_URL, PROJECT_CONFIG_SUFFIX, TIME_BETWEEN_PPA_CHECKS, SILO_DIR
+from cupstream2distro.settings import SILO_PUBLISHED, SILO_DONE, SILO_PACKAGING_MERGE_COMMIT_MESSAGE, BRANCH_URL, PROJECT_CONFIG_SUFFIX, TIME_BETWEEN_PPA_CHECKS, SILOS_DIR
 from cupstream2distro.utils import ignored
 
 
@@ -44,8 +44,8 @@ def check_packages_and_versions(silo_config, packages_in_dest, ignoremissingproj
     for source in packages_in_dest:
         try:
             all_silo_projects.remove(source)
-        except valueError:
-            logging.error("{} wasn't in the initiale configuration. You have messed with the file system directly.\nUnknown state. Please resolve the silo manually.")
+        except ValueError:
+            logging.error("{} wasn't in the initiale configuration. You have messed with the file system directly.\nUnknown state. Please resolve the silo manually and then free it.")
             sys.exit(1)
 
     if all_silo_projects:
@@ -89,24 +89,24 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
         os.mkdir(dest_base_uri)
 
     for source in silo_config["mps"]:
-        mp_branch = launchpadmanager.get_resource_from_token(silo_config['mps'][source])
-        logging.info("Checking and trying to merge {}".format(mp_branch.web_link))
+        mp = launchpadmanager.get_resource_from_token(silo_config['mps'][source])
+        logging.info("Checking and trying to merge {}".format(mp.web_link))
         version = packages_in_dest[source]
         config = ConfigParser.RawConfigParser()
         config.read("{}.{}_{}".format(source, PROJECT_CONFIG_SUFFIX, version))
         stored_tip_rev = config.get('Branch', 'rev')
-        tip_rev = str(mp_branch.target_branch.revision_count)
+        tip_rev = str(mp.target_branch.revision_count)
 
         # prepare and remerge
         message = SILO_PACKAGING_MERGE_COMMIT_MESSAGE.format(version)
         dest_branch_uri = os.path.join(dest_base_uri, source)
-        if not branchhandling.merge_branch_with_parent_into(os.path.abspath(source), mp_branch.target_branch.web_link, dest_branch_uri, message, stored_tip_rev):
+        if not branchhandling.merge_branch_with_parent_into(os.path.abspath(source), mp.target_branch.web_link, dest_branch_uri, message, stored_tip_rev):
             logging.info("Couldn't merge that branch into the parent one.")
             reconciliate_all_branches = False
         else:
             if tip_rev != stored_tip_rev:
                 logging.info("New revision ({}) in {} when prepared is based on {}. Trying to merge it for you.".format(tip_rev, source, stored_tip_rev))
-                if not branchhandling.reconcile_with_branch(dest_branch_uri, mp_branch.target_branch.web_link):
+                if not branchhandling.reconcile_with_branch(dest_branch_uri, mp.target_branch.web_link):
                     logging.error("We can't reconciliate your proposed branch with the new commits in target (merge conflicts).")
                     reconciliate_all_branches = False
     if not reconciliate_all_branches:
@@ -117,8 +117,8 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
     push_all_branches = True
     for source in silo_config["mps"]:
         dest_branch_uri = os.path.join(dest_base_uri, source)
-        mp_branch = launchpadmanager.get_resource_from_token(silo_config['mps'][source])
-        target_branch_link = mp_branch.target_branch.web_link
+        mp = launchpadmanager.get_resource_from_token(silo_config['mps'][source])
+        target_branch_link = mp.target_branch.web_link
         logging.info("Trying to push to {}".format(target_branch_link))
         if not branchhandling.push_to_branch(dest_branch_uri, target_branch_link):
             url = BRANCH_URL.format(source, "recup")
@@ -132,7 +132,7 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="")
+    parser = argparse.ArgumentParser(description="Merge all branches to merge, clean the ppa and free the silo slot")
 
     parser.add_argument("--onlyfreesilo", action='store_true', help="Only free the ppa and don't merge/check anything.")
     parser.add_argument("--ignoremissingprojects", action='store_true', help="Ignore if some projects that are going to be merged back were not published. No merge will then be processed for those.")
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     if not args.onlyfreesilo:
         if silomanager.get_config_step(silo_config) != SILO_PUBLISHED:
             if args.ignorestep:
-                logging.error("Last step didn't finish successfully, but the ignore flag is set.")
+                logging.info("Last step didn't finish successfully, but the ignore flag is set.")
             else:
                 logging.error("Last step didn't finish successfully. You need to either ignore that the previous step didn't finished successfully or ensuring that prepare, build and checked passed.")
                 sys.exit(1)
@@ -208,7 +208,7 @@ if __name__ == '__main__':
     # Finally, archive the current directory
     current_dir = os.path.abspath(".")
     silo_name = current_dir.split(os.path.sep)[-1]
-    silo_back_dir = "{}.previous".format(SILO_DIR)
+    silo_back_dir = "{}.previous".format(SILOS_DIR)
     with ignored(OSError):
         os.mkdir(silo_back_dir)
     dest = os.path.join(silo_back_dir, silo_name)
