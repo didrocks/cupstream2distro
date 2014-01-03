@@ -384,9 +384,12 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_commits, 
                    "-v{}".format(new_package_version), bug_desc]
             subprocess.Popen(cmd, env=dch_env).communicate()
 
-    commit_message = "{} {}".format(settings.REV_STRING_FORMAT, tip_bzr_rev)
-    if dest_ppa:
-        commit_message += " ({})".format(dest_ppa)
+    if tip_bzr_rev != None:
+        commit_message = "{} {}".format(settings.REV_STRING_FORMAT, tip_bzr_rev)
+        if dest_ppa:
+            commit_message += " ({})".format(dest_ppa)
+    else:
+        commit_message = ""
 
     dch_env["DEBFULLNAME"] = settings.BOT_DEBFULLNAME
     dch_env["DEBEMAIL"] = settings.BOT_DEBEMAIL

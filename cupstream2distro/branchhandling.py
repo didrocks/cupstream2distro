@@ -170,9 +170,13 @@ def return_log_diff(starting_rev):
     return stdout
 
 
-def commit_release(new_package_version, tip_bzr_rev):
+def commit_release(new_package_version, tip_bzr_rev=None):
     '''Commit latest release'''
-    if subprocess.call(["bzr", "commit", "-m", "Releasing {}, based on r{}".format(new_package_version, tip_bzr_rev)]) != 0:
+    if tip_bzr_rev:
+        message = "Releasing {}".format(new_package_version)
+    else:
+        message = "Releasing {}, based on r{}".format(new_package_version, tip_bzr_rev)
+    if subprocess.call(["bzr", "commit", "-m", message]) != 0:
         raise Exception("The above command returned an error.")
 
 

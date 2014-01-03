@@ -28,8 +28,8 @@ import shutil
 import subprocess
 import sys
 
-from cupstream2distro import launchpadmanager, packagemanager, silomanager, tools
-from cupstream2distro.settings import PROJECT_CONFIG_SUFFIX, SILO_EMPTY
+from cupstream2distro import branchhandling, launchpadmanager, packagemanager, silomanager, tools
+from cupstream2distro.settings import BOT_DEBFULLNAME, PROJECT_CONFIG_SUFFIX, SERIES_VERSION, SILO_EMPTY
 from cupstream2distro.utils import ignored
 from cupstream2distro.tools import clean_source
 
@@ -93,17 +93,140 @@ if __name__ == '__main__':
     for source in silo_config["mps"]:
         if (not args.prepareonly and not args.watchonly) or source in args.prepareonly:
             logging.info("Adding {} as a branch to prepare".format(source))
-            mp_branch = launchpadmanager.get_resource_from_token(silo_config['mps'][source]).source_branch
-            components_to_prepare[source] = mp_branch.web_link
+            components_to_prepare[source] = launchpadmanager.get_resource_from_token(silo_config['mps'][source])
             # cleaning (in case of partial rebuild)
             clean_source(source)
 
     # prepare source and dput by one
-    for source in components_to_prepare:
-        logging.info("Trying to prepare {}".format(source))
+    src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
+    dest_ppa_name = "{}/{}".format(dest.owner.name, dest.name)
+    for source_package_name in components_to_prepare:
+        logging.info("=== Trying to prepare {} ===".format(source))
 
-        # TODO: pipot now
-        tools.save_project_config(source, "", "", "0", "42")
+        # get source
+        branch = components_to_prepare[source].source_branch.web_link
+        logging.info("Branching {} to {}".format(branch, source_package_name))
+        branchhandling.get_branch(branch, source_package_name)
+        os.chdir(source_package_name)
+
+        #  Get changelog informations
+        logging.info("Get changelog info")
+        packaging_version_in_bzr = packagemanager.get_packaging_version()
+
+        if (source_package_name != packagemanager.get_packaging_sourcename()):
+            logging.error("Projectbranch doesn't specify the same source name than the packaging itself {}".format(instance_info))
+            sys.exit(1)
+
+        # Check version in ppa
+        logging.info("Get previous version in silo")
+        version_in_ppa = packagemanager.get_current_version_for_series(source_package_name, series.name, src_ppa_name)
+        if packagemanager.is_version1_higher_than_version2(version_in_ppa, packaging_version_in_bzr):
+            logging.info("A version in the ppa ({}) is higher than the proposed version in bzr ({}) (previous tests/builds failing?). Basing on that one.".format(version_in_ppa, packaging_version_in_bzr))
+            previous_packaging_version = version_in_ppa
+        else:
+            previous_packaging_version = packaging_version_in_bzr
+
+        # Check version in distro
+        logging.info("Get version available in distro")
+        distro_version = packagemanager.get_current_version_for_series(source_package_name, series.name)
+
+        # if the target is the distro, we ensure we have all releases in proposed branch
+        if launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
+            previous_finaledest_version = distro_version
+        # target is a ppa
+        else:
+            previous_finaledest_version = packagemanager.get_current_version_for_series(source_package_name, series.name, dest=dest)
+
+        # ensure that the previous release (in distro or in dest ppa) ended up in the vcs
+        force_rebuild = False
+        if args.forcerebuild:
+            logging.info("Force rebuild, even if destination don't contain latest version requested. Will overwrite even if destination has a newer version or the (optional) condition isn't met.")
+            force_rebuild = True
+        else:
+            with open("debian/changelog") as changelog:
+                if not packagemanager.is_version_in_changelog(previous_finaledest_version, changelog):
+                    message = ("A version ({}) is available at the destination for that component but is not in the proposed branch which is still at {}. You can force rebuild to bypass the check.".format(previous_finaledest_version, packaging_version_in_bzr, instance_info))
+                    logging.warning(message)
+                    sys.exit(1)
+
+        if not launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
+            # if the version in the distro is higher than the previous packaging version (either the version in intermediate ppa or packaging bzr version
+            # We are going to force releasing, but basing on this version
+            if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
+                logging.info("The version in distro ({}) is higher than what is proposed in the bzr version for that branch ({}). Basing on the distro version.".format(distro_version, previous_packaging_version))
+                logging.info("Forcing release mode as the version in distro ({}) is higher than current destination ppa ({})".format(distro_version, previous_packaging_version))
+                previous_packaging_version = distro_version
+                force_rebuild = True
+
+        # Check if we need to republish
+        dest_source_package = None
+        logging.info("Check if we need to release a new package")
+        os.chdir('..')
+        dest_source_package = packagemanager.get_source_package_from_dest(source_package_name, dest, previous_finaledest_version, series.name)
+        if dest_source_package:
+            dest_source_package = os.path.abspath(dest_source_package)
+        os.chdir(source_package_name)
+        # nothing to release
+        if not packagemanager.is_new_content_relevant_since_old_published_source(dest_source_package):
+            if not force_rebuild:
+                logging.info("No new useful revision published compared to dest, no need to upload this component")
+                continue
+            logging.info("No new useful revision published but force rebuilding is set")
+
+        if launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
+            packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, series_version=SERIES_VERSION[series.name])
+        else:
+            packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=dest_ppa_name, series_version=SERIES_VERSION[series.name])
+
+        # Refresh symbol files
+        logging.info("Update symbol files version if needed")
+        packagemanager.refresh_symbol_files(packaging_version)
+
+        # Prepare changelog
+        logging.info("Prepare changelog content")
+        authors_commits = {}
+        bugs = set()
+        mp = components_to_prepare[source_package_name]
+        for bug in mp.getRelatedBugTasks():
+            bugs.add(bug.self_link.split('/')[-1])
+        authors_commits[BOT_DEBFULLNAME] = [mp.commit_message + branchhandling._format_bugs(bugs)]
+        if force_rebuild:
+            authors_commits[BOT_DEBFULLNAME] = ["New rebuild forced"]
+        packagemanager.update_changelog(packaging_version, series.name, None, authors_commits)
+
+        logging.info("Sync launchpad with current proposed work")
+        branchhandling.commit_release(packaging_version)
+        launchpadmanager.open_bugs_for_source(bugs, source_package_name, series.name)
+
+        logging.info("Build source package")
+        packagemanager.build_source_package(series.name, previous_finaledest_version)
+        os.chdir('..')
+        newdsc_path = "{}_{}.dsc".format(source_package_name, packaging_version.split(':')[-1])
+
+        # second diff step: in case the source package was created from nothing (like a diff between trunk and the source package, but none after newly .dsc created extraction)
+        if not force_rebuild and dest_source_package:
+            logging.info("Check that the newly created source package has relevant diff")
+            if not packagemanager.is_relevant_source_diff_from_previous_dest_version(newdsc_path, dest_source_package):
+                message = ("There was a diff between trunk and the source package in ubuntu triggering a source package build. However, after that one was created, we diffed again "
+                           "between that source in ubuntu and the newly created source extracted and found nothing relevant. Not upload that one then. Please check that the relevant "
+                           "diff in the package creation is justified by diffing manually trunk and the source in ubuntu.")
+                logging.warning(message)
+
+        # Prepare if a packaging change is part of the diff
+        logging.info("Generate a diff if meaningfull packaging changes")
+        diff_filepath = tools.get_packaging_diff_filename(source_package_name, packaging_version)
+        olddsc_path = None
+        if dest_source_package:
+            for file in os.listdir(os.path.dirname(dest_source_package)):
+                if file.endswith(".dsc"):
+                    olddsc_path = os.path.join(os.path.dirname(dest_source_package), file)
+        packagemanager.generate_diff_between_dsc(diff_filepath, olddsc_path, newdsc_path)
+
+        logging.info("Upload to the ppa")
+        packagemanager.upload_package(source_package_name, packaging_version, src_ppa_name)
+
+        # Save infos for other jobs
+        tools.save_project_config(source_package_name, branch, mp.target_branch.revision_count, previous_finaledest_version, packaging_version)
 
 
     # look at the ppa and generate .projects
@@ -133,6 +256,6 @@ if __name__ == '__main__':
     watch_ppa_exec = os.path.join(os.path.dirname(__file__), "watch-ppa")
     call_params = [watch_ppa_exec, "-s", series.name, "-p", "{}/{}".format(src_ppa.owner.name, src_ppa.name)]
     if not launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
-        call_params.extend(["--destppa", "{}/{}".format(dest.owner.name, dest.name)])
+        call_params.extend(["--destppa", dest_ppa_name])
     if subprocess.call(call_params) != 0:
         sys.exit(1)

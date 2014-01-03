@@ -79,6 +79,9 @@ CITRAIN_BINDIR = os.path.expanduser("~/citrain/citrain")
 (SILO_EMPTY, SILO_BUILTCHECKED, SILO_PUBLISHED, SILO_DONE) = range(4)
 
 SERIES_VERSION = {
+    'precise': '12.04',
+    'raring': '13.04',
+    'saucy': '13.10',
     'trusty': '14.04'
 }
 
@@ -88,3 +91,4 @@ SILO_NAME_LIST = ("ppa", "staging", "proposed")
 SILOS_DIR = os.path.expanduser("/tmp/silos")
 SILO_PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {}"
 BRANCH_URL = "lp:~didrocks/{}/latestsnapshot-{}"
+BOT_KEY = "E4AC208E"

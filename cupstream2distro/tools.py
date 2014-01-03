@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import ConfigParser
+import glob
 import os
 import shutil
 from xml.sax.saxutils import quoteattr, escape
@@ -87,3 +88,7 @@ def clean_source(source):
         os.remove("{}.{}".format(source, PROJECT_CONFIG_SUFFIX))
     with ignored(OSError):
         shutil.rmtree("ubuntu/{}".format(source))
+    for filename in glob.glob("{}_*".format(source)):
+        os.remove(filename)
+    for filename in glob.glob("packaging_changes_{}_*diff".format(source)):
+        os.remove(filename)
