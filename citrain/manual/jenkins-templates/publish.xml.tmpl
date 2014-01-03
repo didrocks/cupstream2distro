@@ -19,7 +19,7 @@
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>IGNORE_MISSINGPROJECTS</name>
-          <description>Ignore if some projects that are going to be published are missing from the initial set (can be a second publication for instance).</description>
+          <description>Ignore if some projects that are going to be published are missing from the initial set (can be a second publication for instance)</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -51,6 +51,8 @@
       <command>#!/bin/bash -eu
 export LANG=en_US.UTF-8
 export WORKSPACE="$PWD"
+# Cleanup workspace
+pwd|grep -q workspace &amp;&amp; rm -f *
 
 cd {{ SILOS_DIR }}/{{ SILO_NAME }}
 
@@ -72,10 +74,26 @@ if [ "$DEBUG" == "true" ]; then
 fi
 
 {{ BINDIR }}/publisher $OPTS
+
+# copy artefacts
+cp *diff publisher.xml packagelist* $WORKSPACE/ 2&gt;/dev/null || true
+
+# create rsync out dir
+mkdir -p {{ RSYNC_OUTDIR }}
+mv packagelist_rsync_* {{ RSYNC_OUTDIR }} 2&gt;/dev/null || true
 </command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>*.diff,*xml,packagelist*</artifacts>
+      <latestOnly>false</latestOnly>
+    </hudson.tasks.ArtifactArchiver>
+    <hudson.tasks.junit.JUnitResultArchiver>
+      <testResults>*.xml</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <testDataPublishers/>
+    </hudson.tasks.junit.JUnitResultArchiver>
     <hudson.plugins.build__publisher.BuildPublisher>
       <publishUnstableBuilds>true</publishUnstableBuilds>
       <publishFailedBuilds>true</publishFailedBuilds>

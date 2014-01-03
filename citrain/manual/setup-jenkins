@@ -29,7 +29,7 @@ import urllib2
 
 sys.path.append('..')  # add local cupstream2distro
 
-from cupstream2distro.settings import CITRAIN_BINDIR, SILO_NAME_LIST, SILOS_DIR
+from cupstream2distro.settings import CITRAIN_BINDIR, SILO_NAME_LIST, SILOS_DIR, SILO_RSYNCDIR
 
 DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
 JENKINS_DAILY_CONFIG_NAME = 'citrain'
@@ -78,6 +78,7 @@ def setup_job(jenkins_handle, jjenv, jobname, template_name, ctx={}):
     logging.debug("Generating job: {}".format(jobname))
     tmpl = jjenv.get_template(template_name)
     ctx['BINDIR'] = CITRAIN_BINDIR
+    ctx['RSYNC_OUTDIR'] = SILO_RSYNCDIR
     jkcfg = tmpl.render(ctx)
     jkcfg = jkcfg.replace(' \n', '')
     jkcfg = jkcfg.replace('>\n\n', '>\n')
