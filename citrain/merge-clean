@@ -22,12 +22,15 @@
 import argparse
 import logging
 import os
+import re
 import shutil
 import sys
+import time
+import urllib2
 import ConfigParser
 
 from cupstream2distro import branchhandling, launchpadmanager, packageinppamanager, packagemanager, silomanager
-from cupstream2distro.settings import SILO_PUBLISHED, SILO_DONE, SILO_PACKAGING_MERGE_COMMIT_MESSAGE, BRANCH_URL, PROJECT_CONFIG_SUFFIX
+from cupstream2distro.settings import SILO_PUBLISHED, SILO_DONE, SILO_PACKAGING_MERGE_COMMIT_MESSAGE, BRANCH_URL, PROJECT_CONFIG_SUFFIX, TIME_BETWEEN_PPA_CHECKS, SILO_DIR
 from cupstream2distro.utils import ignored
 
 
@@ -131,7 +134,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="")
 
-    parser.add_argument("--onlyfreeslots", action='store_true', help="Only free the ppa and don't merge/check anything.")
+    parser.add_argument("--onlyfreesilo", action='store_true', help="Only free the ppa and don't merge/check anything.")
     parser.add_argument("--ignoremissingprojects", action='store_true', help="Ignore if some projects that are going to be merged back were not published. No merge will then be processed for those.")
     parser.add_argument("--ignorepackagesnotindest", action='store_true', help="Ignore if some packages are not published in the destination.")
     parser.add_argument("--ignorestep", action='store_true', help="Ignore if previous step didn't successfully end.")
@@ -145,9 +148,9 @@ if __name__ == '__main__':
         logging.debug("Debug mode enabled")
 
 
-    if not args.onlyfreeslots:
+    silo_config = silomanager.load_config()
 
-        silo_config = silomanager.load_config()
+    if not args.onlyfreesilo:
         if silomanager.get_config_step(silo_config) != SILO_PUBLISHED:
             if args.ignorestep:
                 logging.error("Last step didn't finish successfully, but the ignore flag is set.")
@@ -170,7 +173,47 @@ if __name__ == '__main__':
         check_packages_and_versions(silo_config, packages_in_dest, args.ignoremissingprojects, args.ignorepackagesnotindest)
         merge_and_reconciliate(silo_config, packages_in_dest)
 
-    else:
-        logging.info("Only free slots, ignoring all checks and merging branches")
+        # set the silo as done
+        silomanager.set_config_step(silo_config, SILO_DONE)
 
-    # in the end, remove the whole content
+    else:
+        logging.info("Only free silo, ignoring all checks and merging branches")
+
+    ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
+    series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])
+    ppa_base_path = "http://ppa.launchpad.net/{}/{}/ubuntu/dists/{}/main/".format(ppa.owner.name, ppa.name, series.name)
+    logging.info("Clean now the source ppa {} in {}".format(ppa.web_link, series.name))
+
+    for pkg in ppa.getPublishedSources(distro_series=series):
+        if pkg.status != "Deleted":
+            logging.info("Requesting deletion for {}".format(pkg.source_package_name))
+            pkg.requestDeletion()
+
+    # Source publication is lying, checking directly the repository
+    content = urllib2.urlopen(ppa_base_path).read().decode('utf-8')
+    binary_pattern = re.compile('href="(binary-.*)/">')
+    url_lists = ["{}{}/Packages".format(ppa_base_path, url) for url in binary_pattern.findall(content)]
+    url_lists.append("{}source/Sources".format(ppa_base_path))
+    remaining_packages = True
+    while(remaining_packages):
+        time.sleep(TIME_BETWEEN_PPA_CHECKS)
+        logging.info("Checking if ppa is empty.")
+        remaining_packages = False
+
+        for url in url_lists:
+            if len(urllib2.urlopen(url).read().decode('utf-8')) != 0:
+                logging.info("{} still have some packages published".format(url))
+                remaining_packages = True
+
+    # Finally, archive the current directory
+    current_dir = os.path.abspath(".")
+    silo_name = current_dir.split(os.path.sep)[-1]
+    silo_back_dir = "{}.previous".format(SILO_DIR)
+    with ignored(OSError):
+        os.mkdir(silo_back_dir)
+    dest = os.path.join(silo_back_dir, silo_name)
+    logging.info("Backing up the silo directory to {}".format(dest))
+    with ignored(OSError):
+        shutil.rmtree(dest)
+    shutil.move(current_dir, dest)
+    
