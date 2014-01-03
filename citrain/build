@@ -20,9 +20,12 @@
 
 
 import argparse
+import glob
+import lazr
 import logging
 import os
 import shutil
+import subprocess
 import sys
 
 from cupstream2distro import launchpadmanager, packagemanager, silomanager, tools
@@ -50,7 +53,7 @@ if __name__ == '__main__':
     silo_config = silomanager.load_config()
     src_ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     dest = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
-    series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"]).name
+    series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])
 
     if not args.prepareonly and not args.watchonly:
         if silomanager.get_config_step(silo_config) != SILO_EMPTY:
@@ -95,35 +98,45 @@ if __name__ == '__main__':
             # cleaning (in case of partial rebuild)
             clean_source(source)
 
-    # prepare one by one
+    # prepare source and dput by one
     for source in components_to_prepare:
-        logging.info("Trying to prepare {}".format(component_to_prepare))
-        # TODO: prepare source and dput
-        
+        logging.info("Trying to prepare {}".format(source))
 
-        
+        # TODO: pipot now
+        tools.save_project_config(source, "", "", "0", "42")
+
 
     # look at the ppa and generate .projects
-    logging.info("Detecting other published sources in ppa")
-    logging.info("Looking at the ppa {} ({}) content".format(ppa.web_link, series.name))
+    logging.info("Looking at the ppa {} ({}) content".format(src_ppa.web_link, series.name))
     direct_upload_not_in_list = []
-    for pkg in src_ppa.getPublishedSources(distro_series=series, status="Published"):
-        if pkg.source_package_name in silo_config["mps"]:
-            continue
-        if pkg.source_package_name in silo_config["sources"]:
-            dest_current_version = packagemanager.get_current_version_for_series(pkg.source_package_name, series, dest=dest)
-            tools.save_project_config(pkg.source_package_name, "", "", dest_current_version, pkg.source_package_version)
-        else:
-            direct_upload_not_in_list.append(pkg.source_package_name)
+    try:
+        for pkg in src_ppa.getPublishedSources(distro_series=series, status="Published"):
+            if pkg.source_package_name in silo_config["mps"]:
+                continue
+            if pkg.source_package_name in silo_config["sources"]:
+                dest_current_version = packagemanager.get_current_version_for_series(pkg.source_package_name, series.name, dest=dest)
+                tools.save_project_config(pkg.source_package_name, "", "", dest_current_version, pkg.source_package_version)
+                # download as well the .dsc file for watch-ppa
+                source_dir = packagemanager.get_source_package_from_dest(pkg.source_package_name, dest, pkg.source_package_version, series.name)
+                shutil.copy(glob.glob(os.path.join(os.path.dirname(source_dir), '*.dsc'))[0], os.path.abspath('.'))
+            else:
+                direct_upload_not_in_list.append(pkg.source_package_name)
+    except lazr.restfulclient.errors.BadRequest:
+        pass # no package in the ppa yet
 
     if direct_upload_not_in_list:
         logging.error("Some packages ({}) that are not in the MP or not in sources list have been detected in the ppa. Please remove them from the ppa or ask for a reconfiguration.".format(", ".join(direct_upload_not_in_list)))
         sys.exit(1)
 
-
     # watch ppa
-
+    logging.info("Check ppa status in {}".format(src_ppa.web_link))
+    watch_ppa_exec = os.path.join(os.path.dirname(__file__), "watch-ppa")
+    call_params = [watch_ppa_exec, "-s", series.name, "-p", "{}/{}".format(src_ppa.owner.name, src_ppa.name)]
+    if not launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
+        call_params.extend(["--destppa", "{}/{}".format(dest.owner.name, dest.name)])
+    if subprocess.call(call_params) != 0:
+        sys.exit(1)
 
     # launch the upstream check with parameters
 
-    ## built check: small program after
+    ## after built check: call mark-as-builtcheck

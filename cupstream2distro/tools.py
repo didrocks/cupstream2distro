@@ -23,6 +23,7 @@ import shutil
 from xml.sax.saxutils import quoteattr, escape
 
 from .settings import PROJECT_CONFIG_SUFFIX
+from .utils import ignored
 
 WRAPPER_STRING = '''<testsuite errors="0" failures="{}" name="" tests="1" time="0.1">
   <testcase classname="MarkUnstable" name={} time="0.0">{}</testcase>
