@@ -142,12 +142,7 @@ if __name__ == '__main__':
     if all_silo_projects:
         message = "Some projects ({}) that were in the silo configuration list were not built. ".format(", ".join(all_silo_projects))
         if args.ignoremissingprojects:
-            logging.info(message + "The ignore missing projects flag was set and we free the lock on those projects.")
-            for remaining_project in all_silo_projects:
-                with ignored(KeyError):
-                    silo_config["mps"].pop(remaining_project)
-                with ignored(ValueError):
-                    silo_config["sources"].remove(remaining_project)
+            logging.info(message + "The ignore missing projects flag was set.")
         else:
             logging.error(message + "Prepare either prepare the latest missing projects or use the ignore missing projects flag which will release the lock on them.")
             sys.exit(1)
