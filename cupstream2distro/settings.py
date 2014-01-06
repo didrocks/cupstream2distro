@@ -69,10 +69,12 @@ STACK_RUNNING_DIR = "/iSCSI/jenkins/cu2d/work"
 STACK_STATUS_PUBLISHING_DIR = "/iSCSI/jenkins/cu2d/result_publishing"
 
 # for citrain
-#SILO_NAME_LIST = ("Aquaria", "Aerilon", "Canceron", "Caprica", "Gemenon", "Leonis", "Libra", "Picon",
-#                  "Sagitarron", "Scorpia", "Tauron", "Virgon")
+SILO_NAME_LIST = []
+for i in xrange(10):
+    SILO_NAME_LIST.append("landing-{:03d}".format())
 SILO_CONFIG_FILENAME = "config"
-SILO_BUILDPPA_SCHEME = "didrocks/{}"
+SILO_BUILDPPA_SCHEME = "ci-train-ppa-service/{}"
+SILO_PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {}"
 SILOS_DIR = os.path.expanduser("~/silos")
 SILO_RSYNCDIR = os.path.expanduser("~/rsync")
 CITRAIN_BINDIR = os.path.expanduser("~/citrain/citrain")
@@ -84,11 +86,3 @@ SERIES_VERSION = {
     'saucy': '13.10',
     'trusty': '14.04'
 }
-
-
-# for testing
-SILO_NAME_LIST = ("ppa", "staging", "proposed")
-SILOS_DIR = os.path.expanduser("/tmp/silos")
-SILO_PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {}"
-BRANCH_URL = "lp:~didrocks/{}/latestsnapshot-{}"
-BOT_KEY = "E4AC208E"
