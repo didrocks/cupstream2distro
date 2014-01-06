@@ -74,6 +74,7 @@ if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"
 fi
 
+cd # go to home directory
 {{ BINDIR }}/prepare-silo $SERIES --addmps ${MERGE_PROPOSALS} --addsources $SOURCES $OPTS
 </command>
     </hudson.tasks.Shell>
