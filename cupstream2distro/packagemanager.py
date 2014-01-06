@@ -380,7 +380,7 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_commits, 
                 # Remove leading spaces, there are useless and the result is
                 # prettier without them anyway ;)
                 bug_desc = bug_desc.strip()
-            cmd = ["dch", "--multimaint-merge",
+            cmd = ["dch", "--multimaint-merge", "--release-heuristic", "changelog",
                    "-v{}".format(new_package_version), bug_desc]
             subprocess.Popen(cmd, env=dch_env).communicate()
 
@@ -393,7 +393,8 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_commits, 
 
     dch_env["DEBFULLNAME"] = settings.BOT_DEBFULLNAME
     dch_env["DEBEMAIL"] = settings.BOT_DEBEMAIL
-    instance = subprocess.Popen(["dch", "-v{}".format(new_package_version), commit_message],
+    instance = subprocess.Popen(["dch", "--release-heuristic", "changelog",
+                                 "-v{}".format(new_package_version), commit_message],
                                 stderr=subprocess.PIPE, env=dch_env)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
