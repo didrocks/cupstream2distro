@@ -218,4 +218,5 @@ if __name__ == '__main__':
     with ignored(OSError):
         shutil.rmtree(dest)
     shutil.move(current_dir, dest)
+    os.mkdir(current_dir)
     
