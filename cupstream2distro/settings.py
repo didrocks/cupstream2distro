@@ -34,7 +34,7 @@ BOT_DEBEMAIL = "ps-jenkins@lists.canonical.com"
 home_dir = os.path.expanduser("~")
 CU2D_DIR = os.path.join(home_dir, "cu2d")
 GNUPG_DIR = CU2D_DIR
-if not os.path.isdir(GNUPG_DIR):
+if not os.path.isdir(os.path.join(GNUPG_DIR, '.gnupg')):
     GNUPG_DIR = home_dir
 CRED_FILE_PATH = os.path.join(CU2D_DIR, ".cupstream_cred")
 COMMON_LAUNCHPAD_CACHE_DIR = os.path.join(CU2D_DIR, "launchpad.cache")
