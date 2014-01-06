@@ -41,8 +41,8 @@ if __name__ == '__main__':
     parser.add_argument("series", help="Series used to build the package")
 
     parser.add_argument("--destppa", help="Consider this destppa instead of {series}-proposed")
-    parser.add_argument("--addmps", nargs='+', default = [], help="Merge proposal urls")
-    parser.add_argument("--addsources", nargs='+', default = [], help="Add sources packages that will be uploaded later manually to the ppa")
+    parser.add_argument("--addmps", nargs='*', default = [], help="Merge proposal urls")
+    parser.add_argument("--addsources", nargs='*', default = [], help="Add sources packages that will be uploaded later manually to the ppa")
     parser.add_argument("--reconfiguresilo", help="Reconfigure an existing silo")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
