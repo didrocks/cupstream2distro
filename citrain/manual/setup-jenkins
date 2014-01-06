@@ -27,7 +27,7 @@ import yaml
 import sys
 import urllib2
 
-sys.path.append('..')  # add local cupstream2distro
+sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))  # add local cupstream2distro
 
 from cupstream2distro.settings import CITRAIN_BINDIR, SILO_NAME_LIST, SILOS_DIR, SILO_RSYNCDIR
 
@@ -83,12 +83,11 @@ def setup_job(jenkins_handle, jjenv, jobname, template_name, ctx={}):
     jkcfg = jkcfg.replace(' \n', '')
     jkcfg = jkcfg.replace('>\n\n', '>\n')
     jobname = urllib2.quote(jobname)
-    print("Test job {}".format(jobname))
     if not jenkins_handle.job_exists(jobname):
-        logging.info("Creating Jenkins Job %{}".format(jobname))
+        logging.info("Creating Jenkins Job {}".format(jobname))
         jenkins_handle.create_job(jobname, jkcfg)
     else:
-        logging.info("Reconfiguring Jenkins Job %{}".format(jobname))
+        logging.info("Reconfiguring Jenkins Job {}".format(jobname))
         jenkins_handle.reconfig_job(jobname, jkcfg)
 
 
@@ -97,9 +96,9 @@ def setup_silo(jenkins_handle, jjenv, silo_name):
     logging.info("Configure {}".format(silo_name))
     ctx = {"SILOS_DIR": SILOS_DIR,
            "SILO_NAME": silo_name}
-    setup_job(jenkins_handle, jjenv, "{}-1-build", TEMPLATES["build"], ctx)
-    setup_job(jenkins_handle, jjenv, "{}-2-publish", TEMPLATES["publish"], ctx)
-    setup_job(jenkins_handle, jjenv, "{}-3-merge-clean", TEMPLATES["merge-clean"], ctx)
+    setup_job(jenkins_handle, jjenv, "{}-1-build".format(silo_name), TEMPLATES["build"], ctx)
+    setup_job(jenkins_handle, jjenv, "{}-2-publish".format(silo_name), TEMPLATES["publish"], ctx)
+    setup_job(jenkins_handle, jjenv, "{}-3-merge-clean".format(silo_name), TEMPLATES["merge-clean"], ctx)
 
 
 if __name__ == "__main__":
@@ -148,3 +147,4 @@ if __name__ == "__main__":
     if configure_all:
         for silo_name in SILO_NAME_LIST:
             setup_silo(jkh, jjenv, silo_name)
+        setup_job(jkh, jjenv, "prepare-silo", TEMPLATES["prepare-silo"])
