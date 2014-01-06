@@ -70,16 +70,15 @@ STACK_STATUS_PUBLISHING_DIR = "/iSCSI/jenkins/cu2d/result_publishing"
 
 # for citrain
 SILO_NAME_LIST = []
-for i in xrange(11):
-    if i == 0:
-        continue # asac doesn't want to be 0 :p
+for i in xrange(1, 10):
     SILO_NAME_LIST.append("landing-{:03d}".format(i))
 SILO_CONFIG_FILENAME = "config"
 SILO_BUILDPPA_SCHEME = "ci-train-ppa-service/{}"
 SILO_PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {}"
-SILOS_DIR = os.path.expanduser("~/silos")
-SILO_RSYNCDIR = os.path.expanduser("~/rsync")
-CITRAIN_BINDIR = os.path.expanduser("~/citrain/citrain")
+SILOS_RAW_DIR = "~/silos"
+SILOS_DIR = os.path.expanduser(SILOS_RAW_DIR)
+SILO_RSYNCDIR = "~/out"
+CITRAIN_BINDIR = "~/citrain/citrain"
 (SILO_EMPTY, SILO_BUILTCHECKED, SILO_PUBLISHED, SILO_DONE) = range(4)
 
 SERIES_VERSION = {
