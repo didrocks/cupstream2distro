@@ -173,11 +173,13 @@ if __name__ == '__main__':
         check_packages_and_versions(silo_config, packages_in_dest, args.ignoremissingprojects, args.ignorepackagesnotindest)
         merge_and_reconciliate(silo_config, packages_in_dest)
 
-        # set the silo as done
-        silomanager.set_config_step(silo_config, SILO_DONE)
 
     else:
         logging.info("Only free silo, ignoring all checks and merging branches")
+
+
+    # set the silo as done
+    silomanager.set_config_step(silo_config, SILO_DONE)
 
     ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])
