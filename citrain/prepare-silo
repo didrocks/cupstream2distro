@@ -28,6 +28,7 @@ import sys
 from cupstream2distro import launchpadmanager, packageinppamanager, silomanager
 from cupstream2distro.settings import SILO_BUILDPPA_SCHEME, SILOS_DIR, SILO_EMPTY
 from cupstream2distro.tools import clean_source
+from cupstream2distro.utils import ignored
 
 
 if __name__ == '__main__':
@@ -72,6 +73,13 @@ if __name__ == '__main__':
               "sources": [],
               "mps": {}
     }
+
+    # create all silo names
+    with ignored(OSError):
+        os.mkdir(SILOS_DIR)
+    for silo_name in SILO_NAME_LIST:
+        with ignored(OSError):
+            os.mkdir(os.path.join(SILOS_DIR, silo_name))
 
     # first, check that a silo is available
     if args.reconfiguresilo:
