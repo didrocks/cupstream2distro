@@ -438,6 +438,16 @@ class PackageManagerTests(BaseUnitTestCase):
         strftime_call.assert_called_with('%Y%m%d')
 
     @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_native(self, datetimeMock):
+        """Verify that native package versions are supported."""
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '19830913'
+        self.assertEqual(packagemanager.create_new_packaging_version(
+            '13.10+13.10.19830912', '13.10'),
+                         '13.10+13.10.19830913')
+        strftime_call.assert_called_with('%Y%m%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
     def test_create_new_packaging_version_epoch(self, datetimeMock):
         '''We create a new packaging version after an old regular daily release version but having an epoch'''
         strftime_call = datetimeMock.date.today.return_value.strftime
