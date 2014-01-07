@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012-2013 Canonical
+# Copyright (C) 2012-2014 Canonical
 #
 # Authors:
 #  Didier Roche
