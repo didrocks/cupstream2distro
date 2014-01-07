@@ -189,9 +189,18 @@ if __name__ == '__main__':
         mp = components_to_prepare[source_package_name]
         for bug in mp.getRelatedBugTasks():
             bugs.add(bug.self_link.split('/')[-1])
-        authors_commits[BOT_DEBFULLNAME] = [mp.commit_message + branchhandling._format_bugs(bugs)]
+        bug_fixes = branchhandling._format_bugs(bugs)
+        description_content = []
+        if bug_fixes:
+            description_content.append("New release fixing " + bug_fixes)
+        for content in mp.commit_message.split('\n'):
+            content = content.strip()
+            if content.startswith('-') or content.startswith('*':
+                content = content[1:]
+            description_content.append(content.strip())
         if force_rebuild:
-            authors_commits[BOT_DEBFULLNAME] = ["New rebuild forced"]
+            description_content.append("New rebuild forced")
+        authors_commits[BOT_DEBFULLNAME] = description_content
         packagemanager.update_changelog(packaging_version, series.name, None, authors_commits)
 
         logging.info("Sync launchpad with current proposed work")
