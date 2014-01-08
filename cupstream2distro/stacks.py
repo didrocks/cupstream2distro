@@ -30,7 +30,9 @@ from .stack import Stack
 def _rsync_stack_files():
     '''rsync all stack files'''
     server = os.getenv('CU2D_RSYNCSVR')
-    if server:
+    if server == "none":
+        return
+    elif server:
         remoteaddr = RSYNC_PATTERN.replace('RSYNCSVR', server)
     else:
         raise Exception('Please set environment variable CU2D_RSYNCSVR')

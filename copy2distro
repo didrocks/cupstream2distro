@@ -32,6 +32,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     parser = argparse.ArgumentParser(description="Rsync all availables packages to be copied to the ubuntu archive from a ppa")
+    parser.add_argument("--no-filter", action='store_true', help="Don't filter list (case coming from silos where there is no more filtering needed)")
     args = parser.parse_args()
 
     launchpadmanager.get_launchpad(use_cred_file=None)
@@ -45,7 +46,7 @@ if __name__ == '__main__':
                 (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, distro_version_at_prepare_time) = line.strip().split("\t")
                 logging.debug("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version, ppa, from_series,
                                                                                                                src_pocket, to_series, dest_pocket))
-                if not source in get_allowed_projects(release):
+                if not args.no_filter and not source in get_allowed_projects(release):
                     logging.error("The project {} is not in the allowed stack to be copied to distro. Rejecting.".format(source))
                     continue
 
