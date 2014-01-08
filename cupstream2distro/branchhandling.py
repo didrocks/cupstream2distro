@@ -266,6 +266,7 @@ def merge_branch(uri_to_merge, lp_parent_branch, commit_message):
 def push_to_branch(source_uri, lp_parent_branch, overwrite=False):
     """Push source to parent branch"""
     success = False
+    cur_dir = os.path.abspath('.')
     os.chdir(source_uri)
     lp_parent_branch = lp_parent_branch.replace("https://code.launchpad.net/", "lp:")
     command = ["bzr", "push", lp_parent_branch]
@@ -273,5 +274,5 @@ def push_to_branch(source_uri, lp_parent_branch, overwrite=False):
         command.append("--overwrite")
     if subprocess.call(command) == 0:
         success = True
-    os.chdir("..")
+    os.chdir(cur_dir)
     return success
