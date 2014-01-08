@@ -116,7 +116,7 @@ if __name__ == '__main__':
         bzr_pending_branch_uri = os.path.abspath(source_package_name)
 
         # get destdir version
-        branch = mp.dest_branch.web_link
+        branch = mp.target_branch.web_link
         logging.info("Checking if need to be rebased on {}".format(branch))
         dest_branch_uri = os.path.join(dest_base_uri, source_package_name)
         logging.info("Branching {} to {}".format(branch, dest_branch_uri))
@@ -230,7 +230,7 @@ if __name__ == '__main__':
         # TODO: find a fallback or warn if no commit message attached to the MP
         for content in mp.commit_message.split('\n'):
             content = content.strip()
-            if content.startswith('-') or content.startswith('*':
+            if content.startswith('-') or content.startswith('*'):
                 content = content[1:]
             description_content.append(content.strip())
         if force_rebuild:
