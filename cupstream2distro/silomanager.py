@@ -55,10 +55,13 @@ def load_config(uri=None):
     return None
 
 
-def is_project_not_in_any_configs(project_name, series, dest, base_silo_uri):
+def is_project_not_in_any_configs(project_name, series, dest, base_silo_uri, ignore_silo):
     """Return true if the project for that serie in that dest is not in any configuration"""
     logging.info("Checking if {} is already configured for {} ({}) in another silo".format(project_name, dest.name, series.name))
     for silo_name in SILO_NAME_LIST:
+        # we are reconfiguring current silo, ignoring it
+        if ignore_silo == silo_name:
+            continue
         config = load_config(os.path.join(base_silo_uri, silo_name))
         if config:
             if (config["global"]["dest"] == dest.self_link and config["global"]["series"] == series.self_link and
