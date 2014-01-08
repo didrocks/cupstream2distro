@@ -131,7 +131,7 @@ if __name__ == '__main__':
             bzrlogs_content = branchhandling.return_log_diff_since_ancestor(bzr_pending_branch_uri)
             dest_dir_unreleased_changelog = branchhandling.return_log_diff_since_last_release(bzrlogs_content)
             # TODO: find a fallback or warn if no commit message attached to the MP
-            if not branchhandling.merge_branch(dest_branch_uri, bzr_pending_branch_uri, mp.source_branch.commit_message):
+            if not branchhandling.merge_branch(dest_branch_uri, bzr_pending_branch_uri, mp.commit_message):
                 logging.error("Conflicts when attempting to merge {} into {}. You will need to reconcile those 2 branches in your MP and rerun this job".format(mp.source_branch.web_link, mp.target_branch.web_link))
                 sys.exit(1)
             # now, just push in the official pending branch the merge result. That's going to be our base
@@ -214,12 +214,12 @@ if __name__ == '__main__':
         # Prepare changelog
         logging.info("Prepare changelog content")
         authors_commits = {}
+        dest_bugs = set()
         bugs = set()
 
         # collect eventual commits from dest branch first
         if dest_dir_unreleased_changelog:
-            dest_dir_unreleased_changelog 
-            authors_commits = collect_author_commits(dest_dir_unreleased_changelog, set(), "(committed directly)")
+            (authors_commits, dest_bugs) = branchhandling.collect_author_commits(dest_dir_unreleased_changelog, set(), "(committed directly)")
 
         for bug in mp.getRelatedBugTasks():
             bugs.add(bug.self_link.split('/')[-1])
@@ -236,10 +236,12 @@ if __name__ == '__main__':
         if force_rebuild:
             description_content.append("New rebuild forced")
         authors_commits[BOT_DEBFULLNAME] = description_content
-        packagemanager.update_changelog(packaging_version, series.name, None, authors_commits)
+        # authors are not relevant for this mode as there is one lander (and difficult to attribute to who did what as we can merge multiple MPs)
+        packagemanager.update_changelog(packaging_version, series.name, None, authors_commits, ignore_authors=True)
         branchhandling.commit_release(packaging_version)
 
         logging.info("Sync launchpad with current proposed work")
+        bugs = bugs.union(dest_bugs)
         launchpadmanager.open_bugs_for_source(bugs, source_package_name, series.name)
 
         logging.info("Build source package")
