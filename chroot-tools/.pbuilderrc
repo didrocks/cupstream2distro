@@ -4,7 +4,7 @@
 
 # Optionally set the series to the host series and
 # architecture to the host architecture if none set.
-: ${DIST:="$(lsb-release -sc)"}
+: ${DIST:="$(lsb_release -sc)"}
 : ${ARCH:="$(dpkg --print-architecture)"}
 NAME="$DIST-$ARCH"
 
