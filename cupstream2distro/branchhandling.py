@@ -24,7 +24,7 @@ import os
 import re
 import subprocess
 
-from .settings import BRANCH_URL, IGNORECHANGELOG_COMMIT, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX
+from .settings import BRANCH_URL, IGNORECHANGELOG_COMMIT, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX, SILO_PACKAGING_MERGE_COMMIT_MESSAGE
 
 
 def get_branch(branch_url, dest_dir):
@@ -44,7 +44,7 @@ def get_tip_bzr_revision():
     return (int(stdout.split(':')[0]))
 
 
-def collect_author_commits(content_to_parse, bugs_to_skip):
+def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp=""):
     '''return a tuple of a dict with authors and commits message from the content to parse
 
     bugs_to_skip is a set of bugs we need to skip
@@ -94,7 +94,7 @@ def collect_author_commits(content_to_parse, bugs_to_skip):
         elif commit_message_stenza:
             if line.startswith("diff:"):
                 commit_message_stenza = False
-                current_commit, current_bugs = _extract_commit_bugs(current_commit)
+                current_commit, current_bugs = _extract_commit_bugs(current_commit, additional_stamp)
             else:
                 line = line[2:] # Dedent the message provided by bzr
                 if line[0:2] in ('* ', '- '): # paragraph line.
@@ -120,12 +120,13 @@ def _format_bugs(bugs):
     return msg
 
 
-def _extract_commit_bugs(commit_message):
+def _extract_commit_bugs(commit_message, additional_stamp=""):
     '''extract relevant commit message part and bugs number from a commit message'''
 
     current_bugs = _return_bugs(commit_message)
     changelog_content = " ".join(commit_message.rsplit('Fixes: ')[0].rsplit('Approved by ')[0].split())
-
+    if additional_stamp:
+        changelog_content = changelog_content + " " + additional_stamp
     return (changelog_content, current_bugs)
 
 
@@ -168,6 +169,38 @@ def return_log_diff(starting_rev):
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8").strip())
     return stdout
+
+
+def return_log_diff_since_ancestor(branch_to_compare_to_url):
+    '''Return the relevant part of the cvs log from that branch compare to branch_to_compare_to_url'''
+
+    instance = subprocess.Popen(["bzr", "log", "-r", "ancestor:{}..".format(branch_to_compare_to_url), "--show-diff", "--forward"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = instance.communicate()
+    if instance.returncode != 0:
+        raise Exception(stderr.decode("utf-8").strip())
+    # we need to not take into account the first rev (common ancestor)
+    sep = '------------------------------------------------------------'
+    stdout = sep + sep.join(stdout.split(sep)[2:])
+    return stdout
+
+
+def return_log_diff_since_last_release(content_to_parse):
+    '''From a bzr log content, return only the log diff since the latest release'''
+    after_release = content_to_parse.split(SILO_PACKAGING_MERGE_COMMIT_MESSAGE.format(''))[-1]
+    sep = '------------------------------------------------------------'
+    sep_index = after_release.find(sep)
+    if sep_index != 1:
+        after_release = after_release[sep_index:]
+    return after_release
+
+
+def has_missing_rev(candidate_branch, based_branch):
+    '''Return if candidate_branch has some missing revision from based_branch'''
+    cur_dir = os.path.abspath('.')
+    os.chdir(candidate_branch)
+    missing_rev = subprocess.call(["bzr", "missing", based_branch, "--other"]) != 0
+    os.chdir(cur_dir)
+    return missing_rev
 
 
 def commit_release(new_package_version, tip_bzr_rev=None):
@@ -219,13 +252,13 @@ def merge_branch_with_parent_into(local_branch_uri, lp_parent_branch, dest_uri, 
     return success
 
 
-def reconcile_with_branch(uri_to_merge, lp_parent_branch):
+def merge_branch(uri_to_merge, lp_parent_branch, commit_message):
     """Resync with targeted branch if possible"""
     success = False
     cur_dir = os.path.abspath('.')
     os.chdir(uri_to_merge)
     if subprocess.call(["bzr", "merge", lp_parent_branch]) == 0:
-        subprocess.call(["bzr", "commit", "-m", "Resync trunk", "--unchanged"])
+        subprocess.call(["bzr", "commit", "-m", commit_message, "--unchanged"])
         success = True
     os.chdir(cur_dir)
     return success

@@ -100,15 +100,44 @@ if __name__ == '__main__':
     # prepare source and dput by one
     src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
     dest_ppa_name = "{}/{}".format(dest.owner.name, dest.name)
+    dest_base_uri = os.path.abspath("dest_branches")
+    with ignored(OSError):
+        shutil.rmtree(dest_base_uri)
+    os.mkdir(dest_base_uri)
+
     for source_package_name in components_to_prepare:
+        mp = components_to_prepare[source_package_name]
         logging.info("=== Trying to prepare {} ===".format(source))
 
         # get source
-        branch = components_to_prepare[source].source_branch.web_link
+        branch = mp.source_branch.web_link
         logging.info("Branching {} to {}".format(branch, source_package_name))
         branchhandling.get_branch(branch, source_package_name)
-        os.chdir(source_package_name)
+        bzr_pending_branch_uri = os.path.abspath(source_package_name)
 
+        # get destdir version
+        branch = mp.dest_branch.web_link
+        logging.info("Checking if need to be rebased on {}".format(branch))
+        dest_branch_uri = os.path.join(dest_base_uri, source_package_name)
+        logging.info("Branching {} to {}".format(branch, dest_branch_uri))
+        branchhandling.get_branch(branch, dest_branch_uri)
+        os.chdir(dest_branch_uri)
+        dest_tip_bzr_rev = branchhandling.get_tip_bzr_revision()
+        dest_dir_unreleased_changelog = ""
+
+        if branchhandling.has_missing_rev(bzr_pending_branch_uri, dest_branch_uri):
+            logging.info("The branch to merge is not rebased on the destination branch which has new commit. Trying to merge those for you.")
+            # before merging, trying to get missing changelog content
+            bzrlogs_content = branchhandling.return_log_diff_since_ancestor(bzr_pending_branch_uri)
+            dest_dir_unreleased_changelog = branchhandling.return_log_diff_since_last_release(bzrlogs_content)
+            # TODO: find a fallback or warn if no commit message attached to the MP
+            if not branchhandling.merge_branch(dest_branch_uri, bzr_pending_branch_uri, mp.source_branch.commit_message):
+                logging.error("Conflicts when attempting to merge {} into {}. You will need to reconcile those 2 branches in your MP and rerun this job".format(mp.source_branch.web_link, mp.target_branch.web_link))
+                sys.exit(1)
+            # now, just push in the official pending branch the merge result. That's going to be our base
+            branchhandling.push_to_branch(dest_branch_uri, bzr_pending_branch_uri)
+
+        os.chdir(bzr_pending_branch_uri)
         #  Get changelog informations
         logging.info("Get changelog info")
         packaging_version_in_bzr = packagemanager.get_packaging_version()
@@ -186,13 +215,19 @@ if __name__ == '__main__':
         logging.info("Prepare changelog content")
         authors_commits = {}
         bugs = set()
-        mp = components_to_prepare[source_package_name]
+
+        # collect eventual commits from dest branch first
+        if dest_dir_unreleased_changelog:
+            dest_dir_unreleased_changelog 
+            authors_commits = collect_author_commits(dest_dir_unreleased_changelog, set(), "(committed directly)")
+
         for bug in mp.getRelatedBugTasks():
             bugs.add(bug.self_link.split('/')[-1])
         bug_fixes = branchhandling._format_bugs(bugs)
         description_content = []
         if bug_fixes:
             description_content.append("New release fixing " + bug_fixes)
+        # TODO: find a fallback or warn if no commit message attached to the MP
         for content in mp.commit_message.split('\n'):
             content = content.strip()
             if content.startswith('-') or content.startswith('*':
@@ -202,9 +237,9 @@ if __name__ == '__main__':
             description_content.append("New rebuild forced")
         authors_commits[BOT_DEBFULLNAME] = description_content
         packagemanager.update_changelog(packaging_version, series.name, None, authors_commits)
+        branchhandling.commit_release(packaging_version)
 
         logging.info("Sync launchpad with current proposed work")
-        branchhandling.commit_release(packaging_version)
         launchpadmanager.open_bugs_for_source(bugs, source_package_name, series.name)
 
         logging.info("Build source package")
@@ -235,8 +270,11 @@ if __name__ == '__main__':
         packagemanager.upload_package(source_package_name, packaging_version, src_ppa_name)
 
         # Save infos for other jobs
-        tools.save_project_config(source_package_name, branch, mp.target_branch.revision_count, previous_finaledest_version, packaging_version)
+        tools.save_project_config(source_package_name, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
 
+    # remove dest_branches
+    with ignored(OSError):
+        shutil.rmtree(dest_base_uri)
 
     # look at the ppa and generate .projects
     logging.info("Looking at the ppa {} ({}) content".format(src_ppa.web_link, series.name))

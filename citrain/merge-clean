@@ -82,11 +82,9 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
     logging.info("Check the revision from all merged branch in trunk didn't change. If changed, try to reconciliate them back.")
     reconciliate_all_branches = True
     dest_base_uri = os.path.abspath("dest_branches")
-    try:
-        os.mkdir(dest_base_uri)
-    except OSError:
+    with ignored(OSError):
         shutil.rmtree(dest_base_uri)
-        os.mkdir(dest_base_uri)
+    os.mkdir(dest_base_uri)
 
     for source in silo_config["mps"]:
         mp = launchpadmanager.get_resource_from_token(silo_config['mps'][source])
@@ -106,7 +104,7 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
         else:
             if tip_rev != stored_tip_rev:
                 logging.info("New revision ({}) in {} when prepared is based on {}. Trying to merge it for you.".format(tip_rev, source, stored_tip_rev))
-                if not branchhandling.reconcile_with_branch(dest_branch_uri, mp.target_branch.web_link):
+                if not branchhandling.merge_branch(dest_branch_uri, mp.target_branch.web_link, "Resync trunk"):
                     logging.error("We can't reconciliate your proposed branch with the new commits in target (merge conflicts).")
                     reconciliate_all_branches = False
     if not reconciliate_all_branches:
