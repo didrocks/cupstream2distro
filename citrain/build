@@ -106,18 +106,17 @@ if __name__ == '__main__':
         logging.info("=== Trying to prepare {} ===".format(source))
 
         # get dest branch first
-        dest_branch = components_to_prepare[source_package_name][0].dest_branch.web_link
+        dest_branch = components_to_prepare[source_package_name][0].target_branch.web_link
         logging.info("Branching {} to {}".format(dest_branch, source_package_name))
         branchhandling.get_branch(dest_branch, source_package_name)
         bzr_pending_branch_uri = os.path.abspath(source_package_name)
         os.chdir(bzr_pending_branch_uri)
         dest_tip_bzr_rev = branchhandling.get_tip_bzr_revision()
 
-        # get all branches one after another and merge them in order to bzr_pending_branch_uri
-        for mp_link in components_to_prepare[source_package_name]:
-            mp = launchpadmanager.get_resource_from_token(mp_link)
+        # get all branches one after another and merge them in bzr_pending_branch_uri
+        for mp in components_to_prepare[source_package_name]:
             branch = mp.source_branch.web_link
-            logging.info("Trying to merge {} into {}".format(branch, mp.dest_branch.web_link))
+            logging.info("Trying to merge {} into {}".format(branch, mp.target_branch.web_link))
 
             bugs_fixes = ""
             for bug in mp.getRelatedBugTasks():
@@ -131,10 +130,10 @@ if __name__ == '__main__':
             commit_message = "{} {}".format(mp.commit_message, bugs_fixes)
 
             # grab committers
-            committers = branchhandling.grab_committers_compared_to(source_uri, lp_parent_branch_to_scan)
+            committers = branchhandling.grab_committers_compared_to(bzr_pending_branch_uri, branch)
 
             if not branchhandling.merge_branch(bzr_pending_branch_uri, branch, commit_message, authors=committers):
-                logging.error("Conflicts when attempting to merge {} into previous merged + {}. You will need to reconcile manually branches that you provided as a parameter for merging into the destination branch and rerun this job".format(mp.source_branch.web_link, mp.target_branch.web_link))
+                logging.error("Conflicts when attempting to merge {} into previous merged + {}. You will need to reconcile manually branches that you provided as a parameter for merging into the destination branch and rerun this job".format(branch, mp.target_branch.web_link))
                 sys.exit(1)
 
         #  Get changelog informations
@@ -220,12 +219,11 @@ if __name__ == '__main__':
         (authors_commits, bugs_set) = branchhandling.collect_author_commits(log_content, alreadyfixed_bugs)
         if force_rebuild:
             authors_commits.setdefault(BOT_DEBFULLNAME, []).append("New rebuild forced")
-        packagemanager.update_changelog(packaging_version, series, tip_bzr_rev, authors_commits, args.destppa)
+        packagemanager.update_changelog(packaging_version, series.name, None, authors_commits)
         branchhandling.commit_release(packaging_version)
 
         logging.info("Sync launchpad with current proposed work")
-        bugs = bugs.union(dest_bugs)
-        launchpadmanager.open_bugs_for_source(bugs, source_package_name, series.name)
+        launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series.name)
 
         logging.info("Build source package")
         packagemanager.build_source_package(series.name, previous_finaledest_version)
@@ -256,10 +254,6 @@ if __name__ == '__main__':
 
         # Save infos for other jobs
         tools.save_project_config(source_package_name, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
-
-    # remove dest_branches
-    with ignored(OSError):
-        shutil.rmtree(dest_base_uri)
 
     # look at the ppa and generate .projects
     logging.info("Looking at the ppa {} ({}) content".format(src_ppa.web_link, series.name))

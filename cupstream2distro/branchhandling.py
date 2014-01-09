@@ -245,7 +245,7 @@ def merge_branch(uri_to_merge, lp_parent_branch, commit_message, authors=set()):
     if subprocess.call(["bzr", "merge", lp_parent_branch]) == 0:
         cmd = ["bzr", "commit", "-m", commit_message, "--unchanged"]
         for author in authors:
-            cmd.extends(['--author', author])
+            cmd.extend(['--author', author])
         subprocess.call(cmd)
         success = True
     os.chdir(cur_dir)
@@ -265,16 +265,16 @@ def push_to_branch(source_uri, lp_parent_branch, overwrite=False):
     os.chdir(cur_dir)
     return success
 
-def grab_committers_compared_to(source_uri, lp_parent_branch_to_scan):
+def grab_committers_compared_to(source_uri, lp_branch_to_scan):
     """Return unique list of committers for a given branch"""
     committers = set()
     cur_dir = os.path.abspath('.')
     os.chdir(source_uri)
-    lp_parent_branch = lp_parent_branch.replace("https://code.launchpad.net/", "lp:")
-    instance = subprocess.Popen(["bzr", "missing", lp_parent_branch], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    lp_branch_to_scan = lp_branch_to_scan.replace("https://code.launchpad.net/", "lp:")
+    instance = subprocess.Popen(["bzr", "missing", lp_branch_to_scan, "--other"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
-    if instance.returncode != 0:
-        raise Exception("bzr missing on {} returned a failure: {}".format(lp_parent_branch, stderr.decode("utf-8").strip()))
+    if stderr != "":
+        raise Exception("bzr missing on {} returned a failure: {}".format(lp_branch_to_scan, stderr.decode("utf-8").strip()))
     committer_regexp = re.compile("\ncommitter: (.*)\n")
     for match in committer_regexp.findall(stdout):
         for committer in match.split(', '):

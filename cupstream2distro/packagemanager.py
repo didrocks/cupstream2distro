@@ -401,6 +401,10 @@ def update_changelog(new_package_version, series, tip_bzr_rev, authors_commits, 
         raise Exception(stderr.decode("utf-8").strip())
     subprocess.call(["dch", "-r", "--distribution", series, "--force-distribution", ""], env=dch_env)
 
+    # in the case of no commit_message and no symbols file change, we have an addition [ DEBFULLNAME ] follow by an empty line
+    # better to remove both lines
+    subprocess.call(["sed", "-i", "/ \[ " + settings.BOT_DEBFULLNAME + " \]/{$q; N; /\\n$/d;}", "debian/changelog"])
+
 
 def build_source_package(series, distro_version, ppa=None):
     '''Build the source package using the internal helper

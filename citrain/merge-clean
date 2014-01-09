@@ -99,7 +99,6 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
         tip_rev = str(target_branch.revision_count)
 
         # prepare and remerge
-        #####message = SILO_PACKAGING_MERGE_COMMIT_MESSAGE.format(version)
         if tip_rev != stored_tip_rev:
             logging.info("New revision ({}) in {} when prepared is based on {}. Trying to merge it for you.".format(tip_rev, source, stored_tip_rev))
             if not branchhandling.merge_branch(dest_branch_uri, target_branch.web_link, "Resync trunk"):
