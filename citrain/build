@@ -92,52 +92,51 @@ if __name__ == '__main__':
     components_to_prepare = {}
     for source in silo_config["mps"]:
         if (not args.prepareonly and not args.watchonly) or source in args.prepareonly:
-            logging.info("Adding {} as a branch to prepare".format(source))
-            components_to_prepare[source] = launchpadmanager.get_resource_from_token(silo_config['mps'][source])
+            logging.info("Adding {} MP(s) to prepare".format(source))
+            for mp_link in silo_config['mps'][source]:
+                components_to_prepare.setdefault(source, []).append(launchpadmanager.get_resource_from_token(mp_link))
             # cleaning (in case of partial rebuild)
             clean_source(source)
 
     # prepare source and dput by one
     src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
     dest_ppa_name = "{}/{}".format(dest.owner.name, dest.name)
-    dest_base_uri = os.path.abspath("dest_branches")
-    with ignored(OSError):
-        shutil.rmtree(dest_base_uri)
-    os.mkdir(dest_base_uri)
 
     for source_package_name in components_to_prepare:
-        mp = components_to_prepare[source_package_name]
         logging.info("=== Trying to prepare {} ===".format(source))
 
-        # get source
-        branch = mp.source_branch.web_link
-        logging.info("Branching {} to {}".format(branch, source_package_name))
-        branchhandling.get_branch(branch, source_package_name)
+        # get dest branch first
+        dest_branch = components_to_prepare[source_package_name][0].dest_branch.web_link
+        logging.info("Branching {} to {}".format(dest_branch, source_package_name))
+        branchhandling.get_branch(dest_branch, source_package_name)
         bzr_pending_branch_uri = os.path.abspath(source_package_name)
-
-        # get destdir version
-        branch = mp.target_branch.web_link
-        logging.info("Checking if need to be rebased on {}".format(branch))
-        dest_branch_uri = os.path.join(dest_base_uri, source_package_name)
-        logging.info("Branching {} to {}".format(branch, dest_branch_uri))
-        branchhandling.get_branch(branch, dest_branch_uri)
-        os.chdir(dest_branch_uri)
-        dest_tip_bzr_rev = branchhandling.get_tip_bzr_revision()
-        dest_dir_unreleased_changelog = ""
-
-        if branchhandling.has_missing_rev(bzr_pending_branch_uri, dest_branch_uri):
-            logging.info("The branch to merge is not rebased on the destination branch which has new commit. Trying to merge those for you.")
-            # before merging, trying to get missing changelog content
-            bzrlogs_content = branchhandling.return_log_diff_since_ancestor(bzr_pending_branch_uri)
-            dest_dir_unreleased_changelog = branchhandling.return_log_diff_since_last_release(bzrlogs_content)
-            # TODO: find a fallback or warn if no commit message attached to the MP
-            if not branchhandling.merge_branch(dest_branch_uri, bzr_pending_branch_uri, mp.commit_message):
-                logging.error("Conflicts when attempting to merge {} into {}. You will need to reconcile those 2 branches in your MP and rerun this job".format(mp.source_branch.web_link, mp.target_branch.web_link))
-                sys.exit(1)
-            # now, just push in the official pending branch the merge result. That's going to be our base
-            branchhandling.push_to_branch(dest_branch_uri, bzr_pending_branch_uri)
-
         os.chdir(bzr_pending_branch_uri)
+        dest_tip_bzr_rev = branchhandling.get_tip_bzr_revision()
+
+        # get all branches one after another and merge them in order to bzr_pending_branch_uri
+        for mp_link in components_to_prepare[source_package_name]:
+            mp = launchpadmanager.get_resource_from_token(mp_link)
+            branch = mp.source_branch.web_link
+            logging.info("Trying to merge {} into {}".format(branch, mp.dest_branch.web_link))
+
+            bugs_fixes = ""
+            for bug in mp.getRelatedBugTasks():
+                if not bug_fixes:
+                    bug_fixes = "Fixes: "
+                else:
+                    bug_fixes += ", "
+                bugs_fixes += bug.self_link.split('/')[-1]
+
+            # TODO: find a fallback or warn if no commit message attached to the MP
+            commit_message = "{} {}".format(mp.commit_message, bugs_fixes)
+
+            # grab committers
+            committers = branchhandling.grab_committers_compared_to(source_uri, lp_parent_branch_to_scan)
+
+            if not branchhandling.merge_branch(bzr_pending_branch_uri, branch, commit_message, authors=committers):
+                logging.error("Conflicts when attempting to merge {} into previous merged + {}. You will need to reconcile manually branches that you provided as a parameter for merging into the destination branch and rerun this job".format(mp.source_branch.web_link, mp.target_branch.web_link))
+                sys.exit(1)
+
         #  Get changelog informations
         logging.info("Get changelog info")
         packaging_version_in_bzr = packagemanager.get_packaging_version()
@@ -194,7 +193,7 @@ if __name__ == '__main__':
         dest_source_package = packagemanager.get_source_package_from_dest(source_package_name, dest, previous_finaledest_version, series.name)
         if dest_source_package:
             dest_source_package = os.path.abspath(dest_source_package)
-        os.chdir(source_package_name)
+        os.chdir(bzr_pending_branch_uri)
         # nothing to release
         if not packagemanager.is_new_content_relevant_since_old_published_source(dest_source_package):
             if not force_rebuild:
@@ -211,33 +210,17 @@ if __name__ == '__main__':
         logging.info("Update symbol files version if needed")
         packagemanager.refresh_symbol_files(packaging_version)
 
-        # Prepare changelog
         logging.info("Prepare changelog content")
         authors_commits = {}
-        dest_bugs = set()
-        bugs = set()
-
-        # collect eventual commits from dest branch first
-        if dest_dir_unreleased_changelog:
-            (authors_commits, dest_bugs) = branchhandling.collect_author_commits(dest_dir_unreleased_changelog, set(), "(committed directly)")
-
-        for bug in mp.getRelatedBugTasks():
-            bugs.add(bug.self_link.split('/')[-1])
-        bug_fixes = branchhandling._format_bugs(bugs)
-        description_content = []
-        if bug_fixes:
-            description_content.append("New release fixing " + bug_fixes)
-        # TODO: find a fallback or warn if no commit message attached to the MP
-        for content in mp.commit_message.split('\n'):
-            content = content.strip()
-            if content.startswith('-') or content.startswith('*'):
-                content = content[1:]
-            description_content.append(content.strip())
+        # FIXME: -100 is a hack as we don't have anymore any information on when the last release happen. This should be enough, but a tag would be better.
+        log_content = branchhandling.return_log_diff_since_last_release(branchhandling.return_log_diff("-100"))
+        alreadyfixed_bugs = set()
+        with open("debian/changelog") as f:
+            alreadyfixed_bugs = packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name)
+        (authors_commits, bugs_set) = branchhandling.collect_author_commits(log_content, alreadyfixed_bugs)
         if force_rebuild:
-            description_content.append("New rebuild forced")
-        authors_commits[BOT_DEBFULLNAME] = description_content
-        # authors are not relevant for this mode as there is one lander (and difficult to attribute to who did what as we can merge multiple MPs)
-        packagemanager.update_changelog(packaging_version, series.name, None, authors_commits, ignore_authors=True)
+            authors_commits.setdefault(BOT_DEBFULLNAME, []).append("New rebuild forced")
+        packagemanager.update_changelog(packaging_version, series, tip_bzr_rev, authors_commits, args.destppa)
         branchhandling.commit_release(packaging_version)
 
         logging.info("Sync launchpad with current proposed work")

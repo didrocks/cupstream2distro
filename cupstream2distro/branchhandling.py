@@ -24,7 +24,7 @@ import os
 import re
 import subprocess
 
-from .settings import BRANCH_URL, IGNORECHANGELOG_COMMIT, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX, SILO_PACKAGING_MERGE_COMMIT_MESSAGE
+from .settings import BRANCH_URL, IGNORECHANGELOG_COMMIT, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX, SILO_PACKAGING_RELEASE_COMMIT_MESSAGE
 
 
 def get_branch(branch_url, dest_dir):
@@ -103,6 +103,12 @@ def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp=""):
                         line += '.' # ... or the lines will be merged.
                 line = line + ' ' # Add a space to preserve lines
                 current_commit += line
+                #  Maybe add something like that
+                #for content in mp.commit_message.split('\n'):
+                #    content = content.strip()
+                #    if content.startswith('-') or content.startswith('*'):
+                #        content = content[1:]
+                #    description_content.append(content.strip())
         elif line.startswith("message:"):
             commit_message_stenza = True
         elif line.startswith("fixes bug: "):
@@ -171,22 +177,9 @@ def return_log_diff(starting_rev):
     return stdout
 
 
-def return_log_diff_since_ancestor(branch_to_compare_to_url):
-    '''Return the relevant part of the cvs log from that branch compare to branch_to_compare_to_url'''
-
-    instance = subprocess.Popen(["bzr", "log", "-r", "ancestor:{}..".format(branch_to_compare_to_url), "--show-diff", "--forward"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (stdout, stderr) = instance.communicate()
-    if instance.returncode != 0:
-        raise Exception(stderr.decode("utf-8").strip())
-    # we need to not take into account the first rev (common ancestor)
-    sep = '------------------------------------------------------------'
-    stdout = sep + sep.join(stdout.split(sep)[2:])
-    return stdout
-
-
 def return_log_diff_since_last_release(content_to_parse):
     '''From a bzr log content, return only the log diff since the latest release'''
-    after_release = content_to_parse.split(SILO_PACKAGING_MERGE_COMMIT_MESSAGE.format(''))[-1]
+    after_release = content_to_parse.split(SILO_PACKAGING_RELEASE_COMMIT_MESSAGE.format(''))[-1]
     sep = '------------------------------------------------------------'
     sep_index = after_release.find(sep)
     if sep_index != 1:
@@ -194,19 +187,10 @@ def return_log_diff_since_last_release(content_to_parse):
     return after_release
 
 
-def has_missing_rev(candidate_branch, based_branch):
-    '''Return if candidate_branch has some missing revision from based_branch'''
-    cur_dir = os.path.abspath('.')
-    os.chdir(candidate_branch)
-    missing_rev = subprocess.call(["bzr", "missing", based_branch, "--other"]) != 0
-    os.chdir(cur_dir)
-    return missing_rev
-
-
 def commit_release(new_package_version, tip_bzr_rev=None):
     '''Commit latest release'''
-    if tip_bzr_rev:
-        message = "Releasing {}".format(new_package_version)
+    if not tip_bzr_rev:
+        message = SILO_PACKAGING_RELEASE_COMMIT_MESSAGE.format(new_package_version)
     else:
         message = "Releasing {}, based on r{}".format(new_package_version, tip_bzr_rev)
     if subprocess.call(["bzr", "commit", "-m", message]) != 0:
@@ -252,13 +236,17 @@ def merge_branch_with_parent_into(local_branch_uri, lp_parent_branch, dest_uri, 
     return success
 
 
-def merge_branch(uri_to_merge, lp_parent_branch, commit_message):
+def merge_branch(uri_to_merge, lp_parent_branch, commit_message, authors=set()):
     """Resync with targeted branch if possible"""
     success = False
     cur_dir = os.path.abspath('.')
     os.chdir(uri_to_merge)
+    lp_parent_branch = lp_parent_branch.replace("https://code.launchpad.net/", "lp:")
     if subprocess.call(["bzr", "merge", lp_parent_branch]) == 0:
-        subprocess.call(["bzr", "commit", "-m", commit_message, "--unchanged"])
+        cmd = ["bzr", "commit", "-m", commit_message, "--unchanged"]
+        for author in authors:
+            cmd.extends(['--author', author])
+        subprocess.call(cmd)
         success = True
     os.chdir(cur_dir)
     return success
@@ -276,3 +264,20 @@ def push_to_branch(source_uri, lp_parent_branch, overwrite=False):
         success = True
     os.chdir(cur_dir)
     return success
+
+def grab_committers_compared_to(source_uri, lp_parent_branch_to_scan):
+    """Return unique list of committers for a given branch"""
+    committers = set()
+    cur_dir = os.path.abspath('.')
+    os.chdir(source_uri)
+    lp_parent_branch = lp_parent_branch.replace("https://code.launchpad.net/", "lp:")
+    instance = subprocess.Popen(["bzr", "missing", lp_parent_branch], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = instance.communicate()
+    if instance.returncode != 0:
+        raise Exception("bzr missing on {} returned a failure: {}".format(lp_parent_branch, stderr.decode("utf-8").strip()))
+    committer_regexp = re.compile("\ncommitter: (.*)\n")
+    for match in committer_regexp.findall(stdout):
+        for committer in match.split(', '):
+            committers.add(committer)
+    os.chdir(cur_dir)
+    return committers

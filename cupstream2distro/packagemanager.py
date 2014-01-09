@@ -366,14 +366,12 @@ def collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name):
     return bugs
 
 
-def update_changelog(new_package_version, series, tip_bzr_rev, authors_commits, dest_ppa=None, ignore_authors=False):
+def update_changelog(new_package_version, series, tip_bzr_rev, authors_commits, dest_ppa=None):
     '''Update the changelog for the incoming upload'''
 
     dch_env = os.environ.copy()
-    dch_env["DEBFULLNAME"] = settings.BOT_DEBFULLNAME
     for author in authors_commits:
-        if not ignore_authors:
-            dch_env["DEBFULLNAME"] = author
+        dch_env["DEBFULLNAME"] = author
         for bug_desc in authors_commits[author]:
             if bug_desc.startswith('-'):
                 # Remove leading '-' or dch thinks (rightly) that it's an option

@@ -81,32 +81,32 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
     """Merge and eventually reconcialite all branches"""
     logging.info("Check the revision from all merged branch in trunk didn't change. If changed, try to reconciliate them back.")
     reconciliate_all_branches = True
-    dest_base_uri = os.path.abspath("dest_branches")
+    base_path = os.path.abspath('.')
+    dest_base_uri = os.path.join(base_path, "dest_branches")
     with ignored(OSError):
         shutil.rmtree(dest_base_uri)
     os.mkdir(dest_base_uri)
 
+
     for source in silo_config["mps"]:
-        mp = launchpadmanager.get_resource_from_token(silo_config['mps'][source])
-        logging.info("Checking and trying to merge {}".format(mp.web_link))
+        source_branch_uri = os.path.join(base_path, "dest_branches")
+        target_branch = launchpadmanager.get_resource_from_token(silo_config['mps'][source][0].target_branch)
+
         version = packages_in_dest[source]
         config = ConfigParser.RawConfigParser()
         config.read("{}.{}_{}".format(source, PROJECT_CONFIG_SUFFIX, version))
         stored_tip_rev = config.get('Branch', 'rev')
-        tip_rev = str(mp.target_branch.revision_count)
+        tip_rev = str(target_branch.revision_count)
 
         # prepare and remerge
-        message = SILO_PACKAGING_MERGE_COMMIT_MESSAGE.format(version)
-        dest_branch_uri = os.path.join(dest_base_uri, source)
-        if not branchhandling.merge_branch_with_parent_into(os.path.abspath(source), mp.target_branch.web_link, dest_branch_uri, message, stored_tip_rev):
-            logging.info("Couldn't merge that branch into the parent one.")
-            reconciliate_all_branches = False
-        else:
-            if tip_rev != stored_tip_rev:
-                logging.info("New revision ({}) in {} when prepared is based on {}. Trying to merge it for you.".format(tip_rev, source, stored_tip_rev))
-                if not branchhandling.merge_branch(dest_branch_uri, mp.target_branch.web_link, "Resync trunk"):
-                    logging.error("We can't reconciliate your proposed branch with the new commits in target (merge conflicts).")
-                    reconciliate_all_branches = False
+        #####message = SILO_PACKAGING_MERGE_COMMIT_MESSAGE.format(version)
+        if tip_rev != stored_tip_rev:
+            logging.info("New revision ({}) in {} when prepared is based on {}. Trying to merge it for you.".format(tip_rev, source, stored_tip_rev))
+            if not branchhandling.merge_branch(dest_branch_uri, target_branch.web_link, "Resync trunk"):
+                 branchhandling.push_to_branch(dest_branch_uri, os.path.join(dest_base_uri, source))
+                ### repull in trunk
+                logging.error("We can't reconciliate your proposed branch with the new commits in target (merge conflicts).")
+                reconciliate_all_branches = False
     if not reconciliate_all_branches:
         logging.error("Some branches couldn't be reconciliated with the changes happening meaning in destination branch. Please revert your changes in trunk and relaunch this job.")
         sys.exit(1)
@@ -114,14 +114,13 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
     logging.info("Pushing the branches to the parent ones")
     push_all_branches = True
     for source in silo_config["mps"]:
-        dest_branch_uri = os.path.join(dest_base_uri, source)
-        mp = launchpadmanager.get_resource_from_token(silo_config['mps'][source])
-        target_branch_link = mp.target_branch.web_link
+        branch_uri = os.path.join(base_path, source)
+        target_branch_link = launchpadmanager.get_resource_from_token(silo_config['mps'][source][0]).target_branch.web_link
         logging.info("Trying to push to {}".format(target_branch_link))
-        if not branchhandling.push_to_branch(dest_branch_uri, target_branch_link):
+        if not branchhandling.push_to_branch(branch_uri, target_branch_link):
             url = BRANCH_URL.format(source, "recup")
             logging.error("Can't push this branch to {}, pushing temporarly to {}.".format(target_branch_link, url))
-            branchhandling.push_to_branch(source, url, overwrite=True)
+            branchhandling.push_to_branch(branch_uri, url, overwrite=True)
             push_all_branches = False
     if not push_all_branches:
         logging.error("Some branches couldn't be pushed to the destination. Please pull them from the url link above and relaunch this job with only free slot flag.")

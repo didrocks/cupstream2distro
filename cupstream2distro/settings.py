@@ -74,7 +74,7 @@ for i in xrange(1, 10):
     SILO_NAME_LIST.append("landing-{:03d}".format(i))
 SILO_CONFIG_FILENAME = "config"
 SILO_BUILDPPA_SCHEME = "ci-train-ppa-service/{}"
-SILO_PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {}"
+SILO_PACKAGING_RELEASE_COMMIT_MESSAGE = "Releasing {}"
 SILOS_RAW_DIR = "~/silos"
 SILOS_DIR = os.path.expanduser(SILOS_RAW_DIR)
 SILO_RSYNCDIR = "~/out"

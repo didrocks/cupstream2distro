@@ -100,7 +100,7 @@ if __name__ == '__main__':
     # grab the project name of all MP
     for mp_url in args.addmps:
         mp = launchpadmanager.get_resource_from_url(mp_url)
-        config["mps"][mp.target_branch.project.name] = mp.self_link
+        config["mps"].setdefault(mp.target_branch.project.name, []).append(mp.self_link)
 
         # check that any of those components are part of any current transaction
         if not silomanager.is_project_not_in_any_configs(mp.target_branch.project.name, series, dest, SILOS_DIR, args.reconfiguresilo):
@@ -113,6 +113,25 @@ if __name__ == '__main__':
 
     if one_project_already_in_use:
         logging.error("One or more projects are already in use for the same destination and series in another silo (see above)")
+        sys.exit(1)
+
+    # check that all MPs for a source are targetting the same branch
+    logging.info("Checking that all target branch for the same source in mps are targetting the same branches")
+    all_same_dest = True
+    for source in config["mps"]:
+        first_mp = None
+        for mp_link in config['mps'][source]:
+            mp = launchpadmanager.get_resource_from_token(mp_link)
+            if not first_mp:
+                first_mp = mp
+            else:
+                current_branch_link = mp.target_branch.web_link
+                if current_branch_link != first_mp.target_branch.web_link:
+                    logging.error("{} is targetting {} while {} is targetting {}".format(mp.web_link, current_branch_link, first_mp.web_link, first_mp.target_branch.web_link))
+                    all_same_dest = False
+
+    if not all_same_dest:
+        logging.error("Not all MP targetting the same source package are targetting the same branch. Please recheck your configuration.")
         sys.exit(1)
 
     ppa_uri = SILO_BUILDPPA_SCHEME.format(silo_name)
