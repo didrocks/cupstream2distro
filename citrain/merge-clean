@@ -30,7 +30,7 @@ import urllib2
 import ConfigParser
 
 from cupstream2distro import branchhandling, launchpadmanager, packageinppamanager, packagemanager, silomanager
-from cupstream2distro.settings import SILO_PUBLISHED, SILO_DONE, SILO_PACKAGING_MERGE_COMMIT_MESSAGE, BRANCH_URL, PROJECT_CONFIG_SUFFIX, TIME_BETWEEN_PPA_CHECKS, SILOS_DIR
+from cupstream2distro.settings import SILO_PUBLISHED, SILO_DONE, BRANCH_URL, PROJECT_CONFIG_SUFFIX, TIME_BETWEEN_PPA_CHECKS, SILOS_DIR
 from cupstream2distro.utils import ignored
 
 
@@ -82,15 +82,10 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
     logging.info("Check the revision from all merged branch in trunk didn't change. If changed, try to reconciliate them back.")
     reconciliate_all_branches = True
     base_path = os.path.abspath('.')
-    dest_base_uri = os.path.join(base_path, "dest_branches")
-    with ignored(OSError):
-        shutil.rmtree(dest_base_uri)
-    os.mkdir(dest_base_uri)
-
 
     for source in silo_config["mps"]:
-        source_branch_uri = os.path.join(base_path, "dest_branches")
-        target_branch = launchpadmanager.get_resource_from_token(silo_config['mps'][source][0].target_branch)
+        source_branch_uri = os.path.join(base_path, source)
+        target_branch = launchpadmanager.get_resource_from_token(silo_config['mps'][source][0]).target_branch
 
         version = packages_in_dest[source]
         config = ConfigParser.RawConfigParser()
@@ -101,9 +96,7 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
         # prepare and remerge
         if tip_rev != stored_tip_rev:
             logging.info("New revision ({}) in {} when prepared is based on {}. Trying to merge it for you.".format(tip_rev, source, stored_tip_rev))
-            if not branchhandling.merge_branch(dest_branch_uri, target_branch.web_link, "Resync trunk"):
-                 branchhandling.push_to_branch(dest_branch_uri, os.path.join(dest_base_uri, source))
-                ### repull in trunk
+            if not branchhandling.merge_branch(source_branch_uri, target_branch.web_link, "Resync trunk"):
                 logging.error("We can't reconciliate your proposed branch with the new commits in target (merge conflicts).")
                 reconciliate_all_branches = False
     if not reconciliate_all_branches:
