@@ -148,12 +148,12 @@ if __name__ == "__main__":
     template_dir = os.path.join(os.path.dirname(__file__), 'jenkins-templates')
     jjenv = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
-    if args.prepare:
-        logging.info("Configure prepare silos job")
-        setup_job(jkh, jjenv, "prepare-silo", TEMPLATES["prepare-silo"])
     if args.deploycitrain:
         logging.info("Deploy latest citrain code")
         deploy_citrain()
+    if args.prepare:
+        logging.info("Configure prepare silos job")
+        setup_job(jkh, jjenv, "prepare-silo", TEMPLATES["prepare-silo"])
     if args.deployjenkins:
         logging.info("Configure deloy jenkins job")
         setup_job(jkh, jjenv, "deploy-jenkins", TEMPLATES["deploy-jenkins"])

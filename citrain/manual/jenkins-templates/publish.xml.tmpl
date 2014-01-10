@@ -10,6 +10,11 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <permission>hudson.model.Item.Read:ubuntu-core-dev</permission>
+      <permission>hudson.model.Item.Cancel:ubuntu-core-dev</permission>
+      <permission>hudson.model.Item.Build:ubuntu-core-dev</permission>
+    </hudson.security.AuthorizationMatrixProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.BooleanParameterDefinition>
