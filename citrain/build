@@ -211,6 +211,8 @@ if __name__ == '__main__':
         logging.info("Prepare changelog content")
         authors_commits = {}
         # FIXME: -100 is a hack as we don't have anymore any information on when the last release happen. This should be enough, but a tag would be better.
+        # FIXME2: There is something to do for components that never released. We'll need to just take the number of mergings for for it and use -<x> commits
+        #         to only display them.
         log_content = branchhandling.return_log_diff_since_last_release(branchhandling.return_log_diff("-100"))
         alreadyfixed_bugs = set()
         with open("debian/changelog") as f:
