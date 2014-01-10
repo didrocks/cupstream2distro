@@ -66,7 +66,7 @@ if __name__ == '__main__':
         logging.info("Whole rebuild, ensuring that the silo is in a coherent state. Keep the published files")
         for filename in os.listdir("."):
             # don't remove archive file and config file
-            if not ".{}_".format(PROJECT_CONFIG_SUFFIX) in filename and not "config" in filename)
+            if not ".{}_".format(PROJECT_CONFIG_SUFFIX) in filename and not "config" in filename:
                 try:
                     shutil.rmtree(filename)
                 except OSError:
