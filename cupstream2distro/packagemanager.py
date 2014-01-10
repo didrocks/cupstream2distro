@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012 Canonical
+# Copyright (C) 2012-2014 Canonical
 #
 # Authors:
 #  Didier Roche
+#  Rodney Dawes
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -295,8 +296,11 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
     if we already have something delivered today, it will be .minor, then, .minor+1…
 
     We append the destination ppa name if we target a dest ppa and not distro'''
+    # to keep track of whether the package is native or not
+    native_pkg = False
 
     today_version = datetime.date.today().strftime('%Y%m%d')
+    destppa = destppa.replace("-", '.').replace("_", ".").replace("/", ".")
     # bootstrapping mode or direct upload or UNRELEASED for bumping to a new series
     # TRANSITION
     if not ("daily" in base_package_version or "+" in base_package_version):
@@ -305,6 +309,23 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
         # if we have 42ubuntu1 like a wrong native version
         if "ubuntu" in upstream_version:
             upstream_version = upstream_version.split('ubuntu')[0]
+    elif not "-" in base_package_version and "+" in base_package_version:
+        # extract the day of previous daily upload and bump if already uploaded
+        regexp = re.compile("(.*)\+([\d\.]{5})\.(\d{8})\.?([\d]*).*")
+        try:
+            previous_day = regexp.findall(base_package_version)[0]
+            upstream_version = previous_day[0]
+            native_pkg = True
+            if (previous_day[1] == series_version and
+                previous_day[2] == today_version):
+                minor = 1
+                if previous_day[3]:  # second upload of the day
+                    minor = int(previous_day[3]) + 1
+                today_version = "{}.{}".format(today_version, minor)
+        except IndexError:
+            raise Exception(
+                "Unable to get previous day from native version: %s"
+                % base_package_version)
     else:
         # extract the day of previous daily upload and bump if already uploaded today
         regexp = re.compile("(.*)\+([\d\.]{5})\.(\d{8})\.?([\d]*).*-.*")
@@ -326,10 +347,13 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
                 minor = int(previous_day[3]) + 1
             today_version = "{}.{}".format(today_version, minor)
 
-    destppa = destppa.replace("-", '.').replace("_", ".").replace("/", ".")
-    new_upstream_version = "{upstream}+{series}.{date}{destppa}".format(upstream=upstream_version, series=series_version,
-                                                                        date=today_version, destppa=destppa)
-    return "{}-0ubuntu1".format(new_upstream_version)
+    new_upstream_version = "{upstream}+{series}.{date}{destppa}".format(
+        upstream=upstream_version, series=series_version,
+        date=today_version, destppa=destppa)
+    if native_pkg is not True:
+        new_upstream_version = "{}-0ubuntu1".format(new_upstream_version)
+
+    return new_upstream_version
 
 
 def get_packaging_sourcename():

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-# Copyright: (C) 2013 Canonical
+# Copyright: (C) 2013-2014 Canonical
 #
 # Authors:
 #  Didier Roche
+#  Rodney Dawes
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -491,6 +492,58 @@ class PackageManagerTests(BaseUnitTestCase):
         strftime_call = datetimeMock.date.today.return_value.strftime
         strftime_call.side_effect = lambda date: '19830913'
         self.assertEqual(packagemanager.create_new_packaging_version('42-0ubuntu1', '13.10'), '42+13.10.19830913-0ubuntu1')
+        strftime_call.assert_called_with('%Y%m%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_native(self, datetimeMock):
+        """Verify that native package versions are supported."""
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '19830913'
+        self.assertEqual(packagemanager.create_new_packaging_version(
+            '13.10+13.10.19830912', '13.10'),
+                         '13.10+13.10.19830913')
+        strftime_call.assert_called_with('%Y%m%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_native_epoch(self, datetimeMock):
+        """Verify that native package versions with epoch are supported."""
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '19830913'
+        self.assertEqual(packagemanager.create_new_packaging_version(
+            '1:13.10+13.10.19830912', '13.10'),
+                         '1:13.10+13.10.19830913')
+        strftime_call.assert_called_with('%Y%m%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_native_first_rerelease_sameday(
+            self, datetimeMock):
+        """Verify that native versions re-release on same day is supported."""
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '19830913'
+        self.assertEqual(packagemanager.create_new_packaging_version(
+            '13.10+13.10.19830913', '13.10'),
+                         '13.10+13.10.19830913.1')
+        strftime_call.assert_called_with('%Y%m%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_native_continous_rerelease_sameday(
+            self, datetimeMock):
+        """Verify that native versions continuoed re-release is supported."""
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '19830913'
+        self.assertEqual(packagemanager.create_new_packaging_version(
+            '13.10+13.10.19830913.2', '13.10'),
+                         '13.10+13.10.19830913.3')
+        strftime_call.assert_called_with('%Y%m%d')
+
+    @patch('cupstream2distro.packagemanager.datetime')
+    def test_create_new_packaging_version_native_ppa_dest(self, datetimeMock):
+        """Verify that native versions with a ppa dest are supported."""
+        strftime_call = datetimeMock.date.today.return_value.strftime
+        strftime_call.side_effect = lambda date: '19830913'
+        self.assertEqual(packagemanager.create_new_packaging_version(
+            '13.10+13.10.19830912', '13.10', 'didrocks/my-ppa_mine'),
+                         '13.10+13.10.19830913didrocks.my.ppa.mine')
         strftime_call.assert_called_with('%Y%m%d')
 
     @patch('cupstream2distro.packagemanager.datetime')
