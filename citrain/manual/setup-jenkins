@@ -37,7 +37,8 @@ TEMPLATES = {
     'prepare-silo': 'prepare-silo.xml.tmpl',
     'build': 'build.xml.tmpl',
     'publish': 'publish.xml.tmpl',
-    'merge-clean': 'merge-clean.xml.tmpl'
+    'merge-clean': 'merge-clean.xml.tmpl',
+    'deploy-jenkins': 'deploy-jenkins.xml.tmpl'
 }
 
 def load_jenkins_credentials(path, jenkins_name):
@@ -91,6 +92,17 @@ def setup_job(jenkins_handle, jjenv, jobname, template_name, ctx={}):
         jenkins_handle.reconfig_job(jobname, jkcfg)
 
 
+def deploy_citrain():
+    """Deploy latest citrain code"""
+    cur_dir = os.path.abspath('.')
+    citrain_dir = os.path.join(cur_dir, 'citrain')
+    if not os.path.isdir('citrain'):
+        subprocess.call(['bzr', 'branch', 'lp:cupstream2distro', 'citrain'])
+    else:
+        os.chdir(citrain_dir)
+        subprocess.call(['bzr', 'pull', '--overwrite'])
+        os.chdir(citrain_dir)
+
 def setup_silo(jenkins_handle, jjenv, silo_name):
     """Setup a silo jenkins job"""
     logging.info("Configure {}".format(silo_name))
@@ -104,11 +116,16 @@ def setup_silo(jenkins_handle, jjenv, silo_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Create/Update the configuration of the Jenkins jobs for citrain")
-    parser.add_argument('--prepare', action='store_true',
-                        default=False,
-                        help='Only configure main prepare silo job.')
+    parser.add_argument('--allsilos', action='store_true',
+                        help='Configure all silos jenkins job')
     parser.add_argument('--silos', nargs='+',
-                        help='Only configure the provided silos')
+                        help='Only configure the provided silos jenkins job')
+    parser.add_argument('--prepare', action='store_true',
+                        help='Configure prepare job as well')
+    parser.add_argument('--deploycitrain', action='store_true',
+                        help='Deploy latest citrain code as well')
+    parser.add_argument('--deployjenkins', action='store_true',
+                        help='Configure the deploy jenkins job as well (only for bootstrapping, if run from jenkins then, the job can\'t redeploy itself)')
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
     args = parser.parse_args()
@@ -131,20 +148,23 @@ if __name__ == "__main__":
     template_dir = os.path.join(os.path.dirname(__file__), 'jenkins-templates')
     jjenv = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
-    configure_all = True
     if args.prepare:
-        configure_all = False
         logging.info("Configure prepare silos job")
         setup_job(jkh, jjenv, "prepare-silo", TEMPLATES["prepare-silo"])
+    if args.deploycitrain:
+        logging.info("Deploy latest citrain code")
+        deploy_citrain()
+    if args.deployjenkins:
+        logging.info("Configure deloy jenkins job")
+        setup_job(jkh, jjenv, "deploy-jenkins", TEMPLATES["deploy-jenkins"])
     if args.silos:
-        configure_all = False
+        logging.info("Configure a set of silos")
         for silo_name in args.silos:
             if silo_name not in SILO_NAME_LIST:
                 logging.error("silo {} doesn't exist in {}".format(silo_name, SILO_NAME_LIST))
                 sys.exit(1)
             setup_silo(jkh, jjenv, silo_name)
-
-    if configure_all:
+    elif args.allsilos:
+        logging.info("Configure all silos")
         for silo_name in SILO_NAME_LIST:
             setup_silo(jkh, jjenv, silo_name)
-        setup_job(jkh, jjenv, "prepare-silo", TEMPLATES["prepare-silo"])

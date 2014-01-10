@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Redeploy jenkins configuration</description>
+  <logRotator>
+    <daysToKeep>15</daysToKeep>
+    <numToKeep>-1</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.BooleanParameterDefinition>
+          <name>ALL_SILOS</name>
+          <description>onfigure all silos jenkins job</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ONLY_SILOS</name>
+          <description>Only configure the provided silos jenkins job</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>PREPARE</name>
+          <description>Configure prepare job as well</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DEPLOY_CITRAIN</name>
+          <description>Deploy latest citrain code as well</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DEBUG</name>
+          <description>Debug mode</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -eu
+export LANG=en_US.UTF-8
+export WORKSPACE="$PWD"
+
+OPTS=""
+ONLY_SILOS=${ONLY_SILOS-}
+
+if [ "${ALL_SILOS}" == "true" ]; then
+  OPTS="$OPTS --allsilos"
+fi
+if [ ! -z "${ONLY_SILOS}" ]; then
+  OPTS="$OPTS --silos ${ONLY_SILOS}"
+fi
+if [ "$PREPARE" == "true" ]; then
+  OPTS="$OPTS --prepare"
+fi
+if [ "${DEPLOY_CITRAIN}" == "true" ]; then
+  OPTS="$OPTS --deploycitrain"
+fi
+if [ "$DEBUG" == "true" ]; then
+  OPTS="$OPTS --debug"
+fi
+
+cd # go to home directory
+{{ BINDIR }}/manual/setup-jenkins $OPTS
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+  </publishers>
+  <buildWrappers/>
+</project>
