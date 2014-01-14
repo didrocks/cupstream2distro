@@ -45,7 +45,9 @@ def check_packages_and_versions(silo_config, packages_in_dest, ignoremissingproj
         try:
             all_silo_projects.remove(source)
         except ValueError:
-            logging.error("{} wasn't in the initiale configuration. You have messed with the file system directly.\nUnknown state. Please resolve the silo manually and then free it.")
+            message = "{} wasn't in the initiale configuration. You have messed with the file system directly.\nUnknown state. Please resolve the silo manually and then free it.".format(source)
+            logging.error(message)
+            silomanager.set_config_status(silo_config, "Can't merge: " + message)
             sys.exit(1)
 
     if all_silo_projects:
@@ -60,6 +62,7 @@ def check_packages_and_versions(silo_config, packages_in_dest, ignoremissingproj
                     silo_config["sources"].remove(remaining_project)
         else:
             logging.error(message + "Prepare either prepare the latest missing projects or use the ignore missing projects flag which will release the lock on them.")
+            silomanager.set_config_status(silo_config, "Can't merge: " + message)
             sys.exit(1)
 
     logging.info("Check that all package sources are published in destination")
@@ -74,7 +77,9 @@ def check_packages_and_versions(silo_config, packages_in_dest, ignoremissingproj
         if ignorepackagesnotindest:
             logging.info("The ignore flag is set.")
         else:
-            logging.error("One package at least is not available at the destination. See above. You can use the ignore package not in dest flag. The eventual merge will still be proceeded.")
+            message = "One package at least is not available at the destination. See above. You can use the ignore package not in dest flag. The eventual merge will still be proceeded."
+            logging.error(message)
+            silomanager.set_config_status(silo_config, "Can't merge: " + message)
             sys.exit(1)
 
 def merge_and_reconciliate(silo_config, packages_in_dest):
@@ -100,7 +105,9 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
                 logging.error("We can't reconciliate your proposed branch with the new commits in target (merge conflicts).")
                 reconciliate_all_branches = False
     if not reconciliate_all_branches:
-        logging.error("Some branches couldn't be reconciliated with the changes happening meaning in destination branch. Please revert your changes in trunk and relaunch this job.")
+        message = "Some branches couldn't be reconciliated with the changes happening meaning in destination branch. Please revert your changes in trunk and relaunch this job."
+        logging.error(message)
+        silomanager.set_config_status(silo_config, "Can't merge: " + message)
         sys.exit(1)
 
     logging.info("Pushing the branches to the parent ones")
@@ -115,7 +122,9 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
             branchhandling.push_to_branch(branch_uri, url, overwrite=True)
             push_all_branches = False
     if not push_all_branches:
-        logging.error("Some branches couldn't be pushed to the destination. Please pull them from the url link above and relaunch this job with only free slot flag.")
+        message = "Some branches couldn't be pushed to the destination. Please pull them from the url link above and relaunch this job with only free slot flag."
+        logging.error(message)
+        silomanager.set_config_status(silo_config, "Can't merge: " + message)
         sys.exit(1)
 
 
@@ -138,6 +147,7 @@ if __name__ == '__main__':
 
 
     silo_config = silomanager.load_config()
+    silomanager.set_config_status(silo_config, "Merging")
 
     if not args.onlyfreesilo:
         if silomanager.get_config_step(silo_config) != SILO_PUBLISHED:
@@ -145,10 +155,12 @@ if __name__ == '__main__':
                 logging.info("Last step didn't finish successfully, but the ignore flag is set.")
             else:
                 logging.error("Last step didn't finish successfully. You need to either ignore that the previous step didn't finished successfully or ensuring that prepare, build and checked passed.")
+                silomanager.set_config_status(silo_config, "Can't merge: wrong status or parameters for job.")
                 sys.exit(1)
             # reset it
             if not silomanager.set_config_step(silo_config, SILO_PUBLISHED):
                 logging.error("Couldn't reset the step in the configuration file.")
+                silomanager.set_config_status(silo_config, "Merge failed: couldn't reset status or parameters for job.")
                 sys.exit(1)
 
         # get latest uploaded version for all packages
@@ -169,6 +181,7 @@ if __name__ == '__main__':
 
     # set the silo as done
     silomanager.set_config_step(silo_config, SILO_DONE)
+    silomanager.set_config_status(silo_config, "Cleaning silo")
 
     ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])

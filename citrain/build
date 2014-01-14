@@ -51,6 +51,8 @@ if __name__ == '__main__':
         logging.debug("Debug mode enabled")
 
     silo_config = silomanager.load_config()
+    set_config_status(silo_config, "Preparing packages")
+
     src_ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     dest = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])
@@ -61,6 +63,7 @@ if __name__ == '__main__':
                 logging.warning("You already tried to build everything. But the ignore flag is set.")
             else:
                 logging.error("You already tried to build everything. You need to either:\n - use the ignore step flag \n - use --prepareonly to rebuild a selection \n - use --watchonly to check ppa status and run the tests.")
+                silomanager.set_config_status(silo_config, "Can't build: wrong status or parameters for job.")
                 sys.exit(1)
         # remove everything but the archived .project_ files
         logging.info("Whole rebuild, ensuring that the silo is in a coherent state. Keep the published files")
@@ -75,6 +78,7 @@ if __name__ == '__main__':
     # reset the status
     if not silomanager.set_config_step(silo_config, SILO_EMPTY):
         logging.error("Couldn't reset the step in the configuration file.")
+        silomanager.set_config_status(silo_config, "Build failed: couldn't reset status or parameters for job.")
         sys.exit(1)
 
 
@@ -84,7 +88,9 @@ if __name__ == '__main__':
         if source not in silo_config["mps"]:
             components_not_in_config.append(source)
     if components_not_in_config:
-        logging.error("One or more components provided in prepareonly ({}) are not in the silo configuration. Ask for a reconfiguration of the silo with the new MPs to add please.".format(", ".join(components_not_in_config)))
+        message = "One or more components provided in prepareonly ({}) are not in the silo configuration. Ask for a reconfiguration of the silo with the new MPs to add please.".format(", ".join(components_not_in_config))
+        logging.error(message)
+        silomanager.set_config_status(silo_config, "Can't build: " + message)
         sys.exit(1)
 
     # cycle through all branches and prepare them
@@ -133,6 +139,7 @@ if __name__ == '__main__':
 
             if not branchhandling.merge_branch(bzr_pending_branch_uri, branch, commit_message, authors=committers):
                 logging.error("Conflicts when attempting to merge {} into previous merged + {}. You will need to reconcile manually branches that you provided as a parameter for merging into the destination branch and rerun this job".format(branch, mp.target_branch.web_link))
+                silomanager.set_config_status(silo_config, "Can't build: Merge conflict.")
                 sys.exit(1)
 
         #  Get changelog informations
@@ -140,7 +147,9 @@ if __name__ == '__main__':
         packaging_version_in_bzr = packagemanager.get_packaging_version()
 
         if (source_package_name != packagemanager.get_packaging_sourcename()):
-            logging.error("Projectbranch doesn't specify the same source name than the packaging itself {}".format(instance_info))
+            message = "Project branch doesn't specify the same source name than the packaging itself {}".format(instance_info)
+            logging.error(message)
+            silomanager.set_config_status(silo_config, "Can't build: " + message)
             sys.exit(1)
 
         # Check version in ppa
@@ -173,6 +182,7 @@ if __name__ == '__main__':
                 if not packagemanager.is_version_in_changelog(previous_finaledest_version, changelog):
                     message = ("A version ({}) is available at the destination for that component but is not in the proposed branch which is still at {}. You can force rebuild to bypass the check.".format(previous_finaledest_version, packaging_version_in_bzr, instance_info))
                     logging.warning(message)
+                    silomanager.set_config_status(silo_config, "Can't build: Some projects are missing revisions from distribution.")
                     sys.exit(1)
 
         if not launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
@@ -275,14 +285,18 @@ if __name__ == '__main__':
         pass # no package in the ppa yet
 
     if direct_upload_not_in_list:
-        logging.error("Some packages ({}) that are not in the MP or not in sources list have been detected in the ppa. Please remove them from the ppa or ask for a reconfiguration.".format(", ".join(direct_upload_not_in_list)))
+        message = "Some packages ({}) that are not in the MP or not in sources list have been detected in the ppa. Please remove them from the ppa or ask for a reconfiguration.".format(", ".join(direct_upload_not_in_list))
+        logging.error(message)
+        silomanager.set_config_status(silo_config, "Build failed: " + message)
         sys.exit(1)
 
     # watch ppa
+    set_config_status(silo_config, "Building")
     logging.info("Check ppa status in {}".format(src_ppa.web_link))
     watch_ppa_exec = os.path.join(os.path.dirname(__file__), "watch-ppa")
     call_params = [watch_ppa_exec, "-s", series.name, "-p", "{}/{}".format(src_ppa.owner.name, src_ppa.name)]
     if not launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
         call_params.extend(["--destppa", dest_ppa_name])
     if subprocess.call(call_params) != 0:
+        silomanager.set_config_status(silo_config, "Build failed: Some packages failed to build.")
         sys.exit(1)

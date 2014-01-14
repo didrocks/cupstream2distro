@@ -20,14 +20,15 @@
 import json
 import logging
 import os
+import shutil
 
-from cupstream2distro.settings import SILO_CONFIG_FILENAME, SILO_NAME_LIST
+from cupstream2distro.settings import SILO_CONFIG_FILENAME, SILO_NAME_LIST, SILO_STATUS_RSYNCDIR
 from cupstream2distro.utils import ignored
 
 
 def save_config(config, uri=''):
-    """Save config in uri"""
-    silo_config_path = os.path.join(uri, SILO_CONFIG_FILENAME)
+    """Save config in uri and copy to outdir"""
+    silo_config_path = os.path.abspath(os.path.join(uri, SILO_CONFIG_FILENAME))
     with ignored(OSError):
         os.makedirs(uri)
     try:
@@ -36,6 +37,11 @@ def save_config(config, uri=''):
         logging.error("Can't save configuration: " + e.message)
         os.remove(silo_config_path)
         return False
+    # copy to outdir
+    with ignored(OSError):
+        os.makedirs(SILO_STATUS_RSYNCDIR)
+    silo_name = os.path.dirname(silo_config_path)
+    shutil.copy2(silo_config_path, os.path.join(os.SILO_STATUS_RSYNCDIR, silo_name))
     return True
 
 def load_config(uri=None):
@@ -85,6 +91,14 @@ def get_config_step(config):
 def set_config_step(config, new_step, uri=''):
     """Set configuration step to new_step"""
     config["global"]["step"] = new_step
+    return save_config(config, uri)
+
+def set_config_status(config, status, uri='', add_url=True):
+    """Change status to reflect latest status"""
+    build_url = os.getenv('BUILD_URL')
+    if add_url and build_url:
+        status = "{} ({}console)".format(status , build_url)
+    config["global"]["status"] = status
     return save_config(config, uri)
 
 def get_all_projects(config):
