@@ -78,7 +78,7 @@ SILO_PACKAGING_RELEASE_COMMIT_MESSAGE = "Releasing {}"
 SILOS_RAW_DIR = "~/silos"
 SILOS_DIR = os.path.expanduser(SILOS_RAW_DIR)
 SILO_RSYNCDIR = "~/out"
-SILO_STATUS_RSYNCDIR = "~/status"
+SILO_STATUS_RSYNCDIR = os.path.expanduser("~/status")
 CITRAIN_BINDIR = "~/citrain/citrain"
 (SILO_EMPTY, SILO_BUILTCHECKED, SILO_PUBLISHED, SILO_DONE) = range(4)
 

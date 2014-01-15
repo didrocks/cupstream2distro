@@ -41,6 +41,8 @@ def save_config(config, uri=''):
     with ignored(OSError):
         os.makedirs(SILO_STATUS_RSYNCDIR)
     silo_name = os.path.dirname(silo_config_path)
+    dest = os.path.join(SILO_STATUS_RSYNCDIR, silo_name)
+    logging.debug("Copying configuration from {} to {}".format(silo_config_path, dest))
     shutil.copy2(silo_config_path, os.path.join(SILO_STATUS_RSYNCDIR, silo_name))
     return True
 
