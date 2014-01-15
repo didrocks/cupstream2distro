@@ -24,6 +24,7 @@ import jinja2
 import os
 import logging
 import yaml
+import subprocess
 import sys
 import urllib2
 

@@ -40,7 +40,7 @@ def save_config(config, uri=''):
     # copy to outdir
     with ignored(OSError):
         os.makedirs(SILO_STATUS_RSYNCDIR)
-    silo_name = os.path.dirname(silo_config_path)
+    silo_name = os.path.dirname(silo_config_path).split(os.path.sep)[-1]
     dest = os.path.join(SILO_STATUS_RSYNCDIR, silo_name)
     logging.debug("Copying configuration from {} to {}".format(silo_config_path, dest))
     shutil.copy2(silo_config_path, os.path.join(SILO_STATUS_RSYNCDIR, silo_name))
@@ -64,7 +64,6 @@ def load_config(uri=None):
 
 def remove_status_file(silo_name):
     """Remove status file"""
-    silo_config_path = os.path.abspath('.')
     os.remove(os.path.join(SILO_STATUS_RSYNCDIR, silo_name))
 
 
