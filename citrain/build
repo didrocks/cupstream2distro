@@ -139,6 +139,7 @@ if __name__ == '__main__':
 
             if not branchhandling.merge_branch(bzr_pending_branch_uri, branch, commit_message, authors=committers):
                 logging.error("Conflicts when attempting to merge {} into previous merged + {}. You will need to reconcile manually branches that you provided as a parameter for merging into the destination branch and rerun this job".format(branch, mp.target_branch.web_link))
+                os.chdir('..')
                 silomanager.set_config_status(silo_config, "Can't build: Merge conflict.")
                 sys.exit(1)
 
@@ -149,6 +150,7 @@ if __name__ == '__main__':
         if (source_package_name != packagemanager.get_packaging_sourcename()):
             message = "Project branch doesn't specify the same source name than the packaging itself {}".format(instance_info)
             logging.error(message)
+            os.chdir('..')
             silomanager.set_config_status(silo_config, "Can't build: " + message)
             sys.exit(1)
 
@@ -182,6 +184,7 @@ if __name__ == '__main__':
                 if not packagemanager.is_version_in_changelog(previous_finaledest_version, changelog):
                     message = ("A version ({}) is available at the destination for that component but is not in the proposed branch which is still at {}. You can force rebuild to bypass the check.".format(previous_finaledest_version, packaging_version_in_bzr, instance_info))
                     logging.warning(message)
+                    os.chdir('..')
                     silomanager.set_config_status(silo_config, "Can't build: Some projects are missing revisions from distribution.")
                     sys.exit(1)
 
