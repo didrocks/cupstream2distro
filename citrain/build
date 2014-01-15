@@ -125,10 +125,10 @@ if __name__ == '__main__':
 
             bugs_fixes = ""
             for bug in mp.getRelatedBugTasks():
-                if not bug_fixes:
-                    bug_fixes = "Fixes: "
+                if not bugs_fixes:
+                    bugs_fixes = "Fixes: "
                 else:
-                    bug_fixes += ", "
+                    bugs_fixes += ", "
                 bugs_fixes += bug.self_link.split('/')[-1]
 
             # TODO: find a fallback or warn if no commit message attached to the MP
