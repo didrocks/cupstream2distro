@@ -60,6 +60,11 @@ def load_config(uri=None):
         logging.warning("Can't load configuration: " + e.message)
     return None
 
+def remove_status_file(silo_name):
+    """Remove status file"""
+    silo_config_path = os.path.abspath('.')
+    os.remove(os.path.join(SILO_STATUS_RSYNCDIR, silo_name))
+
 
 def is_project_not_in_any_configs(project_name, series, dest, base_silo_uri, ignore_silo):
     """Return true if the project for that serie in that dest is not in any configuration"""
