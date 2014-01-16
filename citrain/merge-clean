@@ -83,15 +83,15 @@ def check_packages_and_versions(silo_config, packages_in_dest, ignoremissingproj
                     logging.warning(in_proposed_msg + "You run that job either too quickly or it's stuck there. More information available at https://wiki.ubuntu.com/ProposedMigration.")
                     additional_messages += in_proposed_msg
                 elif packagemanager.is_version_in_queue(source, packages_in_dest[source], series, "New"):
-                    in_new_msg = "{} ({}) is in the NEW queue. "
+                    in_new_msg = "{} ({}) is in the NEW queue. ".format(source, packages_in_dest[source])
                     logging.warning(in_new_msg + "You need an archive admin to review a NEW this package.")
                     additional_messages += in_new_msg
                 elif packagemanager.is_version_in_queue(source, packages_in_dest[source], series, "Unapproved"):
-                    in_unapproved_msg = "{} ({}) is in the UNAPPROVED queue. "
+                    in_unapproved_msg = "{} ({}) is in the UNAPPROVED queue. ".format(source, packages_in_dest[source])
                     logging.warning(in_unapproved_msg + "You need a release team member to review an approve it. We are probably in a freeze period.")
                     additional_messages += in_unapproved_msg
                 else:
-                    in_unknown_msg = "{} ({}) is in no known space (and time). "
+                    in_unknown_msg = "{} ({}) is in no known space (and time). ".format(source, packages_in_dest[source])
                     logging.warning(in_unknown_msg + "We didn't find it anywhere. It could have been rejected, or you run it too quickly and it's not published in proposed yet, or a network issue happened. If this persistent some time after the publication, you need to ping a landing team member to get more informations.")
                     additional_messages += in_unknown_msg
 
