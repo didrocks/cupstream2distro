@@ -55,6 +55,11 @@ def is_version_for_series_in_dest(source_package_name, version, series, dest, po
     return dest.getPublishedSources(exact_match=True, source_name=source_package_name, version=version,
                                     distro_series=series, pocket=pocket).total_size > 0
 
+def is_version_in_queue(source_package_name, version, dest_serie, queue):
+    '''Return if version for a package name in that series is in dest'''
+    return dest_serie.getPackageUploads(exact_match=True, name=source_package_name, version=version,
+                                        status=queue).total_size > 0
+
 
 def is_version1_higher_than_version2(version1, version2):
     '''return if version1 is higher than version2'''
