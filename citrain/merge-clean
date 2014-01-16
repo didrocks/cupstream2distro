@@ -99,8 +99,8 @@ def check_packages_and_versions(silo_config, packages_in_dest, ignoremissingproj
         if ignorepackagesnotindest:
             logging.info("The ignore flag is set.")
         else:
-            message = "One package at least is not available at the destination. See above. You can use the ignore package not in dest flag. The eventual merge will still be proceeded."
-            logging.error(message)
+            message = "One package at least is not available at the destination. "
+            logging.error(message + "See above. You can use the ignore package not in dest flag. The eventual merge will still be proceeded.")
             silomanager.set_config_status(silo_config, "Can't merge: " + message + additional_messages)
             sys.exit(1)
 
