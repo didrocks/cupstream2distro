@@ -146,7 +146,7 @@ if __name__ == '__main__':
     config_path = os.path.join(SILOS_DIR, silo_name)
     if not silomanager.save_config(config, config_path):
         sys.exit(1)
-    logging.info("Affecting \"{}\" as silo. Build PPA is available at {}".format(silo_name, ppa.web_link))
+    logging.info("Assigning \"{}\" as silo. Build PPA is available at {}".format(silo_name, ppa.web_link))
 
     # if reconfigure, ensure we remove all projects file and packages from the ppa that are not to take into account anymore
     if args.reconfiguresilo:
