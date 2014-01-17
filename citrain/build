@@ -177,7 +177,7 @@ if __name__ == '__main__':
         # ensure that the previous release (in distro or in dest ppa) ended up in the vcs
         force_rebuild = False
         if args.forcerebuild:
-            logging.info("Force rebuild, even if destination don't contain latest version requested. Will overwrite even if destination has a newer version or the (optional) condition isn't met.")
+            logging.info("Force rebuild option set. Will update even if destination don't contain latest version requested.")
             force_rebuild = True
         else:
             with open("debian/changelog") as changelog:
