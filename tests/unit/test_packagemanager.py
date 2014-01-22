@@ -880,6 +880,21 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         os.environ["MOCK_MODE"] = "1"
         self.assertEqual(subprocess.Popen(['bzr', 'revno'], stdout=subprocess.PIPE).communicate()[0], "8\n")
 
+    def test_refresh_symbols_files_with_arch_file(self):
+        '''Update the symbols file with the new version'''
+        self.get_data_branch('basic_arch_symbols')
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        result_symbols = os.path.join(self.result_dir, "simple_update.symbols")
+        result_changelog = os.path.join(self.result_dir,
+                                        "simple_update.changelog")
+        self.assertFilesAreIdenticals("debian/foo.symbols.amd64", result_symbols)
+        self.assertChangelogFilesAreIdenticals(result_changelog,
+                                               "debian/changelog")
+        os.environ["MOCK_MODE"] = "1"
+        self.assertEqual(
+            subprocess.Popen(['bzr', 'revno'],
+                             stdout=subprocess.PIPE).communicate()[0], "8\n")
+
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
     '''Test that uses online services, but as we just pull from them, we can use them'''

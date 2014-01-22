@@ -481,7 +481,8 @@ def refresh_symbol_files(packaging_version):
     new_upstream_version = packaging_version.split("-")[0]
     replacement_done = False
     for filename in os.listdir("debian"):
-        if filename.endswith("symbols"):
+        # support also cases like ".symbols.<arch>"
+        if filename.count("symbols") > 0:
             for line in fileinput.input(os.path.join('debian', filename), inplace=1):
                 if settings.REPLACEME_TAG in line:
                     replacement_done = True
