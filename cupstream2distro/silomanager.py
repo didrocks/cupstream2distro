@@ -103,7 +103,7 @@ def set_config_status(config, status, uri='', add_url=True):
     """Change status to reflect latest status"""
     build_url = os.getenv('BUILD_URL')
     if add_url and build_url:
-        status = "{} ({}console)".format(status , build_url)
+        status = "{}||{}console".format(status , build_url)
     config["global"]["status"] = status
     return save_config(config, uri)
 
