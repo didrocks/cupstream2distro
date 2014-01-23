@@ -148,7 +148,7 @@ if __name__ == '__main__':
         packaging_version_in_bzr = packagemanager.get_packaging_version()
 
         if (source_package_name != packagemanager.get_packaging_sourcename()):
-            message = "Project branch doesn't specify the same source name than the packaging itself {}".format(instance_info)
+            message = "Project branch doesn't specify the same source name than the packaging itself for {}".format(source_package_name)
             logging.error(message)
             os.chdir('..')
             silomanager.set_config_status(silo_config, "Can't build: " + message)
@@ -182,7 +182,7 @@ if __name__ == '__main__':
         else:
             with open("debian/changelog") as changelog:
                 if not packagemanager.is_version_in_changelog(previous_finaledest_version, changelog):
-                    message = ("A version ({}) is available at the destination for that component but is not in the proposed branch which is still at {}. You can force rebuild to bypass the check.".format(previous_finaledest_version, packaging_version_in_bzr, instance_info))
+                    message = ("A version ({}) is available at the destination archive for that component but is not in the destination branch which is still at {}. You can force rebuild to bypass the check.".format(previous_finaledest_version, packaging_version_in_bzr))
                     logging.warning(message)
                     os.chdir('..')
                     silomanager.set_config_status(silo_config, "Can't build: Some projects are missing revisions from distribution.")
