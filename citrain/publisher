@@ -27,7 +27,7 @@ import sys
 from cupstream2distro import launchpadmanager, packageinppamanager, packagemanager, silomanager
 from cupstream2distro.stacks import get_stack_packaging_change_status
 from cupstream2distro.tools import generate_xml_artefacts, get_previous_distro_version_from_config, mark_project_as_published
-from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT, SRU_PPA, SILO_BUILTCHECKED, SILO_PUBLISHED
+from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT, SRU_PPA, SILO_BUILTCHECKED, SILO_PUBLISHED, PROPOSED_URL
 from cupstream2distro.utils import ignored
 
 
@@ -56,6 +56,7 @@ if __name__ == '__main__':
     src_pocket = 'Release'
     dest_link = silo_config["global"]["dest"]
 
+    base_path = os.path.abspath('.')
 
     if silomanager.get_config_step(silo_config) != SILO_BUILTCHECKED:
         if args.ignorestep:
@@ -110,6 +111,8 @@ if __name__ == '__main__':
     src_version_check_fail = False
     dest_version_check_fail = False
 
+    error_pushing_branch = False
+
     # check and generate metadata
     for (source, version, tip_rev, branch) in all_packages_uploaded:
         logging.info("Checking {} ({})".format(source, version))
@@ -137,11 +140,25 @@ if __name__ == '__main__':
                 logging.error(message.replace('[]', '{}').format("the archive", version_in_dest))
                 dest_version_check_fail = True
             packagelist_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(src_ppa_name, src_ppa_pocket, series, distro_pocket, series, source, version, version_in_dest))
+
+            branch_uri = os.path.join(base_path, source)
+            proposed_branch = PROPOSED_URL.format(source, series)
+            logging.info("Pushing {} to {}".format(source, proposed_branch))
+            if not branchhandling.push_to_branch(branch_uri, proposed_branch, overwrite=True):
+                logging.error("We couldn't push {} to {}".format(source, proposed_branch))
+                error_pushing_branch = True
+                continue
         else:
             version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=dest_archive)
             if not version_in_dest == supposed_dest_version:
                 logging.warning(message.replace('[]', '{}').format(dest_archive.name, version_in_dest))
                 dest_version_check_fail = True
+
+    if error_pushing_branch:
+        message = "We had some branches that couldn't be pushed to their proposed location."
+        logging.error(message)
+        silomanager.set_config_status(silo_config, "Can't publish: " + message)
+        sys.exit(1)
 
     if all_silo_projects:
         message = "Some projects ({}) that were in the silo configuration list were not built. ".format(", ".join(all_silo_projects))

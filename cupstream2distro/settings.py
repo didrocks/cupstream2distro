@@ -24,6 +24,7 @@ NEW_CHANGELOG_PATTERN = "^{} \(.*\) (?!UNRELEASED)"
 PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} (revision {} from {})"
 REPLACEME_TAG = "0replaceme"
 BRANCH_URL = "lp:~ps-jenkins/{}/latestsnapshot-{}"
+PROPOSED_URL = "lp:~ps-jenkins/{}/{}-proposed"
 
 IGNORECHANGELOG_COMMIT = "#nochangelog"
 
