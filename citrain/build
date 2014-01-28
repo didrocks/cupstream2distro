@@ -132,7 +132,14 @@ if __name__ == '__main__':
                 bugs_fixes += bug.self_link.split('/')[-1]
 
             # TODO: find a fallback or warn if no commit message attached to the MP
-            commit_message = "{} {}".format(mp.commit_message, bugs_fixes)
+            commit_message = mp.commit_message
+            if not commit_message:
+                # TODO: we should loop to show if there is more issues and then exit
+                message = "There is no commit message in {}. Please check that you set a commit message on all your MPs.".format(branch)
+                logging.error(message)
+                silomanager.set_config_status(silo_config, "Can't build: " + message)
+                sys.exit(1)
+            commit_message = "{} {}".format(commit_message.encode('utf-8'), bugs_fixes)
 
             # grab committers
             committers = branchhandling.grab_committers_compared_to(bzr_pending_branch_uri, branch)
