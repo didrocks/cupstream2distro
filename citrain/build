@@ -88,7 +88,7 @@ if __name__ == '__main__':
         if source not in silo_config["mps"]:
             components_not_in_config.append(source)
     if components_not_in_config:
-        message = "One or more components provided in prepareonly ({}) are not in the silo configuration. Ask for a reconfiguration of the silo with the new MPs to add please.".format(", ".join(components_not_in_config))
+        message = "One or more components provided in prepareonly ({}) are not in the MP silo configuration. Ask for a reconfiguration of the silo with the new MPs to add please.".format(", ".join(components_not_in_config))
         logging.error(message)
         silomanager.set_config_status(silo_config, "Can't build: " + message)
         sys.exit(1)
@@ -287,7 +287,7 @@ if __name__ == '__main__':
                 dest_current_version = packagemanager.get_current_version_for_series(pkg.source_package_name, series.name, dest=dest)
                 tools.save_project_config(pkg.source_package_name, "", "", dest_current_version, pkg.source_package_version)
                 # download as well the .dsc file for watch-ppa
-                source_dir = packagemanager.get_source_package_from_dest(pkg.source_package_name, dest, pkg.source_package_version, series.name)
+                source_dir = packagemanager.get_source_package_from_dest(pkg.source_package_name, src_ppa, pkg.source_package_version, series.name)
                 shutil.copy(glob.glob(os.path.join(os.path.dirname(source_dir), '*.dsc'))[0], os.path.abspath('.'))
             else:
                 direct_upload_not_in_list.append(pkg.source_package_name)
@@ -295,7 +295,7 @@ if __name__ == '__main__':
         pass # no package in the ppa yet
 
     if direct_upload_not_in_list:
-        message = "Some packages ({}) that are not in the MP or not in sources list have been detected in the ppa. Please remove them from the ppa or ask for a reconfiguration.".format(", ".join(direct_upload_not_in_list))
+        message = "Some packages ({}) that are not in the MP and not in sources list have been detected in the ppa. Please remove them from the ppa or ask for a reconfiguration.".format(", ".join(direct_upload_not_in_list))
         logging.error(message)
         silomanager.set_config_status(silo_config, "Build failed: " + message)
         sys.exit(1)
