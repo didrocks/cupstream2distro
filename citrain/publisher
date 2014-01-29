@@ -207,4 +207,4 @@ if __name__ == '__main__':
         silomanager.set_config_status(silo_config, "Publication failed: " + message)
         sys.exit(1)
 
-    silomanager.set_config_status(silo_config, "Packages copied to destination.", add_url=False)
+    silomanager.set_config_status(silo_config, "Packages migrating to destination.", add_url=False)
