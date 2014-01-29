@@ -24,7 +24,7 @@ import os
 import sys
 
 
-from cupstream2distro import launchpadmanager, packageinppamanager, packagemanager, silomanager
+from cupstream2distro import branchhandling, launchpadmanager, packageinppamanager, packagemanager, silomanager
 from cupstream2distro.stacks import get_stack_packaging_change_status
 from cupstream2distro.tools import generate_xml_artefacts, get_previous_distro_version_from_config, mark_project_as_published
 from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT, SRU_PPA, SILO_BUILTCHECKED, SILO_PUBLISHED, PROPOSED_URL
