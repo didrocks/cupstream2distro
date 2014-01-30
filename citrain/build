@@ -117,6 +117,7 @@ if __name__ == '__main__':
         bzr_pending_branch_uri = os.path.abspath(source_package_name)
         os.chdir(bzr_pending_branch_uri)
         dest_tip_bzr_rev = branchhandling.get_tip_bzr_revision()
+        packaging_version_in_destbranch = packagemanager.get_packaging_version()
 
         # get all branches one after another and merge them in bzr_pending_branch_uri
         for mp in components_to_prepare[source_package_name]:
@@ -152,7 +153,7 @@ if __name__ == '__main__':
 
         #  Get changelog informations
         logging.info("Get changelog info")
-        packaging_version_in_bzr = packagemanager.get_packaging_version()
+        packaging_version_in_prepared_branch = packagemanager.get_packaging_version()
 
         if (source_package_name != packagemanager.get_packaging_sourcename()):
             message = "Project branch doesn't specify the same source name than the packaging itself for {}".format(source_package_name)
@@ -164,11 +165,11 @@ if __name__ == '__main__':
         # Check version in ppa
         logging.info("Get previous version in silo")
         version_in_ppa = packagemanager.get_current_version_for_series(source_package_name, series.name, src_ppa_name)
-        if packagemanager.is_version1_higher_than_version2(version_in_ppa, packaging_version_in_bzr):
-            logging.info("A version in the ppa ({}) is higher than the proposed version in bzr ({}) (previous tests/builds failing?). Basing on that one.".format(version_in_ppa, packaging_version_in_bzr))
+        if packagemanager.is_version1_higher_than_version2(version_in_ppa, packaging_version_in_prepared_branch):
+            logging.info("A version in the ppa ({}) is higher than the proposed version in bzr ({}) (previous tests/builds failing?). Basing on that one.".format(version_in_ppa, packaging_version_in_destbranch))
             previous_packaging_version = version_in_ppa
         else:
-            previous_packaging_version = packaging_version_in_bzr
+            previous_packaging_version = packaging_version_in_prepared_branch
 
         # Check version in distro
         logging.info("Get version available in distro")
@@ -189,7 +190,7 @@ if __name__ == '__main__':
         else:
             with open("debian/changelog") as changelog:
                 if not packagemanager.is_version_in_changelog(previous_finaledest_version, changelog):
-                    message = ("A version ({}) is available at the destination archive for that component but is not in the destination branch which is still at {}. You need to ensure that your version contains the fix in the destination or you can force rebuild to bypass the check.".format(previous_finaledest_version, packaging_version_in_bzr))
+                    message = ("A version ({}) is available at the destination archive for that component but is not in the destination branch which is still at {}. You need to ensure that your version contains the fix in the destination or you can force rebuild to bypass the check.".format(previous_finaledest_version, packaging_version_in_prepared_branch))
                     logging.warning(message)
                     os.chdir('..')
                     silomanager.set_config_status(silo_config, "Can't build: Some projects are missing revisions from distribution.")
@@ -220,7 +221,12 @@ if __name__ == '__main__':
             logging.info("No new useful revision published but force rebuilding is set")
 
         if launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
-            packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, series_version=SERIES_VERSION[series.name])
+
+            # only version if we don't see the flag to not version it.
+            if not packagemanager.has_dont_change_version_flag():
+                packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, series_version=SERIES_VERSION[series.name])
+            else:
+                packaging_version = packagemanager.get_packaging_version()
         else:
             packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=dest_ppa_name, series_version=SERIES_VERSION[series.name])
 
@@ -230,10 +236,12 @@ if __name__ == '__main__':
 
         logging.info("Prepare changelog content")
         authors_commits = {}
-        # FIXME: -100 is a hack as we don't have anymore any information on when the last release happen. This should be enough, but a tag would be better.
-        # FIXME2: There is something to do for components that never released. We'll need to just take the number of mergings for for it and use -<x> commits
-        #         to only display them.
-        log_content = branchhandling.return_log_diff_since_last_release(branchhandling.return_log_diff("-100"))
+
+        try:
+            log_content = branchhandling.return_log_diff_from_tag(packaging_version_in_destbranch)
+        except:
+            # FIXME: -100 is a hack as we don't have anymore any information on when the last release happen. People are transitionned to a tag system.
+            log_content = branchhandling.return_log_diff_since_last_release(branchhandling.return_log_diff("-100"))
         alreadyfixed_bugs = set()
         with open("debian/changelog") as f:
             alreadyfixed_bugs = packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name)
@@ -271,6 +279,7 @@ if __name__ == '__main__':
         packagemanager.generate_diff_between_dsc(diff_filepath, olddsc_path, newdsc_path)
 
         logging.info("Upload to the ppa")
+        sys.exit()
         packagemanager.upload_package(source_package_name, packaging_version, src_ppa_name)
 
         # Save infos for other jobs

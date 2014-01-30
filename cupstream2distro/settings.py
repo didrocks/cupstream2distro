@@ -26,6 +26,9 @@ REPLACEME_TAG = "0replaceme"
 BRANCH_URL = "lp:~ps-jenkins/{}/latestsnapshot-{}"
 PROPOSED_URL = "lp:~ps-jenkins/{}/{}-proposed"
 
+AUTOUPLOAD_CONTROL_TAG = "X-Auto-Uploader:"
+NO_REWRITE_VERSION_TAG = "no-rewrite-version"
+
 IGNORECHANGELOG_COMMIT = "#nochangelog"
 
 PROJECT_CONFIG_SUFFIX = "project"

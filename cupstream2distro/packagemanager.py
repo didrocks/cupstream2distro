@@ -149,7 +149,7 @@ def list_packages_info_in_str(packages_set):
 
 
 def get_packaging_version():
-    '''Get current packaging rev'''
+    '''Get current packaging version'''
     instance = subprocess.Popen(["dpkg-parsechangelog"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if instance.returncode != 0:
@@ -495,3 +495,12 @@ def refresh_symbol_files(packaging_version):
         dch_env["DEBEMAIL"] = settings.BOT_DEBEMAIL
         subprocess.Popen(["dch", "debian/*symbols: auto-update new symbols to released version"], env=dch_env).communicate()
         subprocess.call(["bzr", "commit", "-m", "Update symbols"])
+
+
+def has_dont_change_version_flag():
+    '''Return true if debian/control has a "don't change versionning" flag'''
+    for line in open("debian/control").readlines():
+        if line.startswith(settings.AUTOUPLOAD_CONTROL_TAG):
+            if settings.NO_REWRITE_VERSION_TAG in line:
+                return True
+    return False

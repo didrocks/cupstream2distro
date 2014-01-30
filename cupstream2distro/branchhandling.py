@@ -177,6 +177,17 @@ def return_log_diff(starting_rev):
     return stdout
 
 
+def return_log_diff_from_tag(tag):
+    '''Return the relevant part of the cvs log since tag'''
+    instance = subprocess.Popen(["bzr", "log", "-r", "tag:{}..".format(tag), "--show-diff", "--forward"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = instance.communicate()
+    if instance.returncode != 0:
+        raise Exception(stderr.decode("utf-8").strip())
+    # exclude latest commit that we don't want (the revision one)
+    # FIXME: ask bzr guys if there is a way to get a better info here
+    return stdout.split("tags: {}".format(tag))[0].split('------------------------------------------------------------')[0]
+
+
 def return_log_diff_since_last_release(content_to_parse):
     '''From a bzr log content, return only the log diff since the latest release'''
     after_release = content_to_parse.split(SILO_PACKAGING_RELEASE_COMMIT_MESSAGE.format(''))[-1]
@@ -194,6 +205,8 @@ def commit_release(new_package_version, tip_bzr_rev=None):
     else:
         message = "Releasing {}, based on r{}".format(new_package_version, tip_bzr_rev)
     if subprocess.call(["bzr", "commit", "-m", message]) != 0:
+        raise Exception("The above command returned an error.")
+    if subprocess.call(["bzr", "tag", new_package_version]) != 0:
         raise Exception("The above command returned an error.")
 
 

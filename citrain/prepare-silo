@@ -102,6 +102,7 @@ if __name__ == '__main__':
     # grab the project name of all MP
     for mp_url in args.addmps:
         mp = launchpadmanager.get_resource_from_url(mp_url)
+        # TODO: instead of mp.target_branch.project.name, get the linked ubuntu source package name from distribution for that serie/release pocket
         config["mps"].setdefault(mp.target_branch.project.name, []).append(mp.self_link)
 
         # check that any of those components are part of any current transaction
