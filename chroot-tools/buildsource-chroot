@@ -137,9 +137,9 @@ cmd_retry_exec useradd -g pbgroup -u $CHROOT_UID -d "${HOME}" -o pbuser
 
 # build the source in split mode
 if [ "$KEYID" == "testkey" ]; then
-    CMD="bzr bd -S --split -- -us -uc -d -v$DISTRO_VERSION"
+    CMD="bzr bd -S -- -us -uc -d -v$DISTRO_VERSION"
 else
-    CMD="bzr bd -S --split -- -k$KEYID -d -v$DISTRO_VERSION"
+    CMD="bzr bd -S -- -k$KEYID -d -v$DISTRO_VERSION"
 fi
 echo "Creating source with $CMD"
 echo "$CMD" | su -p pbuser;
