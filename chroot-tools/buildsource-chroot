@@ -101,7 +101,7 @@ apt-get update
 apt-get -yq --force-yes dist-upgrade
 
 # this isn't needed (you should install them in the chroot), but easier for debugging
-apt-get install pbuilder bzr-builddeb -yq --force-yes
+apt-get install pbuilder bzr-builddeb libwww-perl -yq --force-yes
 
 # add the optional ppa and update from it
 if [ -n "$PPA" ]; then
