@@ -155,13 +155,6 @@ if __name__ == '__main__':
         logging.info("Get changelog info")
         packaging_version_in_prepared_branch = packagemanager.get_packaging_version()
 
-        if (source_package_name != packagemanager.get_packaging_sourcename()):
-            message = "Project branch doesn't specify the same source name than the packaging itself for {}".format(source_package_name)
-            logging.error(message)
-            os.chdir('..')
-            silomanager.set_config_status(silo_config, "Can't build: " + message)
-            sys.exit(1)
-
         # Check version in ppa
         logging.info("Get previous version in silo")
         version_in_ppa = packagemanager.get_current_version_for_series(source_package_name, series.name, src_ppa_name)
@@ -279,7 +272,6 @@ if __name__ == '__main__':
         packagemanager.generate_diff_between_dsc(diff_filepath, olddsc_path, newdsc_path)
 
         logging.info("Upload to the ppa")
-        sys.exit()
         packagemanager.upload_package(source_package_name, packaging_version, src_ppa_name)
 
         # Save infos for other jobs

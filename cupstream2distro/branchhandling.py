@@ -185,14 +185,13 @@ def return_log_diff_from_tag(tag):
         raise Exception(stderr.decode("utf-8").strip())
     # exclude latest commit that we don't want (the revision one)
     # FIXME: ask bzr guys if there is a way to get a better info here
-    return stdout.split("tags: {}".format(tag))[0].split('------------------------------------------------------------')[0]
+    return stdout.split("tags: {}".format(tag))[0].split('-' * 60)[0]
 
 
 def return_log_diff_since_last_release(content_to_parse):
     '''From a bzr log content, return only the log diff since the latest release'''
     after_release = content_to_parse.split(SILO_PACKAGING_RELEASE_COMMIT_MESSAGE.format(''))[-1]
-    sep = '------------------------------------------------------------'
-    sep_index = after_release.find(sep)
+    sep_index = after_release.find('-' * 60)
     if sep_index != 1:
         after_release = after_release[sep_index:]
     return after_release
@@ -294,3 +293,13 @@ def grab_committers_compared_to(source_uri, lp_branch_to_scan):
             committers.add(committer)
     os.chdir(cur_dir)
     return committers
+
+
+def get_source_package_name_from_branch(branch_url):
+    """get source package name for that particular branch"""
+    branch_url = branch_url.replace("https://code.launchpad.net/", "lp:")
+    instance = subprocess.Popen(["bzr", "cat", "-d", branch_url, "debian/changelog"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = instance.communicate()
+    if stderr != "":
+        raise Exception("bzr can't find a debian/changelog file in that branch or can't communicate")
+    return stdout.split()[0]
