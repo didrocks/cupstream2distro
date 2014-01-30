@@ -26,8 +26,20 @@ from cupstream2distro.settings import SILO_CONFIG_FILENAME, SILO_NAME_LIST, SILO
 from cupstream2distro.utils import ignored
 
 
+def get_silo_root_path():
+    '''Recursiverly look for a config file as a silo path name from cur dir and return it'''
+    silo_root_path = os.path.abspath('.')
+    while not os.path.isfile(os.path.join(silo_root_path, SILO_CONFIG_FILENAME)):
+        if silo_root_path == os.path.abspath(os.path.dirname(silo_root_path)):
+            raise Exception("We are not in a silo config path")
+        silo_root_path = os.path.abspath(os.path.dirname(silo_root_path))
+    return silo_root_path
+
 def save_config(config, uri=''):
     """Save config in uri and copy to outdir"""
+    if not uri:
+        uri = get_silo_root_path()
+
     silo_config_path = os.path.abspath(os.path.join(uri, SILO_CONFIG_FILENAME))
     with ignored(OSError):
         os.makedirs(uri)
