@@ -33,8 +33,13 @@
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
-          <name>DEPLOY_CITRAIN</name>
-          <description>Deploy latest citrain code as well</description>
+          <name>DEPLOY_PREPROD_CITRAIN</name>
+          <description>Deploy preproduction code of citrain</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DEPLOY_PROD_CITRAIN</name>
+          <description>Deploy latest preprod code to production</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -69,7 +74,10 @@ fi
 if [ "$PREPARE" == "true" ]; then
   OPTS="$OPTS --prepare"
 fi
-if [ "${DEPLOY_CITRAIN}" == "true" ]; then
+if [ "${DEPLOY_PREPROD_CITRAIN}" == "true" ]; then
+  OPTS="$OPTS --deploypreprod"
+fi
+if [ "${DEPLOY_PROD_CITRAIN}" == "true" ]; then
   OPTS="$OPTS --deploycitrain"
 fi
 if [ "$DEBUG" == "true" ]; then

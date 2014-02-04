@@ -30,7 +30,7 @@ import urllib2
 
 sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))  # add local cupstream2distro
 
-from cupstream2distro.settings import CITRAIN_BINDIR, SILO_NAME_LIST, SILOS_DIR, SILO_RSYNCDIR
+from cupstream2distro.settings import CITRAIN_BINDIR, CITRAIN_PREPROD_BINDIR, SILO_NAME_LIST, SILOS_DIR, SILO_RSYNCDIR
 
 DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
 JENKINS_DAILY_CONFIG_NAME = 'citrain'
@@ -80,6 +80,8 @@ def setup_job(jenkins_handle, jjenv, jobname, template_name, ctx={}):
     logging.debug("Generating job: {}".format(jobname))
     tmpl = jjenv.get_template(template_name)
     ctx['BINDIR'] = CITRAIN_BINDIR
+    if "landing-000" in jobname:
+        ctx['BINDIR'] = CITRAIN_PREPROD_BINDIR
     ctx['RSYNC_OUTDIR'] = SILO_RSYNCDIR
     jkcfg = tmpl.render(ctx)
     jkcfg = jkcfg.replace(' \n', '')
@@ -93,12 +95,14 @@ def setup_job(jenkins_handle, jjenv, jobname, template_name, ctx={}):
         jenkins_handle.reconfig_job(jobname, jkcfg)
 
 
-def deploy_citrain():
+def deploy_citrain(preprod=False):
     """Deploy latest citrain code"""
     cur_dir = os.path.abspath('.')
     citrain_dir = os.path.join(cur_dir, 'citrain')
-    if not os.path.isdir('citrain'):
-        subprocess.call(['bzr', 'branch', 'lp:cupstream2distro', 'citrain'])
+    if preprod:
+        citrain_dir = os.path.join(cur_dir, 'citrain-preprod')    
+    if not os.path.isdir(citrain_dir):
+        subprocess.call(['bzr', 'branch', 'lp:cupstream2distro', citrain_dir])
     else:
         os.chdir(citrain_dir)
         subprocess.call(['bzr', 'pull', '--overwrite'])
@@ -123,8 +127,10 @@ if __name__ == "__main__":
                         help='Only configure the provided silos jenkins job')
     parser.add_argument('--prepare', action='store_true',
                         help='Configure prepare job as well')
+    parser.add_argument('--deploypreprod', action='store_true',
+                        help='Deploy preproduction code of citrain')
     parser.add_argument('--deploycitrain', action='store_true',
-                        help='Deploy latest citrain code as well')
+                        help='Deploy latest preprod code to production')
     parser.add_argument('--deployjenkins', action='store_true',
                         help='Configure the deploy jenkins job as well (only for bootstrapping, if run from jenkins then, the job can\'t redeploy itself)')
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
@@ -149,8 +155,11 @@ if __name__ == "__main__":
     template_dir = os.path.join(os.path.dirname(__file__), 'jenkins-templates')
     jjenv = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
+    if args.deploypreprod:
+        logging.info("Deploy latest citrain to preprod")
+        deploy_citrain(preprod=True)
     if args.deploycitrain:
-        logging.info("Deploy latest citrain code")
+        logging.info("Deploy latest preprod citrain code to production")
         deploy_citrain()
     if args.prepare:
         logging.info("Configure prepare silos job")
