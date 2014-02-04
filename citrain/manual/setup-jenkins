@@ -99,10 +99,14 @@ def deploy_citrain(preprod=False):
     """Deploy latest citrain code"""
     cur_dir = os.path.abspath('.')
     citrain_dir = os.path.join(cur_dir, 'citrain')
+    source_dir = 'lp:cupstream2distro'
+    preprod_dir = os.path.join(cur_dir, 'citrain-preprod')
     if preprod:
-        citrain_dir = os.path.join(cur_dir, 'citrain-preprod')    
+        citrain_dir = preprod_dir
+    else:
+        source_dir = preprod_dir
     if not os.path.isdir(citrain_dir):
-        subprocess.call(['bzr', 'branch', 'lp:cupstream2distro', citrain_dir])
+        subprocess.call(['bzr', 'branch', source_dir, citrain_dir])
     else:
         os.chdir(citrain_dir)
         subprocess.call(['bzr', 'pull', '--overwrite'])
