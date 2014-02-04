@@ -114,12 +114,15 @@ if __name__ == '__main__':
     error_pushing_branch = False
 
     # check and generate metadata
+    # TODO: we loop on all_packages_uploaded which is based on .project files. We should loop first on the config content (but still have a warning if we have more .project files)
     for (source, version, tip_rev, branch) in all_packages_uploaded:
         logging.info("Checking {} ({})".format(source, version))
         try:
             all_silo_projects.remove(source)
         except ValueError:
-            message = "{} wasn't in the initiale configuration. You have messed with the file system directly.\nUnknown state. Please reconfigure and reprepare the whole silo."
+            # TODO: make that check first in its own loop
+            # TODO2: add an option to say "it's ok, please remove from file system everything that's not mentionned in the config file"
+            message = "{} wasn't in the initiale configuration.\nUnknown state. Please reconfigure and reprepare the whole silo.".format(source)
             logging.error(message)
             silomanager.set_config_status(silo_config, "Can't publish: " + message)
             sys.exit(1)
