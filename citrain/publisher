@@ -28,7 +28,6 @@ from cupstream2distro import branchhandling, launchpadmanager, packageinppamanag
 from cupstream2distro.stacks import get_stack_packaging_change_status
 from cupstream2distro.tools import generate_xml_artefacts, get_previous_distro_version_from_config, mark_project_as_published
 from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT, SRU_PPA, SILO_BUILTCHECKED, SILO_PUBLISHED, PROPOSED_URL
-from cupstream2distro.utils import ignored
 
 
 if __name__ == '__main__':

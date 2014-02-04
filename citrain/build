@@ -30,7 +30,6 @@ import sys
 
 from cupstream2distro import branchhandling, launchpadmanager, packagemanager, silomanager, tools
 from cupstream2distro.settings import BOT_DEBFULLNAME, PROJECT_CONFIG_SUFFIX, SERIES_VERSION, SILO_EMPTY
-from cupstream2distro.utils import ignored
 from cupstream2distro.tools import clean_source
 
 if __name__ == '__main__':

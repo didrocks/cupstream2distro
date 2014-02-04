@@ -170,9 +170,7 @@ class PackageInPPA():
 
         # Try to see if all binaries availables for this arch are built, including arch:all on other archs
         status = self.current_status
-        at_least_one_published_binary = False
         for binary in self.source.getPublishedBinaries():
-            at_least_one_published_binary = True
             # all binaries for an arch are published at the same time
             # launchpad is lying, it's telling that archs not in the ppa are built (for arch:all). Even for non supported arch!
             # for instance, we can have the case of self.arch_all_arch (arch:all), built before the others and amd64 will be built for it
