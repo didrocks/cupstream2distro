@@ -276,8 +276,12 @@ if __name__ == '__main__':
         # Save infos for other jobs
         tools.save_project_config(source_package_name, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
 
+
     # look at the ppa and generate .projects
     logging.info("Looking at the ppa {} ({}) content".format(src_ppa.web_link, series.name))
+    # as we recreate all .projects file for those direct uploads, let's clean their metadata
+    for source in silo_config["sources"]:
+        clean_source(source)
     direct_upload_not_in_list = []
     try:
         for pkg in src_ppa.getPublishedSources(distro_series=series, status="Published"):
