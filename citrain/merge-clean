@@ -203,7 +203,12 @@ if __name__ == '__main__':
 
     # set the silo as done
     silomanager.set_config_step(silo_config, SILO_DONE)
-    silomanager.set_config_status(silo_config, "Landed. Cleaning silo.")
+
+    if not args.onlyfreesilo:
+        silomanager.set_config_status(silo_config, "Landed. Cleaning silo.")
+    # we gave up
+    else:
+        silomanager.set_config_status(silo_config, "Gave up this landing. Cleaning silo.")
 
     ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])
