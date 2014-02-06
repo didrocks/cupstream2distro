@@ -159,6 +159,9 @@ if __name__ == "__main__":
     template_dir = os.path.join(os.path.dirname(__file__), 'jenkins-templates')
     jjenv = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
+    # add the preproduction silo
+    SILO_NAME_LIST.append('landing-000')
+
     if args.deploypreprod:
         logging.info("Deploy latest citrain to preprod")
         deploy_citrain(preprod=True)
