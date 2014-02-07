@@ -86,6 +86,9 @@ if __name__ == '__main__':
     if args.reconfiguresilo:
         silo_name = args.reconfiguresilo
         logging.info("Reconfiguring {} as an existing silo".format(silo_name))
+        if silo_name not in SILO_NAME_LIST:
+            logging.error("The silo name you provided {} isn't in the known silo name list".format(silo_name))
+            sys.exit(1)
     else:
         logging.info("Checking that a silo is available")
         silo_name = silomanager.return_first_available_silo(SILOS_DIR)
