@@ -223,11 +223,16 @@ if __name__ == '__main__':
             pkg.requestDeletion()
 
     # Source publication is lying, checking directly the repository
-    content = urllib2.urlopen(ppa_base_path).read().decode('utf-8')
+    remaining_packages = False
+    try:
+        archs_page = urllib2.urlopen(ppa_base_path).read().decode('utf-8')
+        remaining_packages = True
+    except urllib2.HTTPError:
+        # no remaining packages, so we won't have any further check
+        archs_page = ""
     binary_pattern = re.compile('href="(binary-.*)/">')
-    url_lists = ["{}{}/Packages".format(ppa_base_path, url) for url in binary_pattern.findall(content)]
+    url_lists = ["{}{}/Packages".format(ppa_base_path, url) for url in binary_pattern.findall(archs_page)]
     url_lists.append("{}source/Sources".format(ppa_base_path))
-    remaining_packages = True
     while(remaining_packages):
         time.sleep(TIME_BETWEEN_PPA_CHECKS)
         logging.info("Checking if ppa is empty.")
