@@ -185,7 +185,8 @@ def return_log_diff_from_tag(tag):
         raise Exception(stderr.decode("utf-8").strip())
     # exclude latest commit that we don't want (the revision one)
     # FIXME: ask bzr guys if there is a way to get a better info here
-    return stdout.split("tags: {}".format(tag))[0].split('-' * 60)[0]
+    sep = '-' * 60
+    return sep + sep.join(stdout.split("tags: {}".format(tag))[1].split(sep)[1:])
 
 
 def return_log_diff_since_last_release(content_to_parse):
