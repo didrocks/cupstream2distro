@@ -107,7 +107,7 @@ if __name__ == '__main__':
     dest_ppa_name = "{}/{}".format(dest.owner.name, dest.name)
 
     for source_package_name in components_to_prepare:
-        logging.info("=== Trying to prepare {} ===".format(source))
+        logging.info("=== Trying to prepare {} ===".format(source_package_name))
 
         # get dest branch first
         dest_branch = components_to_prepare[source_package_name][0].target_branch.web_link
