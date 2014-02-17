@@ -209,6 +209,7 @@ if __name__ == '__main__':
         if not packagemanager.is_new_content_relevant_since_old_published_source(dest_source_package):
             if not force_rebuild:
                 logging.info("No new useful revision published compared to dest, no need to upload this component")
+                os.chdir('..')
                 continue
             logging.info("No new useful revision published but force rebuilding is set")
 
