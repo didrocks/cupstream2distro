@@ -105,6 +105,9 @@ if __name__ == '__main__':
             logging.error("The silo name you provided {} isn't in the known silo name list".format(silo_name))
             sys.exit(1)
         previous_config = silomanager.load_config(os.path.join(SILOS_DIR, silo_name))
+        if not previous_config:
+            logging.error("silo {} isn't configured. You need the landing team to configure it and can't reconfigure a non attributed silo".format(silo_name))
+            sys.exit(1)
         allowed_components_from_previous_config = config['mps'].keys() + config['sources']
     else:
         logging.info("Checking that a silo is available")
