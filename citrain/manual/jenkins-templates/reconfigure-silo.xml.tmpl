@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>Prepare and attribute a silo</description>
+  <description>Reconfigure an attributed silo</description>
   <logRotator>
     <daysToKeep>15</daysToKeep>
     <numToKeep>-1</numToKeep>
@@ -11,6 +11,15 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
+      <permission>hudson.model.Item.Read:ubuntu-core-dev</permission>
+      <permission>hudson.model.Item.Cancel:ubuntu-core-dev</permission>
+      <permission>hudson.model.Item.Build:ubuntu-core-dev</permission>
+      <permission>hudson.model.Item.Read:canonical-ci-eng</permission>
+      <permission>hudson.model.Item.Cancel:canonical-ci-eng</permission>
+      <permission>hudson.model.Item.Build:canonical-ci-eng</permission>
+      <permission>hudson.model.Item.Read:ci-train-users</permission>
+      <permission>hudson.model.Item.Cancel:ci-train-users</permission>
+      <permission>hudson.model.Item.Build:ci-train-users</permission>
       <permission>hudson.model.Item.Read:ubuntu-unity</permission>
       <permission>hudson.model.Item.Cancel:ubuntu-unity</permission>
       <permission>hudson.model.Item.Build:ubuntu-unity</permission>
@@ -35,11 +44,6 @@
         <hudson.model.StringParameterDefinition>
           <name>DEST</name>
           <description>Set destination ppa if not Ubuntu archive</description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>RECONFIGURE_SILO</name>
-          <description>Don't instantiante a new silo, but reconfigure that one</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -67,21 +71,17 @@ OPTS=""
 SERIES=${SERIES-}
 MERGE_PROPOSALS=${MERGE_PROPOSALS-}
 SOURCES=${SOURCES-}
-RECONFIGURE_SILO=${RECONFIGURE_SILO-}
 DEST=${DEST-}
 
 if [ ! -z "$DEST" ]; then
   OPTS="$OPTS --destppa $DEST"
-fi
-if [ ! -z "${RECONFIGURE_SILO}" ]; then
-  OPTS="$OPTS --reconfiguresilo ${RECONFIGURE_SILO}"
 fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"
 fi
 
 cd # go to home directory
-{{ BINDIR }}/prepare-silo $SERIES --addmps ${MERGE_PROPOSALS} --addsources $SOURCES $OPTS
+{{ BINDIR }}/prepare-silo $SERIES --addmps ${MERGE_PROPOSALS} --addsources $SOURCES --reconfiguresilo {{ SILO_NAME }} --restricted $OPTS
 </command>
     </hudson.tasks.Shell>
   </builders>
