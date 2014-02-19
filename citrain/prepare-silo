@@ -34,7 +34,7 @@ def check_not_adding_new_components(project_name, allowed_components_from_previo
     """Check that a self reconfigure doesn't add new components"""
 
     if project_name not in allowed_components_from_previous_config:
-        message = "{} was not in the initial list of components for that silo. You can't reconfigure the silo yourself. Please ask the landing team to reconfigure it for you."
+        message = "{} was not in the initial list of components for that silo. You can't reconfigure the silo yourself. Please ask the landing team to reconfigure it for you.".format(project_name)
         logging.error(message)
         silomanager.set_config_step(previous_config, -1, uri=config_path)
         silomanager.set_config_status(previous_config, "Reconfigure failed: " + message, uri=config_path)
