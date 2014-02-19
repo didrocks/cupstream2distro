@@ -30,6 +30,17 @@ from cupstream2distro.tools import clean_source
 from cupstream2distro.utils import ignored
 
 
+def check_not_adding_new_components(project_name, allowed_components_from_previous_config, config_path):
+    """Check that a self reconfigure doesn't add new components"""
+
+    if project_name not in allowed_components_from_previous_config:
+        message = "{} was not in the initial list of components for that silo. You can't reconfigure the silo yourself. Please ask the landing team to reconfigure it for you."
+        logging.error(message)
+        silomanager.set_config_step(previous_config, -1, uri=config_path)
+        silomanager.set_config_status(previous_config, "Reconfigure failed: " + message, uri=config_path)
+        sys.exit(1)
+
+
 if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO)
@@ -43,6 +54,7 @@ if __name__ == '__main__':
     parser.add_argument("--addmps", nargs='*', default = [], help="Merge proposal urls")
     parser.add_argument("--addsources", nargs='*', default = [], help="Add sources packages that will be uploaded later manually to the ppa")
     parser.add_argument("--reconfiguresilo", help="Reconfigure an existing silo")
+    parser.add_argument("--restricted", action='store_true', help="Restrict to only add MP for already locked components when reconfiguring an existing silo")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
 
@@ -61,6 +73,9 @@ if __name__ == '__main__':
 
     if not args.addmps and not args.addsources:
         logging.error("You need at least specify a MP or a source")
+        sys.exit(1)
+    if args.restricted and not args.reconfiguresilo:
+        logging.error("Restricted mode should only be used to reconfigure a silo")
         sys.exit(1)
 
     project_urls = args.addmps[:]
@@ -89,12 +104,16 @@ if __name__ == '__main__':
         if silo_name not in SILO_NAME_LIST:
             logging.error("The silo name you provided {} isn't in the known silo name list".format(silo_name))
             sys.exit(1)
+        previous_config = silomanager.load_config(os.path.join(SILOS_DIR, silo_name))
+        allowed_components_from_previous_config = config['mps'].keys() + config['sources']
     else:
         logging.info("Checking that a silo is available")
         silo_name = silomanager.return_first_available_silo(SILOS_DIR)
         if not silo_name:
             logging.error("No silo is available")
             sys.exit(1)
+
+    config_path = os.path.join(SILOS_DIR, silo_name)
 
     if args.addsources:
         logging.info("Additional packages will be directly uploaded to the ppa: {}".format(", ".join(args.addsources)))
@@ -106,11 +125,16 @@ if __name__ == '__main__':
         mp = launchpadmanager.get_resource_from_url(mp_url)
         source_package_name = branchhandling.get_source_package_name_from_branch(mp.target_branch.web_link)
         project_name = mp.target_branch.project.name
-        config["mps"].setdefault(source_package_name, []).append(mp.self_link)
+
+        # ensure a self reconfiguring doesn't add new projects
+        if args.reconfiguresilo and args.restricted:
+            check_not_adding_new_components(project_name, allowed_components_from_previous_config, config_path)
 
         if (source_package_name != project_name):
             message = "Project name ({}) doesn't align with the source package name ({})".format(project_name, source_package_name)
             logging.warning(message)
+
+        config["mps"].setdefault(source_package_name, []).append(mp.self_link)
 
         # check that any of those components are part of any current transaction
         if not silomanager.is_project_not_in_any_configs(mp.target_branch.project.name, series, dest, SILOS_DIR, args.reconfiguresilo):
@@ -118,6 +142,11 @@ if __name__ == '__main__':
 
     # check that additional sources are not as well already in use
     for source in config["sources"]:
+
+        # ensure a self reconfiguring doesn't add new projects
+        if args.reconfiguresilo and args.restricted:
+            check_not_adding_new_components(project_name, allowed_components_from_previous_config, config_path)
+
         if not silomanager.is_project_not_in_any_configs(source, series, dest, SILOS_DIR, args.reconfiguresilo):
             one_project_already_in_use = True
 
@@ -151,7 +180,6 @@ if __name__ == '__main__':
         logging.error("PPA {} not found".format(ppa_uri))
         sys.exit(1)
     config["global"]["ppa"] = ppa.self_link
-    config_path = os.path.join(SILOS_DIR, silo_name)
     if not silomanager.save_config(config, config_path):
         sys.exit(1)
     logging.info("Assigning \"{}\" as silo. Build PPA is available at {}".format(silo_name, ppa.web_link))
