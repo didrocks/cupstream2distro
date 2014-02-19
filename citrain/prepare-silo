@@ -109,6 +109,7 @@ if __name__ == '__main__':
             logging.error("silo {} isn't configured. You need the landing team to configure it and can't reconfigure a non attributed silo".format(silo_name))
             sys.exit(1)
         allowed_components_from_previous_config = config['mps'].keys() + config['sources']
+        logging.debug("Components in previous configure: " + ", ".join(allowed_components_from_previous_config))
     else:
         logging.info("Checking that a silo is available")
         silo_name = silomanager.return_first_available_silo(SILOS_DIR)
