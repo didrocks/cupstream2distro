@@ -121,7 +121,7 @@ if __name__ == '__main__':
         # get all branches one after another and merge them in bzr_pending_branch_uri
         for mp in components_to_prepare[source_package_name]:
             branch = mp.source_branch.web_link
-            logging.info("Trying to merge {} (at rev {}}) into {}".format(branch, mp.source_branch.revision_count, mp.target_branch.web_link))
+            logging.info("Trying to merge {} (at rev {}) into {}".format(branch, mp.source_branch.revision_count, mp.target_branch.web_link))
 
             bugs_fixes = ""
             for bug in mp.getRelatedBugTasks():
