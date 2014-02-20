@@ -61,8 +61,8 @@ if __name__ == '__main__':
             if args.ignorestep:
                 logging.warning("You already tried to build everything. But the ignore flag is set.")
             else:
-                logging.error("You already tried to build everything. You need to either:\n - use the ignore step flag \n - use --prepareonly to rebuild a selection \n - use --watchonly to check ppa status and run the tests.")
-                silomanager.set_config_status(silo_config, "Can't build: wrong status or parameters for job.")
+                logging.error("You already tried to build everything. You need to either:\n - use the ignore step flag (to rebuild all MPs)\n - use --prepareonly (to rebuild only some components) \n - use --watchonly (to only check ppa status without any rebuild).")
+                silomanager.set_config_status(silo_config, "Can't build: prevent a whole rebuild as one full build was already successful. Is that on purpose? Please check available options.")
                 sys.exit(1)
         # remove everything but the archived .project_ files
         logging.info("Whole rebuild, ensuring that the silo is in a coherent state. Keep the published files")
