@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Prepare, build and check packages")
 
-    parser.add_argument("--prepareonly", nargs='+', default = [], help="Don't rebuild everything and only rescan MPS provided (source packages)")
+    parser.add_argument("--rebuildpackages", nargs='+', default = [], help="Don't rebuild everything and only rescan MPS provided (source packages)")
     parser.add_argument("--watchonly", action='store_true', help="Only watch the current ppa")
     parser.add_argument("--forcerebuild", action='store_true', help="Force rebuilding components associated to a MP even if there is no diff with dest")
     parser.add_argument("--ignorestep", action='store_true', help="Ack a whole rebuild even if one was already requested.")
@@ -56,12 +56,12 @@ if __name__ == '__main__':
     dest = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])
 
-    if not args.prepareonly and not args.watchonly:
+    if not args.rebuildpackages and not args.watchonly:
         if silomanager.get_config_step(silo_config) != SILO_EMPTY:
             if args.ignorestep:
-                logging.warning("You already tried to build everything. But the ignore flag is set.")
+                logging.warning("You already tried to build everything. But the ignore option is set.")
             else:
-                logging.error("You already tried to build everything. You need to either:\n - use the ignore step flag (to rebuild all MPs)\n - use --prepareonly (to rebuild only some components) \n - use --watchonly (to only check ppa status without any rebuild).")
+                logging.error("You already tried to build everything. You need to either:\n - use the ignore step option (to rebuild all MPs)\n - use the \"only rebuild packages\" option (to rebuild only some components associated to a MP) \n - use the watch only option (to only check ppa status without any rebuild).")
                 silomanager.set_config_status(silo_config, "Can't build: prevent a whole rebuild as one full build was already successful. Is that on purpose? Please check available options.")
                 sys.exit(1)
         # remove everything but the archived .project_ files
@@ -83,11 +83,11 @@ if __name__ == '__main__':
 
     # detect if we have a prepare only source not in configuration
     components_not_in_config = []
-    for source in args.prepareonly:
+    for source in args.rebuildpackages:
         if source not in silo_config["mps"]:
             components_not_in_config.append(source)
     if components_not_in_config:
-        message = "One or more components provided in prepareonly ({}) are not in the MP silo configuration. Ask for a reconfiguration of the silo with the new MPs to add please.".format(", ".join(components_not_in_config))
+        message = "One or more components provided in rebuildpackages ({}) are not in the MP silo configuration. Ask for a reconfiguration of the silo with the new MPs to add please.".format(", ".join(components_not_in_config))
         logging.error(message)
         silomanager.set_config_status(silo_config, "Can't build: " + message)
         sys.exit(1)
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     # cycle through all branches and prepare them
     components_to_prepare = {}
     for source in silo_config["mps"]:
-        if (not args.prepareonly and not args.watchonly) or source in args.prepareonly:
+        if (not args.rebuildpackages and not args.watchonly) or source in args.rebuildpackages:
             logging.info("Adding {} MP(s) to prepare".format(source))
             for mp_link in silo_config['mps'][source]:
                 components_to_prepare.setdefault(source, []).append(launchpadmanager.get_resource_from_token(mp_link))

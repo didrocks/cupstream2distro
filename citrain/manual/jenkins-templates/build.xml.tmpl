@@ -27,8 +27,8 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>PREPARE_ONLY</name>
-          <description>Enter the source package names corresponding to what you want to build (leave blank for all)</description>
+          <name>PACKAGES_TO_REBUILD</name>
+          <description>Enter source package names separated by spaces. A new build will be submitted to this silo containing all merge proposals attached to this landing request. It is an error to specify a source package name that has no merge proposals listed here. (leave blank for all)</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -70,8 +70,8 @@ cd {{ SILOS_DIR }}/{{ SILO_NAME }}
 
 PREPARE_ONLY=${PREPARE_ONLY-}
 OPTS=""
-if [ ! -z "$PREPARE_ONLY" ]; then
-  OPTS="$OPTS --prepareonly $PREPARE_ONLY"
+if [ ! -z "$PACKAGES_TO_REBUILD" ]; then
+  OPTS="$OPTS --rebuildpackages $PACKAGES_TO_REBUILD"
 fi
 if [ "${WATCH_ONLY}" == "true" ]; then
   OPTS="$OPTS --watchonly"
