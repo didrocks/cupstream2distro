@@ -579,4 +579,4 @@ def check_package_reached_destination(silo_config, packages_in_dest, ignoremissi
             else:
                 logging.warning(message + "See above. You can use the ignore package not in dest flag in \"merge and clean\". The eventual merge will still be proceeded.")
                 return (False, message + additional_messages)
-    return (True, "All packages are in destination. You can Merge and Clean")
+    return (True, "All packages are in destination. You can Merge and Clean now.")
