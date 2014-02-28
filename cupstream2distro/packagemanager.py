@@ -31,6 +31,7 @@ import urllib
 import launchpadmanager
 import settings
 from .utils import ignored
+import silomanager
 
 
 def get_current_version_for_series(source_package_name, series_name, ppa_name=None, dest=None):
@@ -504,3 +505,81 @@ def has_dont_change_version_flag():
             if settings.NO_REWRITE_VERSION_TAG in line:
                 return True
     return False
+
+
+def check_package_reached_destination(silo_config, packages_in_dest, ignoremissingprojects, ignorepackagesnotindest, for_merge_and_clean=False):
+    '''Return true if all packages have reached the destination'''
+
+    all_silo_projects = silomanager.get_all_projects(silo_config)
+
+    # check that all package sources were in the silo configuration
+    logging.info("Check that all package sources were in the silo configuration")
+    for source in packages_in_dest:
+        try:
+            all_silo_projects.remove(source)
+        except ValueError:
+            message = "{} wasn't in the initiale configuration. You have messed with the file system directly.\nUnknown state. Please resolve the silo manually and then free it.".format(source)
+            logging.error(message)
+            silomanager.set_config_status(silo_config, "Can't check migration: " + message)
+            return False
+
+    # additional check for merge and clean, we want all projects in silo configuration to be built and published
+    if for_merge_and_clean and all_silo_projects:
+        message = "Some projects ({}) that were in the silo configuration list were not built and published. ".format(", ".join(all_silo_projects))
+        if ignoremissingprojects:
+            logging.info(message + "The ignore missing projects flag was set. We won't merged the associated MPs of those.")
+            # remove them as we are not going to merge their content.
+            for remaining_project in all_silo_projects:
+                with ignored(KeyError):
+                    silo_config["mps"].pop(remaining_project)
+                with ignored(ValueError):
+                    silo_config["sources"].remove(remaining_project)
+        else:
+            logging.error(message + "Prepare either prepare the latest missing projects or use the ignore missing projects flag which will release the lock on them.")
+            silomanager.set_config_status(silo_config, "Can't merge: " + message)
+            return False
+
+    logging.info("Check that all package sources are published in destination")
+    one_package_not_in_dest = False
+    dest_link = silo_config['global']['dest']
+    dest = launchpadmanager.get_resource_from_token(dest_link)
+    series = launchpadmanager.get_resource_from_token(silo_config['global']['series'])
+    additional_messages = ""
+    for source in packages_in_dest:
+        if not is_version_for_series_in_dest(source, packages_in_dest[source], series, dest):
+            logging.warning("{} ({}) is not published yet in {} (Release pocket).".format(source, packages_in_dest[source], dest.name))
+            one_package_not_in_dest = True
+
+            # if destination is the archive, try to check if it's in proposed or in any queue
+            if launchpadmanager.is_dest_ubuntu_archive(dest_link):
+                if is_version_for_series_in_dest(source, packages_in_dest[source], series, dest, pocket="Proposed"):
+                    in_proposed_msg = "{} ({}) is in the proposed pocket. ".format(source, packages_in_dest[source])
+                    logging.warning(in_proposed_msg + "You run that job either too quickly or it's stuck there. More information available at https://wiki.ubuntu.com/ProposedMigration.")
+                    additional_messages += in_proposed_msg
+                elif is_version_in_queue(source, packages_in_dest[source], series, "New"):
+                    in_new_msg = "{} ({}) is in the NEW queue. ".format(source, packages_in_dest[source])
+                    logging.warning(in_new_msg + "You need an archive admin to review a NEW this package.")
+                    additional_messages += in_new_msg
+                elif is_version_in_queue(source, packages_in_dest[source], series, "Unapproved"):
+                    in_unapproved_msg = "{} ({}) is in the UNAPPROVED queue. ".format(source, packages_in_dest[source])
+                    logging.warning(in_unapproved_msg + "You need a release team member to review an approve it. We are probably in a freeze period.")
+                    additional_messages += in_unapproved_msg
+                else:
+                    in_unknown_msg = "{} ({}) is in no known space (and time). ".format(source, packages_in_dest[source])
+                    logging.warning(in_unknown_msg + "We didn't find it anywhere. It could have been rejected, or you run it too quickly and it's not published in proposed yet, or a network issue happened. If this persistent some time after the publication, you need to ping a landing team member to get more informations.")
+                    additional_messages += in_unknown_msg
+
+    if one_package_not_in_dest:
+        if for_merge_and_clean and ignorepackagesnotindest:
+            logging.info("The ignore flag is set.")
+        else:
+            # this is an error for merge and clean, just a warning for automated check
+            message = "One package at least is not available at the destination. "
+            if for_merge_and_clean:
+                logging.error(message + "See above. You can use the ignore package not in dest flag. The eventual merge will still be proceeded.")
+                silomanager.set_config_status(silo_config, "Can't merge: " + message + additional_messages)
+                return False
+            else:
+                logging.warning(message + "See above. You can use the ignore package not in dest flag in \"merge and clean\". The eventual merge will still be proceeded.")
+                silomanager.set_config_status(silo_config, message + additional_messages)
+    return True
