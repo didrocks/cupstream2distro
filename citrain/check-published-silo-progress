@@ -1,0 +1,92 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2014 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import logging
+import os
+import sys
+
+
+from cupstream2distro import packageinppamanager, packagemanager, silomanager
+from cupstream2distro.settings import SILOS_DIR, SILO_NAME_LIST, SILO_PUBLISHED, SILO_CONFIG_FILENAME
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Check progression in the destination from all available silos")
+    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
+
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+                        format="%(asctime)s %(levelname)s %(message)s")
+    if args.debug:
+        logging.debug("Debug mode enabled")
+
+    if not os.path.isdir(SILOS_DIR):
+        logging.warning("No silo available/setup")
+        sys.exit(0)
+
+    # loop on all known silos
+    for silo_name in SILO_NAME_LIST:
+        logging.info("Checking {}".format(silo_name))
+        try:
+            os.chdir(os.path.join(SILOS_DIR, silo_name))    
+        except OSError:
+            logging.debug("{} isn't created".format(silo_name))
+            continue
+
+        try:
+            config_timestamp = os.path.getmtime(SILO_CONFIG_FILENAME)
+        except OSError:
+            logging.debug("{} isn't attributed".format(silo_name))
+            continue
+
+        silo_config = silomanager.load_config()
+        # in case is has just been cleaned up
+        if not silo_config:
+            logging.debug("{} isn't attributed".format(silo_name))
+            continue
+
+        if silomanager.get_config_step(silo_config) != SILO_PUBLISHED:
+            logging.debug("{} isn't published or \"merge and clean\" have been run, do not check.".format(silo_name))
+            continue
+
+        # get latest uploaded version for all packages
+        logging.info("Getting all sources that were uploaded with their latest version")
+        packages_in_dest = {}
+        for (source, version) in packageinppamanager.get_packages_and_versions_uploaded():
+            previous_scanned_uploaded_version = packages_in_dest.get(source, "0")
+            if packagemanager.is_version1_higher_than_version2(version, previous_scanned_uploaded_version):
+                packages_in_dest[source] = version
+
+        # check if all packages have reached their destination
+        (all_pkg_in_dest, message) = packagemanager.check_package_reached_destination(silo_config, packages_in_dest, False, False)
+
+        # check that the config file status hasn't change
+        try:
+            if config_timestamp != os.path.getmtime(SILO_CONFIG_FILENAME):
+                logging.warning("Another process has updated the config file for {}. Do not update it.".format(silo_name))
+                continue
+        except OSError:
+            logging.warning("{} isn't attributed anymore. Probably cleaned up meanwhile. Do not update it".format(silo_name))
+            continue
+
+        # we can have a transient race here (but unlikely to be permanent: as we change the message everytime we start a new process, so finale result will override)
+        silomanager.set_config_status(silo_config, message)

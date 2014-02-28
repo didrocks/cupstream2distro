@@ -126,7 +126,9 @@ if __name__ == '__main__':
                 packages_in_dest[source] = version
 
         # check that all packages have reached their destination
-        if not packagemanager.check_package_reached_destination(silo_config, packages_in_dest, args.ignoremissingprojects, args.ignorepackagesnotindest):
+        (all_pkg_in_dest, message) = packagemanager.check_package_reached_destination(silo_config, packages_in_dest, args.ignoremissingprojects, args.ignorepackagesnotindest, for_merge_and_clean=True)
+        if not all_pkg_in_dest:
+            silomanager.set_config_status(silo_config, message)
             sys.exit(1)
         merge_and_reconciliate(silo_config, packages_in_dest)
 

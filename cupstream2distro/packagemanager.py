@@ -508,7 +508,7 @@ def has_dont_change_version_flag():
 
 
 def check_package_reached_destination(silo_config, packages_in_dest, ignoremissingprojects, ignorepackagesnotindest, for_merge_and_clean=False):
-    '''Return true if all packages have reached the destination'''
+    '''Return (True, "All packages in destination") if all packages have reached the destination. Otherwise, return (False, message)'''
 
     all_silo_projects = silomanager.get_all_projects(silo_config)
 
@@ -520,8 +520,7 @@ def check_package_reached_destination(silo_config, packages_in_dest, ignoremissi
         except ValueError:
             message = "{} wasn't in the initiale configuration. You have messed with the file system directly.\nUnknown state. Please resolve the silo manually and then free it.".format(source)
             logging.error(message)
-            silomanager.set_config_status(silo_config, "Can't check migration: " + message)
-            return False
+            return (False, "Can't check migration: " + message)
 
     # additional check for merge and clean, we want all projects in silo configuration to be built and published
     if for_merge_and_clean and all_silo_projects:
@@ -536,8 +535,7 @@ def check_package_reached_destination(silo_config, packages_in_dest, ignoremissi
                     silo_config["sources"].remove(remaining_project)
         else:
             logging.error(message + "Prepare either prepare the latest missing projects or use the ignore missing projects flag which will release the lock on them.")
-            silomanager.set_config_status(silo_config, "Can't merge: " + message)
-            return False
+            return (False, "Can't merge: " + message)
 
     logging.info("Check that all package sources are published in destination")
     one_package_not_in_dest = False
@@ -577,9 +575,8 @@ def check_package_reached_destination(silo_config, packages_in_dest, ignoremissi
             message = "One package at least is not available at the destination. "
             if for_merge_and_clean:
                 logging.error(message + "See above. You can use the ignore package not in dest flag. The eventual merge will still be proceeded.")
-                silomanager.set_config_status(silo_config, "Can't merge: " + message + additional_messages)
-                return False
+                return (False, "Can't merge: " + message + additional_messages)
             else:
                 logging.warning(message + "See above. You can use the ignore package not in dest flag in \"merge and clean\". The eventual merge will still be proceeded.")
-                silomanager.set_config_status(silo_config, message + additional_messages)
-    return True
+                return (False, message + additional_messages)
+    return (True, "All packages are in destination. You can Merge and Clean")
