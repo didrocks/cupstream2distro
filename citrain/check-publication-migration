@@ -89,4 +89,4 @@ if __name__ == '__main__':
             continue
 
         # we can have a transient race here (but unlikely to be permanent: as we change the message everytime we start a new process, so finale result will override)
-        silomanager.set_config_status(silo_config, message)
+        silomanager.set_config_status(silo_config, "Migration: " + message)
