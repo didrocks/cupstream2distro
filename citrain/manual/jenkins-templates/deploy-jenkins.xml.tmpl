@@ -33,6 +33,11 @@
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>CHECKPUBLICATIONMIGRATION</name>
+          <description>Configure check-publication-migration job as well</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>DEPLOY_PREPROD_CITRAIN</name>
           <description>Deploy preproduction code of citrain</description>
           <defaultValue>false</defaultValue>
@@ -73,6 +78,9 @@ if [ ! -z "${ONLY_SILOS}" ]; then
 fi
 if [ "$PREPARE" == "true" ]; then
   OPTS="$OPTS --prepare"
+fi
+if [ "$CHECKPUBLICATIONMIGRATION" == "true" ]; then
+  OPTS="$OPTS --checkpublicationmigration"
 fi
 if [ "${DEPLOY_PREPROD_CITRAIN}" == "true" ]; then
   OPTS="$OPTS --deploypreprod"

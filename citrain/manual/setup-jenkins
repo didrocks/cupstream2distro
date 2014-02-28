@@ -36,6 +36,7 @@ DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
 JENKINS_DAILY_CONFIG_NAME = 'citrain'
 TEMPLATES = {
     'prepare-silo': 'prepare-silo.xml.tmpl',
+    'check-publication-migration': 'check-publication-migration.xml.tmpl',
     'reconfigure-silo': 'reconfigure-silo.xml.tmpl',
     'build': 'build.xml.tmpl',
     'publish': 'publish.xml.tmpl',
@@ -133,6 +134,8 @@ if __name__ == "__main__":
                         help='Only configure the provided silos jenkins job')
     parser.add_argument('--prepare', action='store_true',
                         help='Configure prepare job as well')
+    parser.add_argument('--checkpublicationmigration', action='store_true',
+                        help='Configure check-publication-migration job as well')
     parser.add_argument('--deploypreprod', action='store_true',
                         help='Deploy preproduction code of citrain')
     parser.add_argument('--deploycitrain', action='store_true',
@@ -173,6 +176,9 @@ if __name__ == "__main__":
     if args.prepare:
         logging.info("Configure prepare silos job")
         setup_job(jkh, jjenv, "prepare-silo", TEMPLATES["prepare-silo"])
+    if args.checkpublicationmigration:
+        logging.info("Configure check-publication-migration job")
+        setup_job(jkh, jjenv, "check-publication-migration", TEMPLATES["check-publication-migration"])
     if args.deployjenkins:
         logging.info("Configure deloy jenkins job")
         setup_job(jkh, jjenv, "deploy-jenkins", TEMPLATES["deploy-jenkins"])
