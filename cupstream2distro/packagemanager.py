@@ -194,10 +194,8 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
 
     # check the dir exist
     splitted_version = dest_current_version.split(':')[-1].split('-')  # remove epoch is there is one
-    # TODO: debian version (like -3) is not handled here.
-    # We do handle 42ubuntu1 though (as splitted_version[0] can contain "ubuntu")
-    if "ubuntu" in splitted_version[-1] and len(splitted_version) > 1:  # don't remove last item for the case where we had a native version (-0.35.2) without ubuntu in it
-        splitted_version = splitted_version[:-1]
+    if len(splitted_version) > 1:
+        splitted_version = splitted_version[:-1]  # we don't want the ubuntu or debian version (it's not in the source package name)
     version_for_source_file = '-'.join(splitted_version)
     source_directory_name = "{}-{}".format(source_package_name, version_for_source_file)
     if not os.path.isdir(source_directory_name):

@@ -1,0 +1,39 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Mon, 25 Feb 2013 10:33:30 +0100
+Source: foo
+Binary: foo
+Architecture: source
+Version: 42.0daily83.09.13.2-1
+Distribution: raring
+Urgency: low
+Maintainer: DidRocks@ubuntu.com
+Changed-By: Didier Roche <didrocks@ubuntu.com>
+Description: 
+ foo        - The amazing foo package, without any trace of bar
+Changes: 
+ foo (42.0daily83.09.13.2-1) raring; urgency=low
+ .
+   * Automatic snapshot from revision 10
+Checksums-Sha1: 
+ 8804c6cb7b64b8264ab483d561408ec70a7ccda5 1129 foo_42.0daily83.09.13.2-1.dsc
+ e059080232644056bcd5faa36145460904fa6218 10240 foo_42.0daily83.09.13.2.orig.tar.gz
+ 0e8ede4b74594bc54dc6884ccffc49975ba39ee3 990 foo_42.0daily83.09.13.2-1.diff.gz
+Checksums-Sha256: 
+ fa67bef317cc752fb74923dfbfc7961b794a30ecabc8d56fc55f7c692950c69e 1129 foo_42.0daily83.09.13.2-1.dsc
+ 3fe98fe69e74fe1290a12c7a62aa89333368f4fabbc0517cfd8a82a7f19a4483 10240 foo_42.0daily83.09.13.2.orig.tar.gz
+ ec7e0b691cfcef93550ded312f2c69efc01f0c92affa0ceb5f347a422bd8d1b8 990 foo_42.0daily83.09.13.2-1.diff.gz
+Files: 
+ 8ba9eea68f6f2714ae084ff6440d7176 1129 unity optional foo_42.0daily83.09.13.2-1.dsc
+ a4226cd3623f0a1bb51738f0fdaa818c 10240 unity optional foo_42.0daily83.09.13.2.orig.tar.gz
+ 2643876e967e7f95f7b17eb5256587fb 990 unity optional foo_42.0daily83.09.13.2-1.diff.gz
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlMUYLkACgkQmLJKnOSsII7VwACdGMFXr1n4B+UqvboAYD7ycVVv
+u9YAn0BDEUcYqMWoDsEARraUrARvZOQK
+=1+W7
+-----END PGP SIGNATURE-----
