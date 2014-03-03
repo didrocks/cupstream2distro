@@ -116,10 +116,14 @@ class BaseTestCase(unittest.TestCase):
         lines1, lines2 = [], []
         for linefile1 in open(filename1).readlines():
             linefile2 = file2.readline()
+            # filters changelog date itself
             if linefile1.startswith(" -- "):
                 linefile1 = linefile1.split(">  ")[0]
             if linefile2.startswith(" -- "):
                 linefile2 = linefile2.split(">  ")[0]
+            # filters urgency (which changed in trusty from low to medium)
+            linefile1 = linefile1.split("; urgency=")[0]
+            linefile2 = linefile2.split("; urgency=")[0]
             lines1.append(linefile1)
             lines2.append(linefile2)
         # Don't restrict the output so we get all differences
