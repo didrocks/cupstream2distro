@@ -25,7 +25,7 @@ import os
 import sys
 
 from cupstream2distro import branchhandling, launchpadmanager, packageinppamanager, silomanager
-from cupstream2distro.settings import SILO_BUILDPPA_SCHEME, SILOS_DIR, SILO_NAME_LIST, SILO_EMPTY
+from cupstream2distro.settings import SILO_BUILDPPA_SCHEME, SILOS_DIR, SILO_NAME_LIST, SILO_PREPROD_NAME_LIST, SILO_EMPTY
 from cupstream2distro.tools import clean_source
 from cupstream2distro.utils import ignored
 
@@ -106,10 +106,16 @@ if __name__ == '__main__':
             sys.exit(1)
         previous_config = silomanager.load_config(os.path.join(SILOS_DIR, silo_name))
         if not previous_config:
-            logging.error("silo {} isn't configured. You need the landing team to configure it and can't reconfigure a non attributed silo".format(silo_name))
-            sys.exit(1)
-        allowed_components_from_previous_config = previous_config['mps'].keys() + previous_config['sources']
-        logging.debug("Components in previous configure: " + ", ".join(allowed_components_from_previous_config))
+            # can be setting directly a preproduction silo
+            if silo_name in SILO_PREPROD_NAME_LIST:
+                logging.info("Setting directly a pre-production citrain code silo")
+                args.reconfiguresilo = False # it's not a real reconfigure
+            else:
+                logging.error("silo {} isn't configured. You need the landing team to configure it and can't reconfigure a non attributed silo".format(silo_name))
+                sys.exit(1)
+        else:
+            allowed_components_from_previous_config = previous_config['mps'].keys() + previous_config['sources']
+            logging.debug("Components in previous configure: " + ", ".join(allowed_components_from_previous_config))
     else:
         logging.info("Checking that a silo is available")
         silo_name = silomanager.return_first_available_silo(SILOS_DIR)

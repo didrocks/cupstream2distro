@@ -22,7 +22,7 @@ import logging
 import os
 import shutil
 
-from cupstream2distro.settings import SILO_CONFIG_FILENAME, SILO_NAME_LIST, SILO_STATUS_RSYNCDIR
+from cupstream2distro.settings import SILO_CONFIG_FILENAME, SILO_NAME_LIST, SILO_PREPROD_NAME_LIST, SILO_STATUS_RSYNCDIR
 from cupstream2distro.utils import ignored
 
 
@@ -96,8 +96,11 @@ def is_project_not_in_any_configs(project_name, series, dest, base_silo_uri, ign
 
 
 def return_first_available_silo(base_silo_uri):
-    """Check which silos are free and return the first one"""
+    """Check which silos are free and return the first one (which isn't using preproduction code)"""
     for silo_name in SILO_NAME_LIST:
+        # don't return a preproduction silo code for automated assignement
+        if silo_name in SILO_PREPROD_NAME_LIST:
+            continue
         if not os.path.isfile(os.path.join(base_silo_uri, silo_name, SILO_CONFIG_FILENAME)):
             return silo_name
     return None
