@@ -181,7 +181,7 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
     os.chdir(source_package_download_dir)
 
     try:
-        sourcepkg = dest_archive.getPublishedSources(status="Published", exact_match=True, source_name=source_package_name, distro_series=series, version=dest_current_version)[0]
+        sourcepkg = dest_archive.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series, version=dest_current_version)[0]
     except IndexError:
         raise Exception("Couldn't get in the destination the expected version")
     logging.info('Downloading %s version %s', source_package_name, dest_current_version)
