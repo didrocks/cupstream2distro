@@ -1,0 +1,153 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2014 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import lazr
+import logging
+import os
+import tempfile
+import shutil
+import sys
+import subprocess
+
+sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))  # add local cupstream2distro
+
+from cupstream2distro import launchpadmanager, packagemanager
+
+
+def get_upstream_version(version, remove_epoch=True):
+    """Return upstream version"""
+
+    if remove_epoch:
+        version = version.split(':')[-1]  # remove epoch is there is one
+    splitted_version = version.split('-')
+    if len(splitted_version) > 1:
+        splitted_version = splitted_version[:-1]  # we don't want the ubuntu or debian version (it's not in the source package name)
+    return '-'.join(splitted_version)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Revert to previous version of the one published in the release pocket of selected packages")
+
+    parser.add_argument('source', nargs='+',
+                        help='Source package name. To force a specific version to downgrade to, use source=<version>')
+    parser.add_argument('commitmessage', 
+                        help='Commit message to use in all packages')
+    parser.add_argument('--ppa', help="ppa destination if destination isn't ubuntu archives")
+    parser.add_argument('--series', help="force a specific series")
+    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
+
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+                        format="%(asctime)s %(levelname)s %(message)s")
+    if args.debug:
+        logging.debug("Debug mode enabled")
+
+    if args.series:
+        try:
+            series = launchpadmanager.get_series(args.series)
+        except lazr.restfulclient.errors.NotFound:
+            logging.error("{} doesn't exist".format(args.series))
+            sys.exit(1)
+    else:
+        series = launchpadmanager.get_ubuntu().current_series
+        logging.info("Taking {} as current destination series".format(series.name))
+
+    if args.ppa:
+        dest = launchpadmanager.get_ppa(args.ppa)
+    else:
+        dest = launchpadmanager.get_ubuntu_archive()
+
+    workdir = tempfile.mkdtemp()
+    os.chdir(workdir)
+    upload_dir = os.path.join(workdir, 'upload')
+    latest_dir = os.path.join(workdir, 'latest')
+    os.makedirs(upload_dir)
+    os.makedirs(latest_dir)
+    source_version_revert = {}
+    changes_revert_path = {}
+    for source in args.source:
+        sourceversion = source.split('=')
+        source_package_name = sourceversion[0]
+        try:
+            version_to_downgrade_to = sourceversion[1]
+        except IndexError:
+            # downgrade to previous version than latest published one
+            source_collection = dest.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series, pocket='Release')
+            version_to_downgrade_to = source_collection[1].source_package_version
+        source_version_revert[source_package_name] = version_to_downgrade_to
+        logging.info("Downgrading {} to {}".format(source_package_name, version_to_downgrade_to))
+
+    confirmation = raw_input("Commit message will be:\n{}\n\nOk with the versions and commit message above? [y/N] ".format(args.commitmessage))
+    if confirmation.lower() not in ('y', 'yes'):
+        sys.exit(1)
+
+
+    for source in source_version_revert:
+        orig_tarball = None
+
+        os.chdir(upload_dir)
+        revert_version = source_version_revert[source]
+        new_version_path = os.path.abspath(packagemanager.get_source_package_from_dest(source, dest, revert_version, series.name))
+
+        os.chdir(latest_dir)
+        latest_version = packagemanager.get_current_version_for_series(source, series.name, dest=dest)
+        latest_version_path = os.path.abspath(packagemanager.get_source_package_from_dest(source, dest, latest_version, series.name))
+
+        shutil.copy2(os.path.join(latest_version_path, 'debian', 'changelog'), os.path.join(new_version_path, 'debian', 'changelog'))
+
+        source_upload_dir = os.path.abspath(os.path.dirname(new_version_path))
+        os.chdir(source_upload_dir)
+        changes_revert_path[source] = source_upload_dir
+
+        for file_name in os.listdir('.'):
+            if ".orig." in file_name:
+                orig_tarball = file_name
+
+        if not orig_tarball:
+            logging.error("Couldn't find original tarball")
+            sys.exit(1)
+
+        new_orig_tarball = "{}_{}.is.{}.orig.{}".format(source, get_upstream_version(latest_version), get_upstream_version(revert_version), orig_tarball.split(".orig.")[-1])
+        os.rename(orig_tarball, new_orig_tarball)
+
+        new_packaging_version = "{}.is.{}-0ubuntu1".format(get_upstream_version(latest_version, remove_epoch=False), get_upstream_version(revert_version))
+        logging.info("Preparing {} with version {}".format(source, new_packaging_version))
+        os.chdir(new_version_path)
+        if subprocess.call(['dch', '-v', new_packaging_version, args.commitmessage]) != 0:
+            sys.exit(1)
+        if subprocess.call(['dch', '-r', '']) != 0:
+            sys.exit(1)
+        if subprocess.call(['debuild', '-S']) != 0:
+            sys.exit(1)
+
+    print("="*80)
+    subprocess.call("cat {}/*/*/*.changes".format(upload_dir), shell=True)
+    confirmation = raw_input("Ok to upload those? [y/N] ")
+    if confirmation.lower() not in ('y', 'yes'):
+        sys.exit(1)
+
+    for source in changes_revert_path:
+        os.chdir(changes_revert_path[source])
+        subprocess.call("dput *.changes", shell=True)
+
+    shutil.rmtree(workdir)
