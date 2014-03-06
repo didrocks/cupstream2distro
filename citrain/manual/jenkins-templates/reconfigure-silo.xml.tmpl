@@ -27,11 +27,6 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>SERIES</name>
-          <description>Publish for this series (mandatory)</description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>MERGE_PROPOSALS</name>
           <description>Merge proposal urls (space separated)</description>
           <defaultValue></defaultValue>
@@ -39,11 +34,6 @@
         <hudson.model.StringParameterDefinition>
           <name>SOURCES</name>
           <description>Source package that will be directly uploaded (source package name, space separated)</description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>DEST</name>
-          <description>Set destination ppa if not Ubuntu archive</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -68,14 +58,9 @@ export LANG=en_US.UTF-8
 export WORKSPACE="$PWD"
 
 OPTS=""
-SERIES=${SERIES-}
 MERGE_PROPOSALS=${MERGE_PROPOSALS-}
 SOURCES=${SOURCES-}
-DEST=${DEST-}
 
-if [ ! -z "$DEST" ]; then
-  OPTS="$OPTS --destppa $DEST"
-fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"
 fi

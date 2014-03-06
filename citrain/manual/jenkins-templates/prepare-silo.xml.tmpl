@@ -50,7 +50,6 @@
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
-
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
@@ -61,8 +60,8 @@
     <hudson.tasks.Shell>
       <command>#!/bin/bash -eu
 export LANG=en_US.UTF-8
-export WORKSPACE="$PWD"
-
+export WORKSPACE="$PWD
+"
 OPTS=""
 SERIES=${SERIES-}
 MERGE_PROPOSALS=${MERGE_PROPOSALS-}
@@ -81,7 +80,7 @@ if [ "$DEBUG" == "true" ]; then
 fi
 
 cd # go to home directory
-{{ BINDIR }}/prepare-silo $SERIES --addmps ${MERGE_PROPOSALS} --addsources $SOURCES $OPTS
+{{ BINDIR }}/prepare-silo --series $SERIES --addmps ${MERGE_PROPOSALS} --addsources $SOURCES $OPTS
 </command>
     </hudson.tasks.Shell>
   </builders>

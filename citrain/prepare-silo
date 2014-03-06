@@ -48,7 +48,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Prepare and assign a free silo from a ppa",
                                      epilog="You need to either pass an addmps or addsources")
 
-    parser.add_argument("series", help="Series used to build the package")
+    parser.add_argument("--series", help="Series used to build the package")
 
     parser.add_argument("--destppa", help="Consider this destppa instead of {series}-proposed")
     parser.add_argument("--addmps", nargs='*', default = [], help="Merge proposal urls")
@@ -65,12 +65,6 @@ if __name__ == '__main__':
     if args.debug:
         logging.debug("Debug mode enabled")
 
-    series = launchpadmanager.get_series(args.series)
-    if args.destppa:
-        dest = launchpadmanager.get_ppa(args.destppa)
-    else:
-        dest = launchpadmanager.get_ubuntu_archive()
-
     if not args.addmps and not args.addsources:
         logging.error("You need at least specify a MP or a source")
         sys.exit(1)
@@ -80,15 +74,6 @@ if __name__ == '__main__':
 
     project_urls = args.addmps[:]
     project_urls.extend(args.addsources)
-    logging.info("Configuring for {} ({}) in {}".format(", ".join(project_urls), series.name, dest.name))
-
-    config = {"global": { "dest": dest.self_link,
-                          "series": series.self_link,
-                          "step": "",
-                          "status": "" },
-              "sources": [],
-              "mps": {}
-    }
 
     # create all silo names
     with ignored(OSError):
@@ -98,6 +83,8 @@ if __name__ == '__main__':
             os.mkdir(os.path.join(SILOS_DIR, silo_name))
 
     # first, check that a silo is available
+    dest = None
+    series = None
     if args.reconfiguresilo:
         silo_name = args.reconfiguresilo
         logging.info("Reconfiguring {} as an existing silo".format(silo_name))
@@ -114,6 +101,9 @@ if __name__ == '__main__':
                 logging.error("silo {} isn't configured. You need the landing team to configure it and can't reconfigure a non attributed silo".format(silo_name))
                 sys.exit(1)
         else:
+            # set the same destination, series
+            dest = launchpadmanager.get_resource_from_token(previous_config["global"]["dest"])
+            series = launchpadmanager.get_resource_from_token(previous_config["global"]["series"])
             allowed_components_from_previous_config = previous_config['mps'].keys() + previous_config['sources']
             logging.debug("Components in previous configure: " + ", ".join(allowed_components_from_previous_config))
     else:
@@ -123,6 +113,25 @@ if __name__ == '__main__':
             logging.error("No silo is available")
             sys.exit(1)
 
+    # silo attribution (made automatically or explicitely)
+    if not series:
+        if not args.series:
+            logging.error("You need to provide a series to attribute a new silo")
+            sys.exit(1)
+        series = launchpadmanager.get_series(args.series)
+        if args.destppa:
+            dest = launchpadmanager.get_ppa(args.destppa)
+        else:
+            dest = launchpadmanager.get_ubuntu_archive()
+
+    logging.info("Configuring for {} ({}) in {}".format(", ".join(project_urls), series.name, dest.name))
+    config = {"global": { "dest": dest.self_link,
+                          "series": series.self_link,
+                          "step": "",
+                          "status": "" },
+              "sources": [],
+              "mps": {}
+    }
     config_path = os.path.join(SILOS_DIR, silo_name)
 
     if args.addsources:
