@@ -48,7 +48,7 @@ BOT_KEY = "B879A3E9"
 VIRTUALIZED_PPA_ARCH = ["i386", "amd64"]
 # an arch we will ignore for publication if latest published version in dest doesn't build it
 ARCHS_TO_EVENTUALLY_IGNORE = set(['powerpc', 'arm64', 'ppc64el'])
-ARCHS_TO_UNCONDITIONALLY_IGNORE = set(['arm64', 'ppc64el'])
+ARCHS_TO_UNCONDITIONALLY_IGNORE = set(['arm64'])
 SRU_PPA = "ubuntu-unity/sru-staging"
 
 TIME_BETWEEN_PPA_CHECKS = 5 * 60
