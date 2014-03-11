@@ -43,6 +43,11 @@
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>IGNORECONFLICTS</name>
+          <description>Ignore conflicting components in multiple silos. This should only be used in very rare and identified case. Both silos owners need to be aware about it as the second one will have to rebuild and retest.</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>DEBUG</name>
           <description>Debug mode</description>
           <defaultValue>false</defaultValue>
@@ -74,6 +79,9 @@ if [ ! -z "$DEST" ]; then
 fi
 if [ ! -z "${RECONFIGURE_SILO}" ]; then
   OPTS="$OPTS --reconfiguresilo ${RECONFIGURE_SILO}"
+fi
+if [ "$IGNORECONFLICTS" == "true" ]; then
+  OPTS="$OPTS --ignore-conflicts"
 fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"

@@ -55,6 +55,7 @@ if __name__ == '__main__':
     parser.add_argument("--addsources", nargs='*', default = [], help="Add sources packages that will be uploaded later manually to the ppa")
     parser.add_argument("--reconfiguresilo", help="Reconfigure an existing silo")
     parser.add_argument("--restricted", action='store_true', help="Restrict to only add MP for already locked components when reconfiguring an existing silo")
+    parser.add_argument("--ignore-conflicts", action='store_true', help="Ignore conflicting components in multiple silos. This should only be used in very rare and identified case. Both silos owners need to be aware about it as the second one will have to rebuild and retest.")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
 
@@ -174,8 +175,12 @@ if __name__ == '__main__':
             one_project_already_in_use = True
 
     if one_project_already_in_use:
-        logging.error("One or more projects are already in use for the same destination and series in another silo (see above)")
-        sys.exit(1)
+        message = "One or more projects are already in use for the same destination and series in another silo (see above)."
+        if args.ignore_conflicts:
+            logging.warning(message + " However, the ignore flag was set. Please inform both silos owners directly.")
+        else:
+            logging.error(message)
+            sys.exit(1)
 
     # check that all MPs for a source are targetting the same branch
     logging.info("Checking that all target branch for the same source in mps are targetting the same branches")
