@@ -66,7 +66,8 @@ if [ "$DEBUG" == "true" ]; then
 fi
 
 cd # go to home directory
-{{ BINDIR }}/prepare-silo --addmps ${MERGE_PROPOSALS} --addsources $SOURCES --reconfiguresilo {{ SILO_NAME }} --restricted $OPTS
+# always ignore conflicts as we can't add more components
+{{ BINDIR }}/prepare-silo --addmps ${MERGE_PROPOSALS} --addsources $SOURCES --reconfiguresilo {{ SILO_NAME }} --ignore-conflicts --restricted $OPTS
 </command>
     </hudson.tasks.Shell>
   </builders>
