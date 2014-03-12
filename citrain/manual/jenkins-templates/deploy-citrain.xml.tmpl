@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>Redeploy jenkins configuration</description>
+  <description>Redeploy jenkins and citrain configuration</description>
   <logRotator>
     <daysToKeep>15</daysToKeep>
     <numToKeep>-1</numToKeep>
@@ -48,6 +48,11 @@
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>DEPLOY_DEPLOY_CITRAIN</name>
+          <description>Deploy "deploy CI train job"</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>DEBUG</name>
           <description>Debug mode</description>
           <defaultValue>false</defaultValue>
@@ -87,6 +92,9 @@ if [ "${DEPLOY_PREPROD_CITRAIN}" == "true" ]; then
 fi
 if [ "${DEPLOY_PROD_CITRAIN}" == "true" ]; then
   OPTS="$OPTS --deploycitrain"
+fi
+if [ "${DEPLOY_DEPLOY_CITRAIN}" == "true" ]; then
+  OPTS="$OPTS --deploydeploy"
 fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"
