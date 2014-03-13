@@ -117,24 +117,24 @@ if __name__ == '__main__':
                 silomanager.set_config_status(silo_config, "Merge failed: couldn't reset status or parameters for job.")
                 sys.exit(1)
 
-        # get latest uploaded version for all packages
-        logging.info("Getting all sources that were uploaded with their latest version")
-        packages_in_dest = {}
-        for (source, version) in packageinppamanager.get_packages_and_versions_uploaded():
-            previous_scanned_uploaded_version = packages_in_dest.get(source, "0")
-            if packagemanager.is_version1_higher_than_version2(version, previous_scanned_uploaded_version):
-                packages_in_dest[source] = version
+    # get latest uploaded version for all packages
+    logging.info("Getting all sources that were uploaded with their latest version")
+    packages_in_dest = {}
+    for (source, version) in packageinppamanager.get_packages_and_versions_uploaded():
+        previous_scanned_uploaded_version = packages_in_dest.get(source, "0")
+        if packagemanager.is_version1_higher_than_version2(version, previous_scanned_uploaded_version):
+            packages_in_dest[source] = version
 
-        # check that all packages have reached their destination
-        (all_pkg_in_dest, message) = packagemanager.check_package_reached_destination(silo_config, packages_in_dest, args.ignoremissingprojects, args.ignorepackagesnotindest, for_merge_and_clean=True)
-        if not all_pkg_in_dest:
-            silomanager.set_config_status(silo_config, message)
-            sys.exit(1)
+    # check that all packages have reached their destination
+    (all_pkg_in_dest, message) = packagemanager.check_package_reached_destination(silo_config, packages_in_dest, args.ignoremissingprojects, args.ignorepackagesnotindest, for_merge_and_clean=True)
+    if not all_pkg_in_dest and not args.onlyfreesilo:
+        silomanager.set_config_status(silo_config, message)
+        sys.exit(1)
+
+    if not args.onlyfreesilo:
         merge_and_reconciliate(silo_config, packages_in_dest)
-
-
     else:
-        logging.info("Only free silo, ignoring all checks and merging branches")
+        logging.warning("Only free silo was requested, not merging potential branches")
 
 
     # set the silo as done
@@ -144,7 +144,10 @@ if __name__ == '__main__':
         silomanager.set_config_status(silo_config, "Landed. Cleaning silo.")
     # we gave up
     else:
-        silomanager.set_config_status(silo_config, "Gave up this landing. Cleaning silo.")
+        if not all_pkg_in_dest:
+            silomanager.set_config_status(silo_config, "Gave up this landing. Cleaning silo.")
+        else:
+            silomanager.set_config_status(silo_config, "Landed (without branch merged). Cleaning silo.")
 
     ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])
