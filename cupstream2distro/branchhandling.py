@@ -27,6 +27,13 @@ import subprocess
 from .settings import BRANCH_URL, IGNORECHANGELOG_COMMIT, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX, SILO_PACKAGING_RELEASE_COMMIT_MESSAGE
 
 
+class NoCommitFoundException(Exception):
+    def __init__(self, message):
+        self.message = message
+    def __str__(self):
+        return repr(self.message)
+
+
 def get_branch(branch_url, dest_dir):
     '''Grab a branch'''
     instance = subprocess.Popen(["bzr", "branch", branch_url, dest_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -256,7 +263,12 @@ def merge_branch(uri_to_merge, lp_parent_branch, commit_message, authors=set()):
     os.chdir(uri_to_merge)
     lp_parent_branch = lp_parent_branch.replace("https://code.launchpad.net/", "lp:")
     if subprocess.call(["bzr", "merge", lp_parent_branch]) == 0:
-        cmd = ["bzr", "commit", "-m", commit_message, "--unchanged"]
+        # try to see if we can debcommit
+        if not commit_message:
+            if subprocess.call(["debcommit"]) != 0:
+                raise NoCommitFoundException("No commit and no change in debian/changelog")
+        else:
+            cmd = ["bzr", "commit", "-m", commit_message, "--unchanged"]
         for author in authors:
             cmd.extend(['--author', author])
         subprocess.call(cmd)
