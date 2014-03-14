@@ -20,6 +20,7 @@
 import ConfigParser
 import glob
 import os
+import re
 import shutil
 from xml.sax.saxutils import quoteattr, escape
 
@@ -79,6 +80,15 @@ def mark_project_as_published(source_package_name, packaging_version):
     if os.path.isfile(diff_filename):
         os.rename(diff_filename, "{}.published".format(diff_filename))
 
+def get_published_to_distro_projects():
+    '''Retourn a dict of already published projects in cwd with {source: [version1, version2]}'''
+    result = {}
+    source_package_version_regexp = re.compile("(.*).{}_(.*)".format(PROJECT_CONFIG_SUFFIX))
+    for file in os.listdir('.'):
+        substract = source_package_version_regexp.findall(file)
+        if substract:
+            result.setdefault(substract[0][0], []).append(substract[0][1])
+    return result
 
 def clean_source(source):
     """clean all related source content from current silos"""

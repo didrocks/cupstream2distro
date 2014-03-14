@@ -78,3 +78,29 @@ class ToolsTests(BaseUnitTestCase):
         shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'packaging_changes_foo_4.2dailysomething-0ubuntu1.diff')
         tools.mark_project_as_published('foo', '4.2dailysomething-0ubuntu1')
         self.assertTrue(os.path.isfile('packaging_changes_foo_4.2dailysomething-0ubuntu1.diff.published'))
+
+    def test_no_project_published(self):
+        '''Get no project published if nothing is published'''
+        self.assertEquals(tools.get_published_to_distro_projects(), {})
+
+    def test_one_project_published(self):
+        '''Get one project published with one version'''
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), '.')
+        tools.mark_project_as_published('foo', '42-0ubuntu1')
+        self.assertEquals(tools.get_published_to_distro_projects(), {'foo': ['42-0ubuntu1']})
+
+    def test_one_project_published_multiple_times(self):
+        '''Get one project published with multiple published versions'''
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), '.')
+        tools.mark_project_as_published('foo', '42-0ubuntu1')
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), '.')
+        tools.mark_project_as_published('foo', '43-0ubuntu1')
+        self.assertDictEqual(tools.get_published_to_distro_projects(), {'foo': ['43-0ubuntu1', '42-0ubuntu1']})
+
+    def test_multiple_projects_published(self):
+        '''Get one project published with multiple published versions'''
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), '.')
+        tools.mark_project_as_published('foo', '42-0ubuntu1')
+        shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'bar.project')
+        tools.mark_project_as_published('bar', '43-0ubuntu1')
+        self.assertDictEqual(tools.get_published_to_distro_projects(), {'foo': ['42-0ubuntu1'], 'bar': ['43-0ubuntu1']})
