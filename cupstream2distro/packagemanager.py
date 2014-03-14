@@ -21,6 +21,7 @@
 import datetime
 import fileinput
 import logging
+from operator import attrgetter
 import os
 import re
 import shutil
@@ -34,6 +35,10 @@ from .utils import ignored
 import silomanager
 
 
+def sort_by_date_created(sources):
+    return sorted(sources, key=attrgetter("date_created"), reverse=True)
+
+
 def get_current_version_for_series(source_package_name, series_name, ppa_name=None, dest=None):
     '''Get current version for a package name in that series'''
     series = launchpadmanager.get_series(series_name)
@@ -44,8 +49,7 @@ def get_current_version_for_series(source_package_name, series_name, ppa_name=No
             dest = launchpadmanager.get_ubuntu_archive()
     source_collection = dest.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series)
     try:
-        # cjwatson told that list always have the more recently published first (even if removed)
-        return source_collection[0].source_package_version
+        return sort_by_date_created(source_collection)[0].source_package_version
     # was never in the dest, set the lowest possible version
     except IndexError:
         return "0"
@@ -181,7 +185,7 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
     os.chdir(source_package_download_dir)
 
     try:
-        sourcepkg = dest_archive.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series, version=dest_current_version)[0]
+        sourcepkg = sort_by_date_created(dest_archive.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series, version=dest_current_version))[0]
     except IndexError:
         raise Exception("Couldn't get in the destination the expected version")
     logging.info('Downloading %s version %s', source_package_name, dest_current_version)
