@@ -291,10 +291,17 @@ if __name__ == '__main__':
                 continue
             if pkg.source_package_name in silo_config["sources"]:
                 dest_current_version = packagemanager.get_current_version_for_series(pkg.source_package_name, series.name, dest=dest)
-                tools.save_project_config(pkg.source_package_name, "", "", dest_current_version, pkg.source_package_version)
-                # download as well the .dsc file for watch-ppa
-                source_dir = packagemanager.get_source_package_from_dest(pkg.source_package_name, src_ppa, pkg.source_package_version, series.name)
-                shutil.copy(glob.glob(os.path.join(os.path.dirname(source_dir), '*.dsc'))[0], os.path.abspath('.'))
+                # if a direct source pacakge upload was already published, ignore it
+                published_sources = tools.get_published_to_distro_projects()
+                try:
+                    if dest_current_version in published_sources[pkg.source_package_name]:
+                        continue
+                except KeyError:
+                    # scan the unpublished upload                
+                    tools.save_project_config(pkg.source_package_name, "", "", dest_current_version, pkg.source_package_version)
+                    # download as well the .dsc file for watch-ppa
+                    source_dir = packagemanager.get_source_package_from_dest(pkg.source_package_name, src_ppa, pkg.source_package_version, series.name)
+                    shutil.copy(glob.glob(os.path.join(os.path.dirname(source_dir), '*.dsc'))[0], os.path.abspath('.'))
             else:
                 direct_upload_not_in_list.append(pkg.source_package_name)
     except lazr.restfulclient.errors.BadRequest:
