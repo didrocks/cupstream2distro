@@ -92,7 +92,7 @@ if __name__ == "__main__":
             version_to_downgrade_to = sourceversion[1]
         except IndexError:
             # downgrade to previous version than latest published one
-            source_collection = dest.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series, pocket='Release')
+            source_collection = packagemanager.sort_by_date_created(dest.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series, pocket='Release'))
             version_to_downgrade_to = source_collection[1].source_package_version
         source_version_revert[source_package_name] = version_to_downgrade_to
         logging.info("Downgrading {} to {}".format(source_package_name, version_to_downgrade_to))

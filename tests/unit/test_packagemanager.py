@@ -22,6 +22,7 @@ from . import BaseUnitTestCase, BaseUnitTestCaseWithErrors
 
 from cupstream2distro import packagemanager
 
+from datetime import datetime
 import os
 from mock import patch, Mock
 import shutil
@@ -33,12 +34,14 @@ class PackageManagerTests(BaseUnitTestCase):
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
     def test_get_current_version_for_series_distro(self, mocklaunchpadmanager):
-        '''Get the newest version in any pocket'''
+        '''Get the most recent publication in any pocket'''
 
         source1 = Mock()
         source1.source_package_version = "83.09.14-0ubuntu1"
+        source1.date_created = datetime(2014, 1, 1)
         source2 = Mock()
         source2.source_package_version = "83.09.13-0ubuntu1"
+        source2.date_created = datetime(2014, 2, 1)
         mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.return_value = [source1, source2]
 
         return_version = packagemanager.get_current_version_for_series("foo", "rolling")
@@ -48,7 +51,7 @@ class PackageManagerTests(BaseUnitTestCase):
         mocklaunchpadmanager.get_ubuntu_archive.assert_called_once_with()
         mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.assert_called_with(exact_match=True,
                                                                                                     source_name="foo", distro_series=mocklaunchpadmanager.get_series.return_value)
-        self.assertEquals("83.09.14-0ubuntu1", return_version)
+        self.assertEquals("83.09.13-0ubuntu1", return_version)
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
     def test_get_current_version_for_series_none_in_distro(self, mocklaunchpadmanager):

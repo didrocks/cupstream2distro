@@ -18,8 +18,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import logging
+from operator import attrgetter
 import os
 import re
+
+import packagemanager
 
 
 class PackageInPPA():
@@ -58,8 +61,9 @@ class PackageInPPA():
         archs_to_eventually_ignore = archs_to_eventually_ignore.copy()
         if archs_to_eventually_ignore:
             try:
-                previous_source = destarchive.getPublishedSources(exact_match=True, source_name=self.source_name,
-                                                                  distro_series=self.series, status="Published")[0]
+                source_collection = destarchive.getPublishedSources(exact_match=True, source_name=self.source_name,
+                                                                    distro_series=self.series, status="Published")
+                previous_source = sort_by_date_created(source_collection)[0]
                 for binary in previous_source.getPublishedBinaries():
                     if binary.architecture_specific and binary.distro_arch_series.architecture_tag in archs_to_eventually_ignore:
                         archs_to_eventually_ignore -= set([binary.distro_arch_series.architecture_tag])
@@ -147,7 +151,7 @@ class PackageInPPA():
             for the others.'''
 
         try:
-            source = self.ppa.getPublishedSources(exact_match=True, source_name=self.source_name, version=self.version, distro_series=self.series)[0]
+            source = sort_by_date_created(self.ppa.getPublishedSources(exact_match=True, source_name=self.source_name, version=self.version, distro_series=self.series))[0]
             logging.info("Source available in ppa")
             current_status = {}
             for arch in self.archs:
