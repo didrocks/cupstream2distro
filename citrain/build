@@ -232,10 +232,15 @@ if __name__ == '__main__':
         authors_commits = {}
 
         try:
+            # first try: in case someone release and release a version without merging back (we don't want to duplicate the commits). This is the main case anyway.
             log_content = branchhandling.return_log_diff_from_tag(packaging_version_in_destbranch)
         except:
-            # FIXME: -100 is a hack as we don't have anymore any information on when the last release happen. People are transitionned to a tag system.
-            log_content = branchhandling.return_log_diff_since_last_release(branchhandling.return_log_diff("-100"))
+            try:
+                # second hammer: we then recollect from the last version in the destination (some lines can be duplicated)
+                log_content = branchhandling.return_log_diff_from_tag(previous_finaledest_version)
+            except:
+                # last hammer with FIXME: -100 is a hack as we don't have anymore any information on when the last release happen. People are transitionned to a tag system.
+                log_content = branchhandling.return_log_diff_since_last_release(branchhandling.return_log_diff("-100"))
         alreadyfixed_bugs = set()
         with open("debian/changelog") as f:
             alreadyfixed_bugs = packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name)
