@@ -161,7 +161,7 @@ if __name__ == '__main__':
         config["mps"].setdefault(source_package_name, []).append(mp.self_link)
 
         # check that any of those components are part of any current transaction
-        if not silomanager.is_project_not_in_any_configs(mp.target_branch.project.name, series, dest, SILOS_DIR, args.reconfiguresilo):
+        if not silomanager.is_project_not_in_any_configs(mp.target_branch.project.name, series, dest, SILOS_DIR, args.reconfiguresilo, dont_error_but_warn=args.ignore_conflicts):
             one_project_already_in_use = True
 
     # check that additional sources are not as well already in use
@@ -171,7 +171,7 @@ if __name__ == '__main__':
         if args.reconfiguresilo and args.restricted:
             check_not_adding_new_components(project_name, allowed_components_from_previous_config, config_path)
 
-        if not silomanager.is_project_not_in_any_configs(source, series, dest, SILOS_DIR, args.reconfiguresilo):
+        if not silomanager.is_project_not_in_any_configs(source, series, dest, SILOS_DIR, args.reconfiguresil, dont_error_but_warn=args.ignore_conflicts):
             one_project_already_in_use = True
 
     if one_project_already_in_use:

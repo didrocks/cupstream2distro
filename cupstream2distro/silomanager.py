@@ -79,7 +79,7 @@ def remove_status_file(silo_name):
     os.remove(os.path.join(SILO_STATUS_RSYNCDIR, silo_name))
 
 
-def is_project_not_in_any_configs(project_name, series, dest, base_silo_uri, ignore_silo):
+def is_project_not_in_any_configs(project_name, series, dest, base_silo_uri, ignore_silo, dont_error_but_warn=False):
     """Return true if the project for that serie in that dest is not in any configuration"""
     logging.info("Checking if {} is already configured for {} ({}) in another silo".format(project_name, dest.name, series.name))
     for silo_name in SILO_NAME_LIST:
@@ -90,7 +90,11 @@ def is_project_not_in_any_configs(project_name, series, dest, base_silo_uri, ign
         if config:
             if (config["global"]["dest"] == dest.self_link and config["global"]["series"] == series.self_link and
                 (project_name in config["mps"] or project_name in config["sources"])):
-                logging.error("{} is already prepared for the same serie and destination in {}".format(project_name, silo_name))
+                message = "{} is already prepared for the same serie and destination in {}".format(project_name, silo_name)
+                if dont_error_but_warn:
+                    logging.warning(message)
+                else:
+                    logging.error(message)
                 return False
     return True
 
