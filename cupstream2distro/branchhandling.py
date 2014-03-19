@@ -269,9 +269,9 @@ def merge_branch(uri_to_merge, lp_parent_branch, commit_message, authors=set()):
                 raise NoCommitFoundException("No commit and no change in debian/changelog")
         else:
             cmd = ["bzr", "commit", "-m", commit_message, "--unchanged"]
-        for author in authors:
-            cmd.extend(['--author', author])
-        subprocess.call(cmd)
+            for author in authors:
+                cmd.extend(['--author', author])
+            subprocess.call(cmd)
         success = True
     os.chdir(cur_dir)
     return success
