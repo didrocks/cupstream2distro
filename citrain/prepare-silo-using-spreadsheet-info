@@ -1,0 +1,122 @@
+#!/usr/bin/python -u
+# -*- coding: utf-8 -*-
+# Copyright (C) 2014 Canonical
+#
+# Authors:
+#  Didier Roche
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import argparse
+import csv
+import logging
+import os
+import requests
+import subprocess
+import sys
+import tempfile
+
+from cupstream2distro.settings import SPREADSHEET_CSV_URL, SPREADSHEET_ID_COL_NUM, SPREADSHEET_MPS_COL_NUM, SPREADSHEET_SOURCES_COL_NUM
+
+
+def parse_and_clean_entry(raw_entry):
+    '''Return a strip list of entries and try to separate with any possible delimiter (\n, ',', ' ')'''
+    result = []
+    for entry in raw_entry.split():
+        result.extend(x.strip() for x in entry.split(','))
+    return result
+
+if __name__ == '__main__':
+
+    logging.basicConfig(level=logging.INFO)
+
+    parser = argparse.ArgumentParser(description="Prepare or configure a silo from a request id using the spreadsheet infos")
+
+    parser.add_argument("--request-id", help="Update/Configure this request id")
+
+    parser.add_argument("--series", help="Series used to build the package")
+    parser.add_argument("--destppa", help="Consider this destppa instead of {series}-proposed")
+    parser.add_argument("--reconfiguresilo", help="Reconfigure an existing silo")
+    parser.add_argument("--restricted", action='store_true', help="Restrict to only add MP for already locked components when reconfiguring an existing silo")
+    parser.add_argument("--ignore-conflicts", action='store_true', help="Ignore conflicting components in multiple silos. This should only be used in very rare and identified case. Both silos owners need to be aware about it as the second one will have to rebuild and retest.")
+    parser.add_argument("--use-preprod-silo", action='store_true', help="Assign a silo with preproduction CI Train code")
+    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
+
+
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+                        format="%(asctime)s %(levelname)s %(message)s")
+    if args.debug:
+        logging.debug("Debug mode enabled")
+
+    if not args.request_id:
+        logging.error("Request id is mandatory")
+        sys.exit(1)
+
+
+    logging.info("Getting data from the spreadsheet for request {}".format(args.request_id))
+
+    # proceed and download the csv version of the spreadsheet (only way to get data anonymously)
+    response = requests.get(SPREADSHEET_CSV_URL)
+    if response.status_code != 200:
+        logging.error("Couldn't fetch {} and so, couldn't proceed your question. Can be due to an temporary network hiccup, please retry later.".format(SPREADSHEET_CSV_URL))
+        sys.exit(1)
+
+    # store the answer in a temp file
+    (fd, filename) = tempfile.mkstemp()
+    with open(filename, 'w') as f:
+        f.write(response.content)
+
+    request_found = False
+    with open(filename, 'rb') as f:
+        content = csv.reader(f)
+        for row in content:
+            if row[SPREADSHEET_ID_COL_NUM] == args.request_id:
+                raw_mps = row[SPREADSHEET_MPS_COL_NUM]
+                raw_sources = row[SPREADSHEET_SOURCES_COL_NUM]
+                request_found = True
+                break
+    os.remove(filename)
+
+    # ensure we found anything
+    if not request_found:
+        logging.error("We couldn't find any request in the spreadsheet matching request id {}. Ensure with the landing team there is a matching request in.".format(args.request_id))
+        sys.exit(1)
+
+    mps = parse_and_clean_entry(raw_mps)
+    sources = parse_and_clean_entry(raw_sources)
+
+    cmd = ['./prepare-silo', '--request-id', args.request_id, '--mps', " ".join(mps), '--sources', " ".join(sources)]
+    # add command options
+    if args.series:
+        cmd.extend(['--series', args.series])
+    if args.destppa:
+        cmd.extend(['--destppa', args.destppa])
+    if args.reconfiguresilo:
+        cmd.append('--reconfiguresilo')
+    if args.restricted:
+        cmd.append('--restricted')
+    if args.ignore_conflicts:
+        cmd.append('--ignore-conflicts')
+    if args.use_preprod_silo:
+        cmd.append('--use-preprod-silo')
+    if args.debug:
+        cmd.append('--debug')
+
+    logging.info("Executing request")
+    return_code = subprocess.call(cmd)
+    if return_code != 0:
+        logging.error("Couldn't assign or reconfigure silo")
+        sys.exit(return_code)

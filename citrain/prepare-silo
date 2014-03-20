@@ -46,18 +46,18 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="Prepare and assign a free silo from a ppa",
-                                     epilog="You need to either pass an addmps or addsources")
-
-    parser.add_argument("--series", help="Series used to build the package")
+                                     epilog="You need to either pass an mps or sources")
 
     parser.add_argument("--request-id", help="Update/Configure this request id")
+
+    parser.add_argument("--series", help="Series used to build the package")
     parser.add_argument("--destppa", help="Consider this destppa instead of {series}-proposed")
-    parser.add_argument("--addmps", nargs='*', default = [], help="Merge proposal urls")
-    parser.add_argument("--addsources", nargs='*', default = [], help="Add sources packages that will be uploaded later manually to the ppa")
+    parser.add_argument("--mps", nargs='*', default = [], help="Merge proposal urls")
+    parser.add_argument("--sources", nargs='*', default = [], help="Add sources packages that will be uploaded later manually to the ppa")
     parser.add_argument("--reconfiguresilo", help="Reconfigure an existing silo")
     parser.add_argument("--restricted", action='store_true', help="Restrict to only add MP for already locked components when reconfiguring an existing silo")
     parser.add_argument("--ignore-conflicts", action='store_true', help="Ignore conflicting components in multiple silos. This should only be used in very rare and identified case. Both silos owners need to be aware about it as the second one will have to rebuild and retest.")
-    parser.add_argument("--use-preprod-silo", help="Assign a silo with preproduction CI Train code")
+    parser.add_argument("--use-preprod-silo", action='store_true', help="Assign a silo with preproduction CI Train code")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
 
@@ -69,17 +69,17 @@ if __name__ == '__main__':
         logging.debug("Debug mode enabled")
 
     if not args.request_id:
-        logging.error("No mandatory request id provided")
+        logging.error("Request id is mandatory")
         sys.exit(1)
-    if not args.addmps and not args.addsources:
+    if not args.mps and not args.sources:
         logging.error("You need at least specify a MP or a source")
         sys.exit(1)
     if args.restricted and not args.reconfiguresilo:
         logging.error("Restricted mode should only be used to reconfigure a silo")
         sys.exit(1)
 
-    project_urls = args.addmps[:]
-    project_urls.extend(args.addsources)
+    project_urls = args.mps[:]
+    project_urls.extend(args.sources)
 
     # create all silo names
     with ignored(OSError):
@@ -145,13 +145,13 @@ if __name__ == '__main__':
     }
     config_path = os.path.join(SILOS_DIR, silo_name)
 
-    if args.addsources:
-        logging.info("Additional packages will be directly uploaded to the ppa: {}".format(", ".join(args.addsources)))
-        config["sources"] = args.addsources
+    if args.sources:
+        logging.info("Additional packages will be directly uploaded to the ppa: {}".format(", ".join(args.sources)))
+        config["sources"] = args.sources
 
     one_project_already_in_use = False
     # grab the project name of all MP
-    for mp_url in args.addmps:
+    for mp_url in args.mps:
         mp = launchpadmanager.get_resource_from_url(mp_url)
         try:
             source_package_name = branchhandling.get_source_package_name_from_branch(mp.target_branch.web_link)

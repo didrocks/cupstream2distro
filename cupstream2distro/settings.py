@@ -19,6 +19,11 @@
 
 import os
 
+SPREADSHEET_CSV_URL = "https://docs.google.com/a/canonical.com/spreadsheet/ccc?key=0AuDk72Lpx8U5dFlCc1VzeVZzWmdBZS11WERjdVc3dmc&output=csv"
+SPREADSHEET_ID_COL_NUM = 9
+SPREADSHEET_MPS_COL_NUM = 5
+SPREADSHEET_SOURCES_COL_NUM = 6
+
 REV_STRING_FORMAT = "Automatic snapshot from revision"
 NEW_CHANGELOG_PATTERN = "^{} \(.*\) (?!UNRELEASED)"
 PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} (revision {} from {})"
