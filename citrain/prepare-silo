@@ -25,19 +25,19 @@ import os
 import sys
 
 from cupstream2distro import branchhandling, launchpadmanager, packageinppamanager, silomanager
-from cupstream2distro.settings import SILO_BUILDPPA_SCHEME, SILOS_DIR, SILO_NAME_LIST, SILO_PREPROD_NAME_LIST, SILO_EMPTY
+from cupstream2distro.settings import SILO_BUILDPPA_SCHEME, SILOS_DIR, SILO_NAME_LIST, SILO_EMPTY
 from cupstream2distro.tools import clean_source
 from cupstream2distro.utils import ignored
 
 
-def check_not_adding_new_components(project_name, allowed_components_from_previous_config, config_path):
+def check_not_adding_new_components(project_name, allowed_components_from_previous_config, config, config_path):
     """Check that a self reconfigure doesn't add new components"""
 
     if project_name not in allowed_components_from_previous_config:
         message = "{} was not in the initial list of components for that silo. You can't reconfigure the silo yourself. Please ask the landing team to reconfigure it for you.".format(project_name)
         logging.error(message)
-        silomanager.set_config_step(previous_config, -1, uri=config_path)
-        silomanager.set_config_status(previous_config, "Reconfigure failed: " + message, uri=config_path)
+        silomanager.set_config_step(config, -1, uri=config_path)
+        silomanager.set_config_status(config, "Reconfigure failed: " + message, uri=config_path)
         sys.exit(1)
 
 
@@ -50,12 +50,14 @@ if __name__ == '__main__':
 
     parser.add_argument("--series", help="Series used to build the package")
 
+    parser.add_argument("--request-id", help="Update/Configure this request id")
     parser.add_argument("--destppa", help="Consider this destppa instead of {series}-proposed")
     parser.add_argument("--addmps", nargs='*', default = [], help="Merge proposal urls")
     parser.add_argument("--addsources", nargs='*', default = [], help="Add sources packages that will be uploaded later manually to the ppa")
     parser.add_argument("--reconfiguresilo", help="Reconfigure an existing silo")
     parser.add_argument("--restricted", action='store_true', help="Restrict to only add MP for already locked components when reconfiguring an existing silo")
     parser.add_argument("--ignore-conflicts", action='store_true', help="Ignore conflicting components in multiple silos. This should only be used in very rare and identified case. Both silos owners need to be aware about it as the second one will have to rebuild and retest.")
+    parser.add_argument("--use-preprod-silo", help="Assign a silo with preproduction CI Train code")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
 
@@ -66,6 +68,9 @@ if __name__ == '__main__':
     if args.debug:
         logging.debug("Debug mode enabled")
 
+    if not args.request_id:
+        logging.error("No mandatory request id provided")
+        sys.exit(1)
     if not args.addmps and not args.addsources:
         logging.error("You need at least specify a MP or a source")
         sys.exit(1)
@@ -86,30 +91,29 @@ if __name__ == '__main__':
     # first, check that a silo is available
     dest = None
     series = None
-    if args.reconfiguresilo:
-        silo_name = args.reconfiguresilo
-        logging.info("Reconfiguring {} as an existing silo".format(silo_name))
-        if silo_name not in SILO_NAME_LIST:
-            logging.error("The silo name you provided {} isn't in the known silo name list".format(silo_name))
-            sys.exit(1)
-        previous_config = silomanager.load_config(os.path.join(SILOS_DIR, silo_name))
-        if not previous_config:
-            # can be setting directly a preproduction silo
-            if silo_name in SILO_PREPROD_NAME_LIST:
-                logging.info("Setting directly a pre-production citrain code silo")
-                args.reconfiguresilo = False # it's not a real reconfigure
-            else:
-                logging.error("silo {} isn't configured. You need the landing team to configure it and can't reconfigure a non attributed silo".format(silo_name))
-                sys.exit(1)
-        else:
-            # set the same destination, series
-            dest = launchpadmanager.get_resource_from_token(previous_config["global"]["dest"])
-            series = launchpadmanager.get_resource_from_token(previous_config["global"]["series"])
-            allowed_components_from_previous_config = previous_config['mps'].keys() + previous_config['sources']
-            logging.debug("Components in previous configure: " + ", ".join(allowed_components_from_previous_config))
+
+    request_id = args.request_id
+    existing_config = silomanager.find_silo_config_for_request_id(request_id, SILOS_DIR)
+
+    # check provided input matches
+    if not args.reconfiguresilo and existing_config:
+        logging.error("You didn't ask to reconfigure a silo, but we found it assigned to {}. Please ensure to check the missing option if this is really what you want to do.".format(existing_config['siloname']))
+        sys.exit(1)
+    if args.reconfiguresilo and not existing_config:
+        logging.error("You asked to reconfigure request id {}. But we couldn't find it in any existing silo for it. Are you sure you don't want rather to assign a new silo with it?".format(request_id))
+        sys.exit(1)
+
+    if args.reconfiguresilo and existing_config:
+        silo_name = existing_config['siloname']
+        logging.info("Reconfiguring {} as an existing silo for request {}".format(silo_name, request_id))
+        # set the same destination, series
+        dest = launchpadmanager.get_resource_from_token(existing_config["global"]["dest"])
+        series = launchpadmanager.get_resource_from_token(existing_config["global"]["series"])
+        allowed_components_from_previous_config = existing_config['mps'].keys() + existing_config['sources']
+        logging.debug("Components in previous configure: " + ", ".join(allowed_components_from_previous_config))
     else:
         logging.info("Checking that a silo is available")
-        silo_name = silomanager.return_first_available_silo(SILOS_DIR)
+        silo_name = silomanager.return_first_available_silo(SILOS_DIR, preprod=args.use_preprod_silo)
         if not silo_name:
             logging.error("No silo is available")
             sys.exit(1)
@@ -126,10 +130,12 @@ if __name__ == '__main__':
             dest = launchpadmanager.get_ubuntu_archive()
 
     logging.info("Configuring for {} ({}) in {}".format(", ".join(project_urls), series.name, dest.name))
-    config = {"global": { "dest": dest.self_link,
+    config = {"requestid": request_id,
+              "global": { "dest": dest.self_link,
                           "series": series.self_link,
                           "step": "",
                           "status": "" },
+              "siloname": silo_name,
               "sources": [],
               "mps": {}
     }
@@ -152,7 +158,7 @@ if __name__ == '__main__':
 
         # ensure a self reconfiguring doesn't add new projects
         if args.reconfiguresilo and args.restricted:
-            check_not_adding_new_components(project_name, allowed_components_from_previous_config, config_path)
+            check_not_adding_new_components(project_name, allowed_components_from_previous_config, existing_config, config_path)
 
         if (source_package_name != project_name):
             message = "Project name ({}) doesn't align with the source package name ({})".format(project_name, source_package_name)
@@ -169,7 +175,7 @@ if __name__ == '__main__':
 
         # ensure a self reconfiguring doesn't add new projects
         if args.reconfiguresilo and args.restricted:
-            check_not_adding_new_components(project_name, allowed_components_from_previous_config, config_path)
+            check_not_adding_new_components(project_name, allowed_components_from_previous_config, existing_config, config_path)
 
         if not silomanager.is_project_not_in_any_configs(source, series, dest, SILOS_DIR, args.reconfiguresilo, dont_error_but_warn=args.ignore_conflicts):
             one_project_already_in_use = True
@@ -215,7 +221,6 @@ if __name__ == '__main__':
     # if reconfigure, ensure we remove all projects file and packages from the ppa that are not to take into account anymore
     if args.reconfiguresilo:
         logging.info("Check and clean all removed sources")
-        silo_name = args.reconfiguresilo
         all_silo_projects = silomanager.get_all_projects(config)
         # remove all files related to sources that are not in the configuration anymore
         for (source, version, rev, branch) in packageinppamanager.get_all_packages_uploaded():

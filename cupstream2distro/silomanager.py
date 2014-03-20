@@ -99,15 +99,28 @@ def is_project_not_in_any_configs(project_name, series, dest, base_silo_uri, ign
     return True
 
 
-def return_first_available_silo(base_silo_uri):
-    """Check which silos are free and return the first one (which isn't using preproduction code)"""
+def find_silo_config_for_request_id(request_id, base_silo_uri):
+    """Find a config silo matching the request id, return None otherwise"""
+    logging.info("Checking if {} is in any assigned silo".format(request_id))
     for silo_name in SILO_NAME_LIST:
-        # don't return a preproduction silo code for automated assignement
-        if silo_name in SILO_PREPROD_NAME_LIST:
-            continue
+        config = load_config(os.path.join(base_silo_uri, silo_name))
+        if config:
+            if config["requestid"] == request_id:
+                return config
+    return None
+
+
+def return_first_available_silo(base_silo_uri, preprod=False):
+    """Check which silos are free and return the first available one. We separate preprod and production silos"""
+    silo_list = [silo for silo in SILO_NAME_LIST if silo not in SILO_PREPROD_NAME_LIST]
+    if preprod:
+        silo_list = SILO_PREPROD_NAME_LIST
+
+    for silo_name in silo_list:
         if not os.path.isfile(os.path.join(base_silo_uri, silo_name, SILO_CONFIG_FILENAME)):
             return silo_name
     return None
+
 
 def get_config_step(config):
     """Get configuration step"""
