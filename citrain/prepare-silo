@@ -109,6 +109,10 @@ if __name__ == '__main__':
         # set the same destination, series
         dest = launchpadmanager.get_resource_from_token(existing_config["global"]["dest"])
         series = launchpadmanager.get_resource_from_token(existing_config["global"]["series"])
+        # ensure that the series matches the old series field or yell
+        if args.series and series != args.series:
+            logging.error("You provided a series in the reconfigure {} which is different from the original series that request was for {}. To ensure this is what's wanted, it's preferable to free this silo and request a new one for the new series.".format(args.series, series))
+            sys.exit(1)
         allowed_components_from_previous_config = existing_config['mps'].keys() + existing_config['sources']
         logging.debug("Components in previous configure: " + ", ".join(allowed_components_from_previous_config))
     else:
