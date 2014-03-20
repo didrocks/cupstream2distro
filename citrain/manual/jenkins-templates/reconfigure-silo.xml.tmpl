@@ -27,13 +27,8 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>MERGE_PROPOSALS</name>
-          <description>Merge proposal urls (space separated)</description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>SOURCES</name>
-          <description>Source package that will be directly uploaded (source package name, space separated)</description>
+          <name>REQUEST_ID</name>
+          <description>Request ID from the spreadsheet (mandatory)</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -58,8 +53,7 @@ export LANG=en_US.UTF-8
 export WORKSPACE="$PWD"
 
 OPTS=""
-MERGE_PROPOSALS=${MERGE_PROPOSALS-}
-SOURCES=${SOURCES-}
+REQUEST_ID=${REQUEST_ID-}
 
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"
@@ -67,7 +61,7 @@ fi
 
 cd # go to home directory
 # always ignore conflicts as we can't add more components
-{{ BINDIR }}/prepare-silo --addmps ${MERGE_PROPOSALS} --addsources $SOURCES --reconfiguresilo {{ SILO_NAME }} --ignore-conflicts --restricted $OPTS
+{{ BINDIR }}/prepare-silo-using-spreadsheet-info --request-id ${REQUEST_ID} --reconfiguresilo --ignore-conflicts --restricted $OPTS
 </command>
     </hudson.tasks.Shell>
   </builders>

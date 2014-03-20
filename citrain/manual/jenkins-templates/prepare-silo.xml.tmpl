@@ -18,19 +18,14 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
+          <name>REQUEST_ID</name>
+          <description>Request ID from the spreadsheet (mandatory)</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>SERIES</name>
-          <description>Publish for this series (mandatory)</description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>MERGE_PROPOSALS</name>
-          <description>Merge proposal urls (space separated)</description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>SOURCES</name>
-          <description>Source package that will be directly uploaded (source package name, space separated)</description>
-          <defaultValue></defaultValue>
+          <description>Publish for this series (empty to reconfigure if doesn't match default value)</description>
+          <defaultValue>trusty</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>DEST</name>
@@ -68,17 +63,18 @@ export LANG=en_US.UTF-8
 export WORKSPACE="$PWD
 "
 OPTS=""
+REQUEST_ID=${REQUEST_ID-}
 SERIES=${SERIES-}
-MERGE_PROPOSALS=${MERGE_PROPOSALS-}
-SOURCES=${SOURCES-}
-RECONFIGURE_SILO=${RECONFIGURE_SILO-}
 DEST=${DEST-}
 
+if [ ! -z "$SERIES" ]; then
+  OPTS="$OPTS --series $SERIES"
+fi
 if [ ! -z "$DEST" ]; then
   OPTS="$OPTS --destppa $DEST"
 fi
-if [ ! -z "${RECONFIGURE_SILO}" ]; then
-  OPTS="$OPTS --reconfiguresilo ${RECONFIGURE_SILO}"
+if [ "${RECONFIGURE_SILO}"  == "true" ]; then
+  OPTS="$OPTS --reconfiguresilo"
 fi
 if [ "$IGNORECONFLICTS" == "true" ]; then
   OPTS="$OPTS --ignore-conflicts"
@@ -88,7 +84,7 @@ if [ "$DEBUG" == "true" ]; then
 fi
 
 cd # go to home directory
-{{ BINDIR }}/prepare-silo --series $SERIES --addmps ${MERGE_PROPOSALS} --addsources $SOURCES $OPTS
+{{ BINDIR }}/prepare-silo-using-spreadsheet-info --request-id ${REQUEST_ID} $OPTS
 </command>
     </hudson.tasks.Shell>
   </builders>
