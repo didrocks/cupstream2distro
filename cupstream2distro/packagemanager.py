@@ -496,7 +496,7 @@ def refresh_symbol_files(packaging_version):
         dch_env = os.environ.copy()
         dch_env["DEBFULLNAME"] = settings.BOT_DEBFULLNAME
         dch_env["DEBEMAIL"] = settings.BOT_DEBEMAIL
-        subprocess.Popen(["dch", "debian/*symbols: auto-update new symbols to released version"], env=dch_env).communicate()
+        subprocess.Popen(["dch", "--release-heuristic", "changelog", "debian/*symbols: auto-update new symbols to released version"], env=dch_env).communicate()
         subprocess.call(["bzr", "commit", "-m", "Update symbols"])
 
 
