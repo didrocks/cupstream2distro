@@ -27,14 +27,19 @@ import subprocess
 import sys
 import tempfile
 
-from cupstream2distro.settings import SPREADSHEET_CSV_URL, SPREADSHEET_ID_COL_NUM, SPREADSHEET_SILONAME_COL_NUM, SPREADSHEET_MPS_COL_NUM, SPREADSHEET_SOURCES_COL_NUM
+from cupstream2distro.settings import SPREADSHEET_CSV_URL, LANDERS_COL_NUM, SPREADSHEET_ID_COL_NUM, SPREADSHEET_SILONAME_COL_NUM, SPREADSHEET_MPS_COL_NUM, SPREADSHEET_SOURCES_COL_NUM
 
 
-def parse_and_clean_entry(raw_entry):
+def parse_and_clean_entry(raw_entry, slash_as_sep=False):
     '''Return a strip list of entries and try to separate with any possible delimiter (\n, ',', ' ')'''
     result = []
     for entry in raw_entry.split():
-        result.extend(x.strip() for x in entry.split(','))
+        for x in entry.split(','):
+            if slash_as_sep:
+                for y in x.split('/'):
+                    result.append(y.strip())
+            else:
+                result.append(x.strip())
     return result
 
 if __name__ == '__main__':
@@ -98,11 +103,13 @@ if __name__ == '__main__':
                     args.request_id = row[SPREADSHEET_ID_COL_NUM]
                     raw_mps = row[SPREADSHEET_MPS_COL_NUM]
                     raw_sources = row[SPREADSHEET_SOURCES_COL_NUM]
+                    raw_landers = row[LANDERS_COL_NUM]
                     request_found = True
             else:
                 if row[SPREADSHEET_ID_COL_NUM] == args.request_id:
                     raw_mps = row[SPREADSHEET_MPS_COL_NUM]
                     raw_sources = row[SPREADSHEET_SOURCES_COL_NUM]
+                    raw_landers = row[LANDERS_COL_NUM]
                     request_found = True
                     break
     os.remove(filename)
@@ -117,14 +124,17 @@ if __name__ == '__main__':
 
     mps = parse_and_clean_entry(raw_mps)
     sources = parse_and_clean_entry(raw_sources)
+    landers = parse_and_clean_entry(raw_landers, slash_as_sep=True)
 
     prepare_silo_cmd = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'prepare-silo')
 
     cmd = [prepare_silo_cmd, '--request-id', args.request_id]
     if mps:
-      cmd.extend(['--mps', " ".join(mps)])
+        cmd.extend(['--mps', " ".join(mps)])
     if sources:
-      cmd.extend(['--sources', " ".join(sources)])
+        cmd.extend(['--sources', " ".join(sources)])
+    if landers:
+        cmd.extend(['--landers', " ".join(landers)])
     # add command options
     if args.series:
         cmd.extend(['--series', args.series])
