@@ -95,6 +95,7 @@ if __name__ == '__main__':
                     if request_found:
                         logging.error("{} is available more than once in the spreadsheet. Please request to fix some wrong metadata due to a bad automated sync.".format(args.reconfigure_for_silo))
                         unique_silo_name = False
+                    args.request_id = row[SPREADSHEET_ID_COL_NUM]
                     raw_mps = row[SPREADSHEET_MPS_COL_NUM]
                     raw_sources = row[SPREADSHEET_SOURCES_COL_NUM]
                     request_found = True
