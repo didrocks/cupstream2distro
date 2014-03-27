@@ -26,11 +26,6 @@
     </hudson.security.AuthorizationMatrixProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
-        <hudson.model.StringParameterDefinition>
-          <name>REQUEST_ID</name>
-          <description>Request ID from the spreadsheet (mandatory)</description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>DEBUG</name>
           <description>Debug mode</description>
@@ -55,13 +50,16 @@ export WORKSPACE="$PWD"
 OPTS=""
 REQUEST_ID=${REQUEST_ID-}
 
+if [ ! -z "$REQUEST_ID" ]; then
+  OPTS="$OPTS --request-id $REQUEST_ID"
+fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"
 fi
 
 cd # go to home directory
 # always ignore conflicts as we can't add more components
-{{ BINDIR }}/prepare-silo-using-spreadsheet-info --request-id ${REQUEST_ID} --reconfiguresilo --ignore-conflicts --restricted $OPTS
+{{ BINDIR }}/prepare-silo-using-spreadsheet-info --reconfigure-for-silo {{ SILO_NAME }} --reconfiguresilo --ignore-conflicts --restricted $OPTS
 </command>
     </hudson.tasks.Shell>
   </builders>

@@ -21,6 +21,7 @@ import os
 
 SPREADSHEET_CSV_URL = "https://docs.google.com/a/canonical.com/spreadsheet/ccc?key=0AuDk72Lpx8U5dFlCc1VzeVZzWmdBZS11WERjdVc3dmc&output=csv"
 SPREADSHEET_ID_COL_NUM = 9
+SPREADSHEET_SILONAME_COL_NUM = 10
 SPREADSHEET_MPS_COL_NUM = 5
 SPREADSHEET_SOURCES_COL_NUM = 6
 

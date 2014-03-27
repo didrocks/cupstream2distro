@@ -27,7 +27,7 @@ import subprocess
 import sys
 import tempfile
 
-from cupstream2distro.settings import SPREADSHEET_CSV_URL, SPREADSHEET_ID_COL_NUM, SPREADSHEET_MPS_COL_NUM, SPREADSHEET_SOURCES_COL_NUM
+from cupstream2distro.settings import SPREADSHEET_CSV_URL, SPREADSHEET_ID_COL_NUM, SPREADSHEET_SILONAME_COL_NUM, SPREADSHEET_MPS_COL_NUM, SPREADSHEET_SOURCES_COL_NUM
 
 
 def parse_and_clean_entry(raw_entry):
@@ -44,6 +44,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Prepare or configure a silo from a request id using the spreadsheet infos")
 
     parser.add_argument("--request-id", help="Update/Configure this request id")
+    parser.add_argument("--reconfigure-for-silo", help="Update/Configure this silo name")
 
     parser.add_argument("--series", help="Series used to build the package")
     parser.add_argument("--destppa", help="Consider this destppa instead of {series}-proposed")
@@ -61,9 +62,12 @@ if __name__ == '__main__':
     if args.debug:
         logging.debug("Debug mode enabled")
 
-    if not args.request_id:
-        logging.error("Request id is mandatory")
-        sys.exit(1)
+    if args.reconfigure_for_silo:
+        logging.info("Reconfiguration of silo requested for {}".format(args.reconfigure_for_silo))
+    else:
+        if not args.request_id:
+            logging.error("Request id is mandatory")
+            sys.exit(1)
 
 
     logging.info("Getting data from the spreadsheet for request {}".format(args.request_id))
@@ -80,15 +84,30 @@ if __name__ == '__main__':
         f.write(response.content)
 
     request_found = False
+    # use to ensure the unicity of silo name (shouldn't happen apart from a bad sync on the spreadsheet)
+    unique_silo_name = True
     with open(filename, 'rb') as f:
         content = csv.reader(f)
         for row in content:
-            if row[SPREADSHEET_ID_COL_NUM] == args.request_id:
-                raw_mps = row[SPREADSHEET_MPS_COL_NUM]
-                raw_sources = row[SPREADSHEET_SOURCES_COL_NUM]
-                request_found = True
-                break
+            if args.reconfigure_for_silo:
+                if row[SPREADSHEET_SILONAME_COL_NUM] == args.reconfigure_for_silo:
+                    # second matching
+                    if request_found:
+                        logging.error("{} is available more than once in the spreadsheet. Please request to fix some wrong metadata due to a bad automated sync.".format(args.reconfigure_for_silo))
+                        unique_silo_name = False
+                    raw_mps = row[SPREADSHEET_MPS_COL_NUM]
+                    raw_sources = row[SPREADSHEET_SOURCES_COL_NUM]
+                    request_found = True
+            else:
+                if row[SPREADSHEET_ID_COL_NUM] == args.request_id:
+                    raw_mps = row[SPREADSHEET_MPS_COL_NUM]
+                    raw_sources = row[SPREADSHEET_SOURCES_COL_NUM]
+                    request_found = True
+                    break
     os.remove(filename)
+
+    if not unique_silo_name:
+        sys.exit(1)
 
     # ensure we found anything
     if not request_found:
