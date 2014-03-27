@@ -32,11 +32,11 @@
           <description>Set destination ppa if not Ubuntu archive</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>RECONFIGURE_SILO</name>
           <description>Don't instantiante a new silo, but reconfigure that one</description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>IGNORECONFLICTS</name>
           <description>Ignore conflicting components in multiple silos. This should only be used in very rare and identified case. Both silos owners need to be aware about it as the second one will have to rebuild and retest.</description>
