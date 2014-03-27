@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     # ensure we found anything
     if not request_found:
-        logging.error("We couldn't find any request in the spreadsheet matching request id {}. Ensure with the landing team there is a matching request in.".format(args.request_id))
+        logging.error("We couldn't find any request in the spreadsheet matching your demand. Ensure with the landing team there is a matching request in.")
         sys.exit(1)
 
     mps = parse_and_clean_entry(raw_mps)
