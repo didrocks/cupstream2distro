@@ -43,6 +43,11 @@
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>USE_PREPROD_SILO</name>
+          <description>Assign a silo with preproduction CI Train code</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>DEBUG</name>
           <description>Debug mode</description>
           <defaultValue>false</defaultValue>
@@ -78,6 +83,9 @@ if [ "${RECONFIGURE_SILO}"  == "true" ]; then
 fi
 if [ "$IGNORECONFLICTS" == "true" ]; then
   OPTS="$OPTS --ignore-conflicts"
+fi
+if [ "$USE_PREPROD_SILO" == "true" ]; then
+  OPTS="$OPTS --use-preprod-silo"
 fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"
