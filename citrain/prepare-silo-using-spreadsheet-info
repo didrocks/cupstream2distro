@@ -98,7 +98,9 @@ if __name__ == '__main__':
     mps = parse_and_clean_entry(raw_mps)
     sources = parse_and_clean_entry(raw_sources)
 
-    cmd = ['./prepare-silo', '--request-id', args.request_id, '--mps', " ".join(mps), '--sources', " ".join(sources)]
+    prepare_silo_cmd = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'prepare-silo')
+
+    cmd = [prepare_silo_cmd, '--request-id', args.request_id, '--mps', " ".join(mps), '--sources', " ".join(sources)]
     # add command options
     if args.series:
         cmd.extend(['--series', args.series])
