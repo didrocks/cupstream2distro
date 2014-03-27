@@ -32,7 +32,10 @@ from cupstream2distro.settings import SPREADSHEET_CSV_URL, SPREADSHEET_ID_COL_NU
 
 def parse_and_clean_entry(raw_entry):
     '''Return a strip list of entries and try to separate with any possible delimiter (\n, ',', ' ')'''
+    raw_entry = raw_entry.strip() # spreadsheet contains \n by default
     result = []
+    if not raw_entry:
+        return result
     for entry in raw_entry.split():
         result.extend(x.strip() for x in entry.split(','))
     return result
