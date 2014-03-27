@@ -130,11 +130,14 @@ if __name__ == '__main__':
 
     cmd = [prepare_silo_cmd, '--request-id', args.request_id]
     if mps:
-        cmd.extend(['--mps', " ".join(mps)])
+        cmd.append('--mps')
+        cmd.extend(mps)
     if sources:
-        cmd.extend(['--sources', " ".join(sources)])
+        cmd.append('--sources')
+        cmd.extend(sources)
     if landers:
-        cmd.extend(['--landers', " ".join(landers)])
+        cmd.append('--landers')
+        cmd.extend(landers)
     # add command options
     if args.series:
         cmd.extend(['--series', args.series])
