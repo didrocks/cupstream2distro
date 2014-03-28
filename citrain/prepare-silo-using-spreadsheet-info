@@ -86,7 +86,7 @@ if __name__ == '__main__':
     # store the answer in a temp file
     (fd, filename) = tempfile.mkstemp()
     with open(filename, 'w') as f:
-        f.write(response.content)
+        f.write(response.content.encode('utf8'))
 
     request_found = False
     # use to ensure the unicity of silo name (shouldn't happen apart from a bad sync on the spreadsheet)
