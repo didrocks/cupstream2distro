@@ -106,6 +106,7 @@ if __name__ == '__main__':
     src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
     dest_ppa_name = "{}/{}".format(dest.owner.name, dest.name)
 
+    src_pkgs_to_upload = {}
     for source_package_name in components_to_prepare:
         logging.info("=== Trying to prepare {} ===".format(source_package_name))
 
@@ -276,10 +277,15 @@ if __name__ == '__main__':
                 if file.endswith(".dsc"):
                     olddsc_path = os.path.join(os.path.dirname(dest_source_package), file)
         packagemanager.generate_diff_between_dsc(diff_filepath, olddsc_path, newdsc_path)
+        # Save infos for uploading later on.
+        src_pkgs_to_upload[source_package_name] = (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
 
-        logging.info("Upload to the ppa")
+
+    # do the actual upload to the ppas
+    logging.info("Uploading components to the ppa")
+    for source_package_name in src_pkgs_to_upload:
+        (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version) = src_pkgs_to_upload[source_package_name]
         packagemanager.upload_package(source_package_name, packaging_version, src_ppa_name)
-
         # Save infos for other jobs
         tools.save_project_config(source_package_name, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
 
