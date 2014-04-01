@@ -228,8 +228,16 @@ if __name__ == '__main__':
     if args.reconfiguresilo:
         logging.info("Check and clean all removed sources")
         all_silo_projects = silomanager.get_all_projects(config)
-        # remove all files related to sources that are not in the configuration anymore
+        # remove all files related to sources that are not in the configuration anymore as well as all additional uploads in the ppa
+        projects_list_to_eventually_clean = set()
+
+        # first source: ppa
         for (source, version, rev, branch) in packageinppamanager.get_all_packages_uploaded():
+            projects_list_to_eventually_clean.add(source)
+        # second source: pacakge that were removed:
+        for source in allowed_components_from_previous_config:
+            projects_list_to_eventually_clean.add(source)
+        for source in projects_list_to_eventually_clean:
             if source not in all_silo_projects:
                 logging.info("Removing {} from ppa and configuration".format(source))
                 clean_source(source)
