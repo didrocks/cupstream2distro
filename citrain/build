@@ -24,6 +24,7 @@ import glob
 import lazr
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -268,6 +269,19 @@ if __name__ == '__main__':
                            "diff in the package creation is justified by diffing manually trunk and the source in ubuntu.")
                 logging.warning(message)
 
+        # check the .changes file: that we don't have an empty changelog
+        logging.info("Checking finale changelog")
+        with open("{}_{}_source.changes".format(source_package_name, packaging_version)) as f:
+            for line in f:
+                if re.match("   \* *$", line):
+                    message = ("You generated an emtpy changelog content. This generally means that one or many merge proposals have a change in debian/changelog with no UNRELEASED or no content in the changelog. "
+                               "If you modify debian/changelog in your commit, the commit message for the merge proposal isn't used, so you need to put yourself some changelog content into that file. "
+                               "Please change those MP and rerun the build job.")
+                    logging.error(message)
+                    silomanager.set_config_status(silo_config, "Build failed: Some packages generate an empty changelog. Check the job for more info.")
+                    sys.exit(1)
+
+
         # Prepare if a packaging change is part of the diff
         logging.info("Generate a diff if meaningfull packaging changes")
         diff_filepath = tools.get_packaging_diff_filename(source_package_name, packaging_version)
@@ -278,13 +292,13 @@ if __name__ == '__main__':
                     olddsc_path = os.path.join(os.path.dirname(dest_source_package), file)
         packagemanager.generate_diff_between_dsc(diff_filepath, olddsc_path, newdsc_path)
         # Save infos for uploading later on.
-        src_pkgs_to_upload[source_package_name] = (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
+        src_pkgs_to_upload[source_package_name] = (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version)
 
 
     # do the actual upload to the ppas
     logging.info("Uploading components to the ppa")
     for source_package_name in src_pkgs_to_upload:
-        (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version) = src_pkgs_to_upload[source_package_name]
+        (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version) = src_pkgs_to_upload[source_package_name]
         packagemanager.upload_package(source_package_name, packaging_version, src_ppa_name)
         # Save infos for other jobs
         tools.save_project_config(source_package_name, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
