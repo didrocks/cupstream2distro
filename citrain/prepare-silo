@@ -234,7 +234,7 @@ if __name__ == '__main__':
         # first source: ppa
         for (source, version, rev, branch) in packageinppamanager.get_all_packages_uploaded():
             projects_list_to_eventually_clean.add(source)
-        # second source: pacakge that were removed:
+        # second source: package that were in the previous config
         for source in allowed_components_from_previous_config:
             projects_list_to_eventually_clean.add(source)
         for source in projects_list_to_eventually_clean:
