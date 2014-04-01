@@ -30,14 +30,14 @@ from cupstream2distro.tools import clean_source
 from cupstream2distro.utils import ignored
 
 
-def check_not_adding_new_components(project_name, allowed_components_from_previous_config, config, config_path):
+def check_not_adding_new_components(project_name, allowed_components_from_previous_config, config, silo_path):
     """Check that a self reconfigure doesn't add new components"""
 
     if project_name not in allowed_components_from_previous_config:
         message = "{} was not in the initial list of components for that silo. You can't reconfigure the silo yourself. Please ask the landing team to reconfigure it for you.".format(project_name)
         logging.error(message)
-        silomanager.set_config_step(config, -1, uri=config_path)
-        silomanager.set_config_status(config, "Reconfigure failed: " + message, uri=config_path)
+        silomanager.set_config_step(config, -1, uri=silo_path)
+        silomanager.set_config_status(config, "Reconfigure failed: " + message, uri=silo_path)
         sys.exit(1)
 
 
@@ -145,7 +145,7 @@ if __name__ == '__main__':
               "sources": [],
               "mps": {}
     }
-    config_path = os.path.join(SILOS_DIR, silo_name)
+    silo_path = os.path.join(SILOS_DIR, silo_name)
 
     if args.sources:
         logging.info("Additional packages will be directly uploaded to the ppa: {}".format(", ".join(args.sources)))
@@ -164,7 +164,7 @@ if __name__ == '__main__':
 
         # ensure a self reconfiguring doesn't add new projects
         if args.reconfiguresilo and args.restricted:
-            check_not_adding_new_components(project_name, allowed_components_from_previous_config, existing_config, config_path)
+            check_not_adding_new_components(project_name, allowed_components_from_previous_config, existing_config, silo_path)
 
         if (source_package_name != project_name):
             message = "Project name ({}) doesn't align with the source package name ({})".format(project_name, source_package_name)
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
         # ensure a self reconfiguring doesn't add new projects
         if args.reconfiguresilo and args.restricted:
-            check_not_adding_new_components(project_name, allowed_components_from_previous_config, existing_config, config_path)
+            check_not_adding_new_components(project_name, allowed_components_from_previous_config, existing_config, silo_path)
 
         if not silomanager.is_project_not_in_any_configs(source, series, dest, SILOS_DIR, silo_name, dont_error_but_warn=args.ignore_conflicts):
             one_project_already_in_use = True
@@ -220,22 +220,26 @@ if __name__ == '__main__':
         logging.error("PPA {} not found".format(ppa_uri))
         sys.exit(1)
     config["global"]["ppa"] = ppa.self_link
-    if not silomanager.save_config(config, config_path):
+    if not silomanager.save_config(config, silo_path):
         sys.exit(1)
     logging.info("Assigning \"{}\" as silo. Build PPA is available at {}".format(silo_name, ppa.web_link))
 
     # if reconfigure, ensure we remove all projects file and packages from the ppa that are not to take into account anymore
     if args.reconfiguresilo:
+        os.chdir(silo_path)
         logging.info("Check and clean all removed sources")
         all_silo_projects = silomanager.get_all_projects(config)
+        logging.debug("all silo projects {}".format(all_silo_projects))
         # remove all files related to sources that are not in the configuration anymore as well as all additional uploads in the ppa
         projects_list_to_eventually_clean = set()
 
         # first source: ppa
         for (source, version, rev, branch) in packageinppamanager.get_all_packages_uploaded():
+            logging.debug("Detected in the ppa: {}".format(source))
             projects_list_to_eventually_clean.add(source)
         # second source: package that were in the previous config
         for source in allowed_components_from_previous_config:
+            logging.debug("From previous config: {}".format(source))
             projects_list_to_eventually_clean.add(source)
         for source in projects_list_to_eventually_clean:
             if source not in all_silo_projects:
@@ -245,5 +249,5 @@ if __name__ == '__main__':
                     pkg.requestDeletion()
         # NOTE: we don't wait for the removal to be published. Shouldn't be an issue
 
-    silomanager.set_config_step(config, SILO_EMPTY, uri=config_path)
-    silomanager.set_config_status(config, "Silo ready", uri=config_path, add_url=False)
+    silomanager.set_config_step(config, SILO_EMPTY, uri=silo_path)
+    silomanager.set_config_status(config, "Silo ready", uri=silo_path, add_url=False)
