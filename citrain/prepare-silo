@@ -250,4 +250,4 @@ if __name__ == '__main__':
         # NOTE: we don't wait for the removal to be published. Shouldn't be an issue
 
     silomanager.set_config_step(config, SILO_EMPTY, uri=silo_path)
-    silomanager.set_config_status(config, "Silo ready", uri=silo_path, add_url=False)
+    silomanager.set_config_status(config, "Silo ready to build packages", uri=silo_path, add_url=False)
