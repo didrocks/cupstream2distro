@@ -44,7 +44,9 @@ def save_config(config, uri=''):
     with ignored(OSError):
         os.makedirs(uri)
     try:
-        json.dump(config, open(silo_config_path, 'w'))
+        new_file = "{}.new".format(silo_config_path)
+        json.dump(config, open(new_file, 'w'))
+        os.rename(new_file, silo_config_path)
     except TypeError as e:
         logging.error("Can't save configuration: " + e.message)
         os.remove(silo_config_path)
