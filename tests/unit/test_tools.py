@@ -140,3 +140,8 @@ class ToolsTests(BaseUnitTestCase):
         '''Get an entry only separated by all possible sep'''
         self.assertEqual(tools.parse_and_clean_entry("foo1, foo2\nfoo3\n foo4 / foo5  ", slash_as_sep=True),
                          ["foo1", "foo2", "foo3", "foo4", "foo5"])
+
+    def test_parse_and_clean_entry_no_slash_sep(self):
+        '''Get an entry only separated by commas. Entries contains slash and shouldn't be separated'''
+        self.assertEqual(tools.parse_and_clean_entry("fo/o1, foo2, foo3"),
+                         ["fo/o1", "foo2", "foo3"])
