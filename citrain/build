@@ -271,7 +271,7 @@ if __name__ == '__main__':
 
         # check the .changes file: that we don't have an empty changelog
         logging.info("Checking finale changelog")
-        with open("{}_{}_source.changes".format(source_package_name, packaging_version)) as f:
+        with open("{}_{}_source.changes".format(source_package_name, packaging_version.split(':')[-1])) as f:
             for line in f:
                 if re.match("   \* *$", line):
                     message = ("You generated an emtpy changelog content. This generally means that one or many merge proposals have a change in debian/changelog with no UNRELEASED or no content in the changelog. "
