@@ -28,19 +28,8 @@ import sys
 import tempfile
 
 from cupstream2distro.settings import SPREADSHEET_CSV_URL, LANDERS_COL_NUM, SPREADSHEET_ID_COL_NUM, SPREADSHEET_SILONAME_COL_NUM, SPREADSHEET_MPS_COL_NUM, SPREADSHEET_SOURCES_COL_NUM
+from cupstream2distro.tools import parse_and_clean_entry
 
-
-def parse_and_clean_entry(raw_entry, slash_as_sep=False):
-    '''Return a strip list of entries and try to separate with any possible delimiter (\n, ',', ' ')'''
-    result = []
-    for entry in raw_entry.split():
-        for x in entry.split(','):
-            if slash_as_sep:
-                for y in x.split('/'):
-                    result.append(y.strip())
-            else:
-                result.append(x.strip())
-    return result
 
 if __name__ == '__main__':
 

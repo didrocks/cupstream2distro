@@ -104,3 +104,39 @@ class ToolsTests(BaseUnitTestCase):
         shutil.copy2(os.path.join(self.project_file_dir, 'foo.project'), 'bar.project')
         tools.mark_project_as_published('bar', '43-0ubuntu1')
         self.assertDictEqual(tools.get_published_to_distro_projects(), {'foo': ['42-0ubuntu1'], 'bar': ['43-0ubuntu1']})
+
+    def test_parse_and_clean_entry_space(self):
+        '''Get an entry only separated by spaces'''
+        self.assertEqual(tools.parse_and_clean_entry("foo1 foo2 foo3"),
+                         ["foo1", "foo2", "foo3"])
+
+    def test_parse_and_clean_entry_comma(self):
+        '''Get an entry only separated by commas'''
+        self.assertEqual(tools.parse_and_clean_entry("foo1, foo2, foo3"),
+                         ["foo1", "foo2", "foo3"])
+
+    def test_parse_and_clean_entry_comma_and_spaces(self):
+        '''Get an entry only separated with a sep (commas) and a lot of additional spaces'''
+        self.assertEqual(tools.parse_and_clean_entry("    foo1,    foo2  , foo3"),
+                         ["foo1", "foo2", "foo3"])
+
+
+    def test_parse_and_clean_entry_slash(self):
+        '''Get an entry only separated by slash'''
+        self.assertEqual(tools.parse_and_clean_entry("foo1/foo2/foo3", slash_as_sep=True),
+                         ["foo1", "foo2", "foo3"])
+
+    def test_parse_and_clean_entry_return(self):
+        '''Get an entry only separated by commas and space'''
+        self.assertEqual(tools.parse_and_clean_entry("foo1\nfoo2\nfoo3"),
+                         ["foo1", "foo2", "foo3"])
+
+    def test_parse_and_clean_entry_all_sep_but_slash(self):
+        '''Get an entry only separated by all possible sep'''
+        self.assertEqual(tools.parse_and_clean_entry("foo1, foo2\nfoo3\n foo4"),
+                         ["foo1", "foo2", "foo3", "foo4"])
+
+    def test_parse_and_clean_entry_all_sep(self):
+        '''Get an entry only separated by all possible sep'''
+        self.assertEqual(tools.parse_and_clean_entry("foo1, foo2\nfoo3\n foo4 / foo5  ", slash_as_sep=True),
+                         ["foo1", "foo2", "foo3", "foo4", "foo5"])

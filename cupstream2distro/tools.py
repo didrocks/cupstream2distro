@@ -102,3 +102,14 @@ def clean_source(source):
         os.remove(filename)
     for filename in glob.glob("packaging_changes_{}_*diff".format(source)):
         os.remove(filename)
+
+def parse_and_clean_entry(raw_entry, slash_as_sep=False):
+    '''Return a strip list of entries and try to separate with any possible delimiter (\n, ',', ' ')'''
+    result = []
+    if slash_as_sep:
+        raw_entry = " ".join(raw_entry.split('/'))
+
+    for entry in raw_entry.split(','):
+        for x in entry.split():
+            result.append(x.strip())
+    return result
