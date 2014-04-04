@@ -314,5 +314,5 @@ def get_source_package_name_from_branch(branch_url):
     instance = subprocess.Popen(["bzr", "cat", "-d", branch_url, "debian/changelog"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
     if stderr != "":
-        raise Exception("bzr can't find a debian/changelog file in that branch or can't communicate")
+        raise Exception("bzr can't find a debian/changelog file in that branch or can't communicate: {}".format(stderr.decode("utf-8").strip()))
     return stdout.split()[0]
