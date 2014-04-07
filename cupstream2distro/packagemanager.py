@@ -546,7 +546,7 @@ def check_package_reached_destination(silo_config, packages_in_dest, ignoremissi
     series = launchpadmanager.get_resource_from_token(silo_config['global']['series'])
     additional_messages = ""
     for source in packages_in_dest:
-        if (not is_version_for_series_in_dest(source, packages_in_dest[source], series, dest) or
+        if (not is_version_for_series_in_dest(source, packages_in_dest[source], series, dest) and
             not is_version_for_series_in_dest(source, packages_in_dest[source], series, dest, pocket="Updates")):
             logging.warning("{} ({}) is not published yet in {} (Release pocket).".format(source, packages_in_dest[source], dest.name))
             one_package_not_in_dest = True
