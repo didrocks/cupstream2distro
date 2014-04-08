@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
 
     silo_config = silomanager.load_config()
-    silomanager.set_config_status(silo_config, "Merging")
+    silomanager.set_config_status(silo_config, "Merging", ping=False)
 
     if not args.onlyfreesilo:
         if silomanager.get_config_step(silo_config) != SILO_PUBLISHED:

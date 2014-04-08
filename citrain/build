@@ -51,7 +51,7 @@ if __name__ == '__main__':
         logging.debug("Debug mode enabled")
 
     silo_config = silomanager.load_config()
-    silomanager.set_config_status(silo_config, "Preparing packages")
+    silomanager.set_config_status(silo_config, "Preparing packages", ping=False)
 
     src_ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     dest = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
@@ -339,7 +339,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # watch ppa
-    silomanager.set_config_status(silo_config, "Building")
+    silomanager.set_config_status(silo_config, "Building", ping=False)
     logging.info("Check ppa status in {}".format(src_ppa.web_link))
     watch_ppa_exec = os.path.join(os.path.dirname(__file__), "watch-ppa")
     call_params = [watch_ppa_exec, "-s", series.name, "-p", "{}/{}".format(src_ppa.owner.name, src_ppa.name)]
