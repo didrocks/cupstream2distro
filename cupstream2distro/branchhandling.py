@@ -106,7 +106,7 @@ def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp=""):
                 line = line[2:] # Dedent the message provided by bzr
                 if line[0:2] in ('* ', '- '): # paragraph line.
                     line = line[2:] # Remove bullet
-                    if line[-1] != '.': # Grammar nazi...
+                    if line and line[-1] != '.': # Grammar nazi...
                         line += '.' # ... or the lines will be merged.
                 line = line + ' ' # Add a space to preserve lines
                 current_commit += line
