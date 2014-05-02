@@ -36,6 +36,7 @@ DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
 JENKINS_DAILY_CONFIG_NAME = 'citrain'
 TEMPLATES = {
     'prepare-silo': 'prepare-silo.xml.tmpl',
+    'prepare-silo-manual': 'prepare-silo-manual.xml.tmpl',
     'check-publication-migration': 'check-publication-migration.xml.tmpl',
     'reconfigure-silo': 'reconfigure-silo.xml.tmpl',
     'build': 'build.xml.tmpl',
@@ -175,6 +176,7 @@ if __name__ == "__main__":
     if args.prepare:
         logging.info("Configure prepare silos job")
         setup_job(jkh, jjenv, "prepare-silo", TEMPLATES["prepare-silo"])
+        setup_job(jkh, jjenv, "prepare-silo-manual", TEMPLATES["prepare-silo-manual"])
     if args.checkpublicationmigration:
         logging.info("Configure check-publication-migration job")
         setup_job(jkh, jjenv, "check-publication-migration", TEMPLATES["check-publication-migration"])

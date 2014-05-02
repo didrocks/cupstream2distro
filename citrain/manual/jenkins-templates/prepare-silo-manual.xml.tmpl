@@ -1,0 +1,120 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Prepare and attribute a silo</description>
+  <logRotator>
+    <daysToKeep>15</daysToKeep>
+    <numToKeep>-1</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <permission>hudson.model.Item.Read:ubuntu-unity</permission>
+      <permission>hudson.model.Item.Cancel:ubuntu-unity</permission>
+      <permission>hudson.model.Item.Build:ubuntu-unity</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>REQUEST_ID</name>
+          <description>Request ID from the spreadsheet (put any integer yourself if not on spreadhseet)</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>SERIES</name>
+          <description>Publish for this series (mandatory)</description>
+          <defaultValue>utopic</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MERGE_PROPOSALS</name>
+          <description>Merge proposal urls (space separated)</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>SOURCES</name>
+          <description>Source package that will be directly uploaded (source package name, space separated)</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>LANDERS</name>
+          <description>Landers names for that request (irc nick, space separated)</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DEST</name>
+          <description>Set destination ppa if not Ubuntu archive</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>RECONFIGURE_SILO</name>
+          <description>Don't instantiante a new silo, but reconfigure that one</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>IGNORECONFLICTS</name>
+          <description>Ignore conflicting components in multiple silos. This should only be used in very rare and identified case. Both silos owners need to be aware about it as the second one will have to rebuild and retest.</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>USE_PREPROD_SILO</name>
+          <description>Assign a silo with preproduction CI Train code</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DEBUG</name>
+          <description>Debug mode</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -eu
+export LANG=en_US.UTF-8
+export WORKSPACE="$PWD
+"
+OPTS=""
+REQUEST_ID=${REQUEST_ID-}
+SERIES=${SERIES-}
+MERGE_PROPOSALS=${MERGE_PROPOSALS-}
+SOURCES=${SOURCES-}
+LANDERS=${LANDERS-}
+DEST=${DEST-}
+
+if [ ! -z "$SERIES" ]; then
+  OPTS="$OPTS --series $SERIES"
+fi
+if [ ! -z "$DEST" ]; then
+  OPTS="$OPTS --destppa $DEST"
+fi
+if [ ! -z "$LANDERS" ]; then
+  OPTS="$OPTS --landers $LANDERS"
+fi
+if [ "${RECONFIGURE_SILO}"  == "true" ]; then
+  OPTS="$OPTS --reconfiguresilo"
+fi
+if [ "$IGNORECONFLICTS" == "true" ]; then
+  OPTS="$OPTS --ignore-conflicts"
+fi
+if [ "$DEBUG" == "true" ]; then
+  OPTS="$OPTS --debug"
+fi
+
+cd # go to home directory
+{{ BINDIR }}/prepare-silo --request-id ${REQUEST_ID} --mps ${MERGE_PROPOSALS} --sources $SOURCES $OPTS
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+  </publishers>
+  <buildWrappers/>
+</project>
