@@ -33,22 +33,22 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>WATCH_ONLY</name>
-          <description>Only watch the current ppa and run tests</description>
+          <description>Dry run, does not perform build, only watch the current ppa and run tests.</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>FORCE_REBUILD</name>
-          <description>Force rebuilding components associated to a MP even if there is no diff with dest or if latest version in destination archive isn't in targeted branches.</description>
+          <description>Force rebuilding components associated to a MP even if there is no diff with dest or if latest version in destination archive isn't in targeted branches. </description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>IGNORE_STEP</name>
-          <description>Ignore if previous step hasn't completed successfully</description>
+          <description>Allow build to proceed even if it is being run out of the expected order (check this if you are rebuilding a silo already built, or even already published).</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>DEBUG</name>
-          <description>Debug mode</description>
+          <description>Print extra debugging information in the log.</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
