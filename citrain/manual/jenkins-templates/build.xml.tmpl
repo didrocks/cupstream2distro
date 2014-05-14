@@ -33,7 +33,7 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>WATCH_ONLY</name>
-          <description>Dry run, does not perform build, only watch the current ppa and run tests.</description>
+          <description>Does not perform build, only watch the current ppa, run tests, and register builds for publishing.</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -43,7 +43,7 @@
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>IGNORE_STEP</name>
-          <description>Allow build to proceed even if it is being run out of the expected order (check this if you are rebuilding a silo already built, or even already published).</description>
+          <description>Allow build to proceed even if it is being run out of the expected order (check this if you are rebuilding a whole silo already built, or even already published).</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
