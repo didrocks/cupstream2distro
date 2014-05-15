@@ -35,6 +35,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Watch for published package in a ppa. Create a xml artefact if manual copy is needed.")
 
+    parser.add_argument("publisher", help="Launchpad nickname of the person publishing that package.")
     parser.add_argument("--ackpackaging", action='store_true', help="Publish even if there are packaging change. Only done after manual reviews of the diff.")
     parser.add_argument("--ignoremissingprojects", action='store_true', help="Ignore if some projects that are going to be published are missing from the initial set (can be a second publication for instance).")
     parser.add_argument("--ignorestep", action='store_true', help="Ignore if previous step didn't successfully end.")
@@ -55,6 +56,7 @@ if __name__ == '__main__':
     src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
     src_pocket = 'Release'
     dest_link = silo_config["global"]["dest"]
+    publisher_nickname = args.publisher
 
     base_path = os.path.abspath('.')
 
@@ -71,6 +73,15 @@ if __name__ == '__main__':
             silomanager.set_config_status(silo_config, "Publication failed: couldn't reset status or parameters for job.")
             sys.exit(1)
     all_silo_projects = silomanager.get_all_projects(silo_config)
+
+    # check the publisher exists
+    try:
+        launchpadmanager.get_person(publisher_nickname)
+    except KeyError:
+        message = "{} isn't a valid launchpad user name. Can't publish the silo".format(publisher_nickname)
+        logging.error(message)
+        silomanager.set_config_status(silo_config, "Publication failed: {}".format(message))
+        sys.exit(1)
 
     # getting the archives and series objects
     is_sru = not launchpadmanager.is_series_current(series)
@@ -142,7 +153,7 @@ if __name__ == '__main__':
             if not version_in_dest == supposed_dest_version:
                 logging.error(message.replace('[]', '{}').format("the archive", version_in_dest))
                 dest_version_check_fail = True
-            packagelist_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(src_ppa_name, src_ppa_pocket, series, distro_pocket, series, source, version, version_in_dest))
+            packagelist_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(src_ppa_name, src_ppa_pocket, series, distro_pocket, series, source, version, version_in_dest, publisher_nickname))
 
             if source in silo_config["mps"]:
                 branch_uri = os.path.join(base_path, source)

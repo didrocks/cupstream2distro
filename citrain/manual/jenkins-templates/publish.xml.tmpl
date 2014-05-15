@@ -25,6 +25,11 @@
           <description>Ack packaging changes</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PUBLISHER</name>
+          <description>If you sponsor this publishing for someone else, file this entry with his/her launchpad nickname. It defaults to your user id.</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>IGNORE_MISSINGPROJECTS</name>
           <description>Ignore if some projects that are going to be published are missing from the initial set (can be a second publication for instance)</description>
@@ -59,6 +64,9 @@
       <command>#!/bin/bash -eu
 export LANG=en_US.UTF-8
 export WORKSPACE="$PWD"
+PUBLISHER=${PUBLISHER-$BUILD_USER_ID}
+
+
 # Cleanup workspace
 pwd|grep -q workspace &amp;&amp; rm -f *
 
@@ -81,7 +89,7 @@ if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"
 fi
 
-{{ BINDIR }}/publisher $OPTS
+{{ BINDIR }}/publisher $PUBLISHER $OPTS
 
 # copy artefacts
 cp *diff publisher.xml packagelist* $WORKSPACE/ 2&gt;/dev/null || true

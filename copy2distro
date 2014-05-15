@@ -43,9 +43,16 @@ if __name__ == '__main__':
         logging.info("Found {}".format(file))
         with open(file) as f:
             for line in f.readlines():
-                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, distro_version_at_prepare_time) = line.strip().split("\t")
-                logging.debug("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {})".format(source, version, ppa, from_series,
-                                                                                                               src_pocket, to_series, dest_pocket))
+                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, distro_version_at_prepare_time, sponsored_name) = line.strip().split("\t")
+                logging.debug("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {}) by {}".format(source, version, ppa, from_series,
+                                                                                                                     src_pocket, to_series, dest_pocket,
+                                                                                                                     sponsored_name))
+                try:
+                    sponsored = launchpadmanager.get_person(sponsored_name)
+                except KeyError:
+                    logging.error("{} isn't a valid launchpad user name. Can't copy that package".format(sponsored_name))
+                    continue
+
                 if not args.no_filter and not source in get_allowed_projects(release):
                     logging.error("The project {} is not in the allowed stack to be copied to distro. Rejecting.".format(source))
                     continue
@@ -61,7 +68,8 @@ if __name__ == '__main__':
 
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=from_series,
                                          include_binaries=True, to_pocket=dest_pocket, to_series=to_series,
-                                         source_name=source, version=version)
+                                         source_name=source, version=version,
+                                         sponsored=sponsored)
             if not os.path.isdir("../" + OLD_STACK_DIR):
                 os.makedirs("../" + OLD_STACK_DIR)
             os.rename(file, "../{}/{}_{}".format(OLD_STACK_DIR, file, time.strftime('%Y%m%d-%H%M%S')))
