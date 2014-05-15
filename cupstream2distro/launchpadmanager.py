@@ -149,3 +149,8 @@ def get_resource_from_token(url):
 def is_dest_ubuntu_archive(series_link):
     '''return if series_link is the ubuntu archive'''
     return series_link == get_ubuntu_archive().self_link
+
+def get_person(nickname):
+    '''Return a launchpad person'''
+    lp = get_launchpad()
+    return lp.people[nickname]
