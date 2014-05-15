@@ -164,7 +164,7 @@ if __name__ == '__main__':
 
         # ensure a self reconfiguring doesn't add new projects
         if args.reconfiguresilo and args.restricted:
-            check_not_adding_new_components(project_name, allowed_components_from_previous_config, existing_config, silo_path)
+            check_not_adding_new_components(source_package_name, allowed_components_from_previous_config, existing_config, silo_path)
 
         if (source_package_name != project_name):
             message = "Project name ({}) doesn't align with the source package name ({})".format(project_name, source_package_name)
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
         # ensure a self reconfiguring doesn't add new projects
         if args.reconfiguresilo and args.restricted:
-            check_not_adding_new_components(project_name, allowed_components_from_previous_config, existing_config, silo_path)
+            check_not_adding_new_components(source, allowed_components_from_previous_config, existing_config, silo_path)
 
         if not silomanager.is_project_not_in_any_configs(source, series, dest, SILOS_DIR, silo_name, dont_error_but_warn=args.ignore_conflicts):
             one_project_already_in_use = True
