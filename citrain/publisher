@@ -124,6 +124,8 @@ if __name__ == '__main__':
 
     error_pushing_branch = False
 
+    published_packagelist = {}
+
     # check and generate metadata
     # TODO: we loop on all_packages_uploaded which is based on .project files. We should loop first on the config content (but still have a warning if we have more .project files)
     for (source, version, tip_rev, branch) in all_packages_uploaded:
@@ -144,6 +146,8 @@ if __name__ == '__main__':
         if version_in_src != version:
             logging.error("Version in {}/{} ({}) is not the last one prepared ({}) (direct upload?).".format(src_ppa.owner.name, src_ppa.name, version_in_src, version))
             src_version_check_fail = True
+
+        published_packagelist[source] = version
 
         # check destination version
         message = "Previous available version ({}) is not the latest version anymore in [] ([]).\nPlease ensure that this version has been merged back in trunk and relaunch prepare or use ignore version destination option.".format(supposed_dest_version)
@@ -228,4 +232,5 @@ if __name__ == '__main__':
         silomanager.set_config_status(silo_config, "Publication failed: " + message)
         sys.exit(1)
 
+    silomanager.set_config_pkgversionlist(silo_config, published_packagelist)
     silomanager.set_config_status(silo_config, "Packages migrating to destination. Wait a couple of hours and click merge & clean", add_url=False)

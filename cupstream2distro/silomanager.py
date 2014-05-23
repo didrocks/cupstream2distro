@@ -146,6 +146,10 @@ def set_config_status(config, status, uri='', add_url=True, ping=True):
     }
     return save_config(config, uri)
 
+def set_config_pkgversionlist(config, pkglist, uri=''):
+    config["global"]["pkgversionlist"] = pkglist
+    return save_config(config, uri)
+
 def get_all_projects(config):
     """Get a list of all projets"""
     projects = []
