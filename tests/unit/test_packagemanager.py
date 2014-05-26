@@ -451,6 +451,12 @@ class PackageManagerTests(BaseUnitTestCase):
         canonical_filepath = os.path.join(self.data_dir, "results", "new_foo_package.diff")
         self.assertFilesAreIdenticals("foo.diff", canonical_filepath)
 
+    def test_diff_warn_for_new_binary_package(self):
+        '''We warn in the generate diff for new binary packages'''
+        packagemanager.generate_diff_between_dsc("foo.diff", self.get_dsc_for_package("foo_package"), self.get_dsc_for_package("foo_package_with_new_binary_package"))
+        canonical_filepath = os.path.join(self.data_dir, "results", "foo_package_foo_package_with_new_binary_package.diff")
+        self.assertFilesAreIdenticals("foo.diff", canonical_filepath)
+
     @patch('cupstream2distro.packagemanager.datetime')
     def test_create_new_packaging_version_regular(self, datetimeMock):
         '''We create a new packaging version after an old regular daily release version'''

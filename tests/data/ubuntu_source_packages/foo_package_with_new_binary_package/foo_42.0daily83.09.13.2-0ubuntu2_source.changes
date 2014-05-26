@@ -1,0 +1,41 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Mon, 26 May 2014 17:17:04 +0200
+Source: foo
+Binary: foo foo-with-baz
+Architecture: source
+Version: 42.0daily83.09.13.2-0ubuntu2
+Distribution: raring
+Urgency: medium
+Maintainer: DidRocks@ubuntu.com
+Changed-By: Łukasz 'sil2100' Zemczak <lukasz.zemczak@canonical.com>
+Description: 
+ foo        - The amazing foo package, without any trace of bar
+ foo-with-baz - The amazing foo package, without any trace of bar
+Changes: 
+ foo (42.0daily83.09.13.2-0ubuntu2) raring; urgency=medium
+ .
+   * Add the new foo-with-baz binary package
+Checksums-Sha1: 
+ a441187da72bd7b61d1de50adacd8643ed63791c 1499 foo_42.0daily83.09.13.2-0ubuntu2.dsc
+ e6dd26f760c4df02744aa23e2f34b47e785cbe15 1107 foo_42.0daily83.09.13.2-0ubuntu2.diff.gz
+Checksums-Sha256: 
+ 128cf2ce0a5d59ab12619b5ce4804f058912d7ca88661ab0555be35728582d0c 1499 foo_42.0daily83.09.13.2-0ubuntu2.dsc
+ b0c750b8833684e58c19cf4a5ee74d8ff1f1e6411f492a0b1501f9aeca914be5 1107 foo_42.0daily83.09.13.2-0ubuntu2.diff.gz
+Files: 
+ fd5fe777ad6d80b56dd9dacf00761b07 1499 unity optional foo_42.0daily83.09.13.2-0ubuntu2.dsc
+ b715d2018000fd7ccb6c14ef9cf5eb49 1107 unity optional foo_42.0daily83.09.13.2-0ubuntu2.diff.gz
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQEcBAEBAgAGBQJTg15MAAoJEAIZyhnQNDMMkwkH/jw+KWi4Gnx5w4SFM0rEc4aW
+K9k3X38oBDWhlmUF1qftt3KslI3lrZxg6YzfbyroSRwDjUJV7NLsMX3S7JZ+nzUG
+qvuhlNVWtLO2SV/I3+Jy98wdDh+Zanerfxgqqoh4uzD9MKAfVUbKk85XqKVaYUcW
+qHWaeaa9C96x/mGIwfAZWhQWsaPrpMffoBqG8ravfvRrLYWTg7PLhmiVqPirSwky
+1CK6kfcqWaA0Rzjk/UxsQ7p1Xlz63kCGfIAv7+10EdEGCbfQwG2V66ZtC3Mo2p36
+t1wEAtqQproCjWm6sTawmVyF03axeX/xEjxEIpDlYjEAg/FSFk26/De4904uebc=
+=ApoN
+-----END PGP SIGNATURE-----

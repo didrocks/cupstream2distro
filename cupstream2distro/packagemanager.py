@@ -294,6 +294,21 @@ def generate_diff_between_dsc(diff_filepath, oldsource_dsc, newsource_dsc):
             (changes_to_publish, err) = subprocess.Popen(['filterdiff', '--remove-timestamps', '--clean', '-i', '*setup.py',
                                                           '-i', '*Makefile.am', '-i', '*configure.*', '-i', '*debian/*',
                                                           '-i', '*CMakeLists.txt'], stdin=diffinstance.stdout, stdout=subprocess.PIPE).communicate()
+
+            # look for any modifications that might mean a new binary package has appeared
+            # TODO: make better, considering only changes for debian/control
+            split_diff = changes_to_publish.split('\n')
+            re_replace = re.compile('^\+Package: *(.*)')
+            new_binary_packages = []
+            for line in split_diff:
+                if line.startswith('+Package:'):
+                    reverse = '-' + line[1:]
+                    if reverse in split_diff:
+                        continue
+                    new_binary_packages.append(re.sub(re_replace, '\\1', line))
+            if new_binary_packages:
+                f.write("(!) Warning! This package seems to add new binary packages ({}). Please consult an archive admin before proceeding!\n\n".format(', '.join(new_binary_packages)))
+
             f.write(changes_to_publish)
 
 
