@@ -25,6 +25,18 @@ import os
 import shutil
 
 
+class MockMerge:
+    def __init__(self, source_branch, prereq_branch=None):
+        self.source_branch = MockBranch(source_branch)
+        if prereq_branch:
+            self.prerequisite_branch = MockBranch(prereq_branch)
+        else:
+            self.prerequisite_branch = None
+
+class MockBranch:
+    def __init__(self, bzr_identity):
+        self.bzr_identity = bzr_identity
+    
 class ToolsTests(BaseUnitTestCase):
 
     def setUp(self):
@@ -145,3 +157,23 @@ class ToolsTests(BaseUnitTestCase):
         '''Get an entry only separated by commas. Entries contains slash and shouldn't be separated'''
         self.assertEqual(tools.parse_and_clean_entry("fo/o1, foo2, foo3"),
                          ["fo/o1", "foo2", "foo3"])
+
+    def test_reorder_branches_regarding_prereqs(self):
+        '''Check reorder projects according to prerequisite branches'''
+        original_component_list = [ MockMerge("0"), MockMerge("2", "1"), MockMerge("1"), MockMerge("4"), MockMerge("3", "2") ]
+        resulting_component_list = tools.reorder_branches_regarding_prereqs(original_component_list)
+        self.assertEqual(len(resulting_component_list), 5)
+        self.assertEqual(resulting_component_list[0].source_branch.bzr_identity, "0")
+        self.assertEqual(resulting_component_list[1].source_branch.bzr_identity, "1")
+        self.assertEqual(resulting_component_list[2].source_branch.bzr_identity, "2")
+        self.assertEqual(resulting_component_list[3].source_branch.bzr_identity, "3")
+        self.assertEqual(resulting_component_list[4].source_branch.bzr_identity, "4")
+
+    def test_reorder_branches_regarding_prereqs_no_change(self):
+        '''Check that no reorder happens when there are no prerequisite branches used'''
+        original_component_list = [ MockMerge("1"), MockMerge("2"), MockMerge("3") ]
+        resulting_component_list = tools.reorder_branches_regarding_prereqs(original_component_list)
+        self.assertEqual(len(resulting_component_list), 3)
+        self.assertEqual(resulting_component_list[0].source_branch.bzr_identity, "1")
+        self.assertEqual(resulting_component_list[1].source_branch.bzr_identity, "2")
+        self.assertEqual(resulting_component_list[2].source_branch.bzr_identity, "3")

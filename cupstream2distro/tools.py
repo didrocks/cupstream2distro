@@ -113,3 +113,46 @@ def parse_and_clean_entry(raw_entry, slash_as_sep=False):
         for x in entry.split():
             result.append(x.strip())
     return result
+
+def reorder_branches_regarding_prereqs(list_of_merges):
+    '''Return a list of merges reordered according to their prerequisites. If no prereqs are used, the list stays unmodified'''
+    prepare = list(list_of_merges)
+    components = []
+    index = 0
+    mp = prepare.pop(0)
+    next_mp = None
+
+    # the ugly way of doing this
+    while True:
+        found = False
+        next_mp = None
+
+        # if there is a prereq branch, find it and put it before this one
+        if mp.prerequisite_branch is not None:
+            for i in prepare:
+                if mp.prerequisite_branch.bzr_identity == i.source_branch.bzr_identity:
+                    next_mp = i
+                    prepare.remove(i)
+                    found = True
+                    break
+            if not found:
+                # or look for the parent in the already prepared list
+                for i in components:
+                    if mp.prerequisite_branch.bzr_identity == i.source_branch.bzr_identity:
+                        index = components.index(i) + 1
+                        found = True
+
+        components.insert(index, mp)
+
+        if next_mp:
+            mp = next_mp
+        else:
+            if len(prepare) <= 0:
+                break
+                
+            if not found:
+                index = len(components)
+
+            mp = prepare.pop(0)
+
+    return components
