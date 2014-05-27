@@ -1,0 +1,27 @@
+/!\ Remember that this diff only represents packaging changes and build tools diff, not the whole content diff!
+
+(!) Warning! This package seems to add new binary packages (foo-with-baz). Please consult an archive admin before proceeding!
+
+--- foo-42.0daily83.09.13.2/debian/changelog
++++ foo-42.0daily83.09.13.2/debian/changelog
+@@ -1,3 +1,9 @@
++foo (42.0daily83.09.13.2-0ubuntu2) raring; urgency=medium
++
++  * Add the new foo-with-baz binary package
++
++ -- Łukasz 'sil2100' Zemczak <lukasz.zemczak@canonical.com>  Mon, 26 May 2014 17:17:04 +0200
++
+ foo (42.0daily83.09.13.2-0ubuntu1) raring; urgency=low
+ 
+   * Automatic snapshot from revision 10
+--- foo-42.0daily83.09.13.2/debian/control
++++ foo-42.0daily83.09.13.2/debian/control
+@@ -20,0 +21,8 @@
++
++Package: foo-with-baz
++Architecture: any
++Depends: ${shlibs:Depends},
++         ${misc:Depends},
++         ${python:Depends},
++Description: The amazing foo package, without any trace of bar
++ But this time we added baz
