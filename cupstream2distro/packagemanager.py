@@ -298,12 +298,16 @@ def generate_diff_between_dsc(diff_filepath, oldsource_dsc, newsource_dsc):
             # look for any modifications that might mean a new binary package has appeared
             # TODO: make better, considering only changes for debian/control
             split_diff = changes_to_publish.split('\n')
-            re_replace = re.compile('^\+Package: *(.*)')
+            re_replace = re.compile('\+Package: *(.*)')
             new_binary_packages = []
+            
+            logging.debug("Looking for new binary packages in the diff")
             for line in split_diff:
                 if line.startswith('+Package:'):
+                    logging.debug("Found a new binary package")
                     reverse = '-' + line[1:]
                     if reverse in split_diff:
+                        logging.debug("It seems to be a move, ignoring")
                         continue
                     new_binary_packages.append(re.sub(re_replace, '\\1', line))
             if new_binary_packages:
