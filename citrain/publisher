@@ -83,6 +83,8 @@ if __name__ == '__main__':
         silomanager.set_config_status(silo_config, "Publication failed: {}".format(message))
         sys.exit(1)
 
+    logging.info("Publishing as {}.".format(publisher_nickname))
+
     # getting the archives and series objects
     is_sru = not launchpadmanager.is_series_current(series)
     dest_archive = launchpadmanager.get_resource_from_token(dest_link)
