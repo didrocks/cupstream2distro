@@ -98,11 +98,7 @@ if __name__ == '__main__':
         distro_pocket = 'Proposed'
         src_ppa_pocket = src_pocket
         if is_sru:
-            logging.info("This upload is part of a SRU. The {} ppa will be used as a staging archive".format(SRU_PPA))
-            dest_archive = launchpadmanager.get_ppa(SRU_PPA)
-            src_ppa_name = SRU_PPA
-            dest_pocket = 'Release'
-            src_ppa_pocket = dest_pocket
+            logging.info("This upload is part of a SRU. Please do not free the silo until the package lands in the archive!")
 
     manual_publish_cause_list = []
 
@@ -210,7 +206,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
     #  now ack the changes (if copy is needed)
-    if not launchpadmanager.is_dest_ubuntu_archive(dest_link) or is_sru:
+    if not launchpadmanager.is_dest_ubuntu_archive(dest_link):
         for (source, version, tip_rev, branch) in all_packages_uploaded:
             dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=series,
                                      include_binaries=True, to_pocket=dest_pocket, to_series=series,
