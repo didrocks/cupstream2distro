@@ -36,7 +36,9 @@ import silomanager
 
 
 def sort_by_date_created(sources):
-    return sorted(sources, key=attrgetter("date_created"), reverse=True)
+    # we also filter out any non-published or not-pending packages, as those should not be relevant in any way
+    filtered_sources = filter(lambda x: x.status == "Published" or x.status == "Pending", sources)
+    return sorted(filtered_sources, key=attrgetter("date_created"), reverse=True)
 
 
 def get_current_version_for_series(source_package_name, series_name, ppa_name=None, dest=None):
