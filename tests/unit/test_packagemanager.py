@@ -88,6 +88,27 @@ class PackageManagerTests(BaseUnitTestCase):
         self.assertEquals("83.09.13-0ubuntu1", return_version)
 
     @patch('cupstream2distro.packagemanager.launchpadmanager')
+    def test_get_current_version_for_series_ppa_ignoring_invalid(self, mocklaunchpadmanager):
+        '''Make sure that we ignore Deleted, Obsolete and Superseded packages'''
+        source1 = Mock()
+        source1.source_package_version = "83.09.13-0ubuntu4"
+        source1.status = "Deleted"
+        source2 = Mock()
+        source2.source_package_version = "83.09.13-0ubuntu3"
+        source2.status = "Obsolete"
+        source3 = Mock()
+        source3.source_package_version = "83.09.13-0ubuntu2"
+        source3.status = "Superseded"
+        source4 = Mock()
+        source4.source_package_version = "83.09.13-0ubuntu1"
+        source4.status = "Published"
+
+        mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.return_value = [source1, source2, source3, source4]
+
+        return_version = packagemanager.get_current_version_for_series("foo", "rolling", "didppa")
+        self.assertEquals("83.09.13-0ubuntu1", return_version)
+
+    @patch('cupstream2distro.packagemanager.launchpadmanager')
     def test_get_current_version_for_series_none_in_ppa(self, mocklaunchpadmanager):
         '''Get the newest version, but was never published in ppa'''
 
