@@ -39,9 +39,11 @@ class PackageManagerTests(BaseUnitTestCase):
         source1 = Mock()
         source1.source_package_version = "83.09.14-0ubuntu1"
         source1.date_created = datetime(2014, 1, 1)
+        source1.status = "Published"
         source2 = Mock()
         source2.source_package_version = "83.09.13-0ubuntu1"
         source2.date_created = datetime(2014, 2, 1)
+        source2.status = "Published"
         mocklaunchpadmanager.get_ubuntu_archive.return_value.getPublishedSources.return_value = [source1, source2]
 
         return_version = packagemanager.get_current_version_for_series("foo", "rolling")
@@ -73,6 +75,7 @@ class PackageManagerTests(BaseUnitTestCase):
         '''Get the version from a ppa'''
         source_in_ppa = Mock()
         source_in_ppa.source_package_version = "83.09.13-0ubuntu1"
+        source_in_ppa.status = "Published"
         mocklaunchpadmanager.get_ppa.return_value.getPublishedSources.return_value = [source_in_ppa]
 
         return_version = packagemanager.get_current_version_for_series("foo", "rolling", "didppa")
