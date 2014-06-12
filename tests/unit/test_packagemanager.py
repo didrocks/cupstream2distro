@@ -242,6 +242,7 @@ class PackageManagerTests(BaseUnitTestCase):
 
         dest_archive = Mock()
         source1 = Mock()
+        source1.status = "Published"
         dest_archive.getPublishedSources.return_value = [source1]
         source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_package', for_download=True)
 
@@ -258,8 +259,10 @@ class PackageManagerTests(BaseUnitTestCase):
 
         dest_archive = Mock()
         source1 = Mock()
+        source1.status = "Published"
         source1.date_created = datetime(2014, 1, 1)
         source2 = Mock()
+        source2.status = "Published"
         source1.date_created = datetime(2014, 2, 1)
         dest_archive.getPublishedSources.return_value = [source1, source2]
         source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_package')
@@ -278,6 +281,7 @@ class PackageManagerTests(BaseUnitTestCase):
 
         dest_archive = Mock()
         source1 = Mock()
+        source1.status = "Published"
         dest_archive.getPublishedSources.return_value = [source1]
         source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_package', for_download=True)
 
@@ -295,6 +299,7 @@ class PackageManagerTests(BaseUnitTestCase):
 
         dest_archive = Mock()
         source1 = Mock()
+        source1.status = "Published"
         dest_archive.getPublishedSources.return_value = [source1]
         source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_native_package', for_download=True)
 
@@ -311,6 +316,7 @@ class PackageManagerTests(BaseUnitTestCase):
 
         dest_archive = Mock()
         source1 = Mock()
+        source1.status = "Published"
         dest_archive.getPublishedSources.return_value = [source1]
         source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_debian_package', for_download=True)
 
@@ -327,6 +333,7 @@ class PackageManagerTests(BaseUnitTestCase):
 
         dest_archive = Mock()
         source1 = Mock()
+        source1.status = "Published"
         dest_archive.getPublishedSources.return_value = [source1]
         source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_specialchars_package', for_download=True)
 
@@ -350,6 +357,7 @@ class PackageManagerTests(BaseUnitTestCase):
 
         dest_archive = Mock()
         source1 = Mock()
+        source1.status = "Published"
         dest_archive.getPublishedSources.return_value = [source1]
         source1.sourceFileUrls.return_value = self.get_source_files_for_package('foo_native_ubuntu_version', for_download=True)
 
