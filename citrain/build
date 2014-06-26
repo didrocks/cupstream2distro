@@ -41,6 +41,7 @@ if __name__ == '__main__':
     parser.add_argument("--watchonly", action='store_true', help="Only watch the current ppa")
     parser.add_argument("--forcerebuild", action='store_true', help="Force rebuilding components associated to a MP even if there is no diff with dest")
     parser.add_argument("--ignorestep", action='store_true', help="Ack a whole rebuild even if one was already requested.")
+    parser.add_argument("--allowunapproved", action='store_true', help="Allow building even if there are branches that are not approved yet.")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
     args = parser.parse_args()
@@ -128,6 +129,15 @@ if __name__ == '__main__':
         for mp in components:
             branch = mp.source_branch.web_link
             logging.info("Trying to merge {} (at rev {}) into {}".format(branch, mp.source_branch.revision_count, mp.target_branch.web_link))
+
+            if mp.queue_status != "Approved":
+                message = "Some merge requests are not yet approved. "
+                if args.allowunapproved:
+                    logging.warning(message + "But the allow-unapproved flag has been set.");
+                else:
+                    logging.error(message + "Please review all merges and re-run the build job")
+                    silomanager.set_config_status(silo_config, "Can't build: Some merges are unapproved.")
+                    sys.exit(1)
 
             bugs_fixes = ""
             for bug in mp.getRelatedBugTasks():

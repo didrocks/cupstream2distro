@@ -47,6 +47,11 @@
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>ALLOW_UNAPPROVED</name>
+          <description>Allow build to proceed even if some of the merge requests listed in the silo are still not 'Approved'.</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>DEBUG</name>
           <description>Print extra debugging information in the log.</description>
           <defaultValue>false</defaultValue>
@@ -81,6 +86,9 @@ if [ "${FORCE_REBUILD}" == "true" ]; then
 fi
 if [ "${IGNORE_STEP}" == "true" ]; then
   OPTS="$OPTS --ignorestep"
+fi
+if [ "${ALLOW_UNAPPROVED}" == "true" ]; then
+  OPTS="$OPTS --allowunapproved"
 fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"
