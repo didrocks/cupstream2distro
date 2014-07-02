@@ -25,6 +25,19 @@ import shutil
 from cupstream2distro.settings import SILO_CONFIG_FILENAME, SILO_NAME_LIST, SILO_PREPROD_NAME_LIST, SILO_STATUS_RSYNCDIR
 from cupstream2distro.utils import ignored
 
+# All interesting states a silo can be in
+SILO_STATE_NONE = 1
+SILO_STATE_BUILDING = 2
+SILO_STATE_BUILD_SUCCESSFUL = 3
+SILO_STATE_BUILD_FAILED = 4
+SILO_STATE_RECONFIGURE_FAILED = 5
+SILO_STATE_PUBLISHING = 6
+SILO_STATE_PUBLISH_FAILED = 7
+SILO_STATE_MIGRATING = 8
+SILO_STATE_MERGING = 9
+SILO_STATE_MERGE_FAILED = 10
+SILO_STATE_CLEANING = 11
+
 
 def get_silo_root_path():
     '''Recursiverly look for a config file as a silo path name from cur dir and return it'''
@@ -133,7 +146,7 @@ def set_config_step(config, new_step, uri=''):
     config["global"]["step"] = new_step
     return save_config(config, uri)
 
-def set_config_status(config, status, uri='', add_url=True, ping=True):
+def set_config_status(config, state, status, uri='', add_url=True, ping=True):
     """Change status to reflect latest status"""
     build_url = os.getenv('BUILD_URL')
     url = ""
@@ -142,7 +155,8 @@ def set_config_status(config, status, uri='', add_url=True, ping=True):
     config["global"]["status"] = {
         "message": status,
         "ping":  ping,
-        "url": url
+        "url": url,
+        "state": state,
     }
     return save_config(config, uri)
 

@@ -37,7 +37,7 @@ def check_not_adding_new_components(project_name, allowed_components_from_previo
         message = "{} was not in the initial list of components for that silo. You can't reconfigure the silo yourself. Please ask the landing team to reconfigure it for you.".format(project_name)
         logging.error(message)
         silomanager.set_config_step(config, -1, uri=silo_path)
-        silomanager.set_config_status(config, "Reconfigure failed: " + message, uri=silo_path)
+        silomanager.set_config_status(config, silomanager.SILO_STATE_RECONFIGURE_FAILED, "Reconfigure failed: " + message, uri=silo_path)
         sys.exit(1)
 
 
@@ -250,4 +250,4 @@ if __name__ == '__main__':
         # NOTE: we don't wait for the removal to be published. Shouldn't be an issue
 
     silomanager.set_config_step(config, SILO_EMPTY, uri=silo_path)
-    silomanager.set_config_status(config, "Silo ready to build packages", uri=silo_path, add_url=False)
+    silomanager.set_config_status(config, silomanager.SILO_STATE_NONE, "Silo ready to build packages", uri=silo_path, add_url=False)

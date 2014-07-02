@@ -61,7 +61,7 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
     if not reconciliate_all_branches:
         message = "Some branches couldn't be reconciliated with the changes happening meaning in destination branch. Please revert your changes in trunk and relaunch this job."
         logging.error(message)
-        silomanager.set_config_status(silo_config, "Can't merge: " + message)
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_MERGE_FAILED, "Can't merge: " + message)
         sys.exit(1)
 
     logging.info("Pushing the branches to the parent ones")
@@ -78,7 +78,7 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
     if not push_all_branches:
         message = "Some branches couldn't be pushed to the destination. Please pull them from the url link above and relaunch this job with only free slot flag."
         logging.error(message)
-        silomanager.set_config_status(silo_config, "Can't merge: " + message)
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_MERGE_FAILED, "Can't merge: " + message)
         sys.exit(1)
 
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
 
     silo_config = silomanager.load_config()
-    silomanager.set_config_status(silo_config, "Merging", ping=False)
+    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_MERGING, "Merging", ping=False)
 
     if not args.onlyfreesilo:
         if silomanager.get_config_step(silo_config) != SILO_PUBLISHED:
@@ -109,12 +109,12 @@ if __name__ == '__main__':
                 logging.info("Last step didn't finish successfully, but the ignore flag is set.")
             else:
                 logging.error("Last step didn't finish successfully. You need to either ignore that the previous step didn't finished successfully or ensuring that prepare, build and checked passed.")
-                silomanager.set_config_status(silo_config, "Can't merge: wrong status or parameters for job.")
+                silomanager.set_config_status(silo_config, silomanager.SILO_STATE_MERGE_FAILED, "Can't merge: wrong status or parameters for job.")
                 sys.exit(1)
             # reset it
             if not silomanager.set_config_step(silo_config, SILO_PUBLISHED):
                 logging.error("Couldn't reset the step in the configuration file.")
-                silomanager.set_config_status(silo_config, "Merge failed: couldn't reset status or parameters for job.")
+                silomanager.set_config_status(silo_config, silomanager.SILO_STATE_MERGE_FAILED, "Merge failed: couldn't reset status or parameters for job.")
                 sys.exit(1)
 
     # get latest uploaded version for all packages
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     # check that all packages have reached their destination
     (all_pkg_in_dest, message) = packagemanager.check_package_reached_destination(silo_config, packages_in_dest, args.ignoremissingprojects, args.ignorepackagesnotindest, for_merge_and_clean=True)
     if not all_pkg_in_dest and not args.onlyfreesilo:
-        silomanager.set_config_status(silo_config, message)
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_MIGRATING, message)
         sys.exit(1)
 
     if not args.onlyfreesilo:
@@ -141,13 +141,13 @@ if __name__ == '__main__':
     silomanager.set_config_step(silo_config, SILO_DONE)
 
     if not args.onlyfreesilo:
-        silomanager.set_config_status(silo_config, "Landed. Cleaning silo.")
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_CLEANING, "Landed. Cleaning silo.")
     # we gave up
     else:
         if not all_pkg_in_dest:
-            silomanager.set_config_status(silo_config, "Gave up this landing. Cleaning silo.")
+            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_CLEANING, "Gave up this landing. Cleaning silo.")
         else:
-            silomanager.set_config_status(silo_config, "Landed (without branch merged). Cleaning silo.")
+            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_CLEANING, "Landed (without branch merged). Cleaning silo.")
 
     ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])

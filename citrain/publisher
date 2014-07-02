@@ -50,7 +50,7 @@ if __name__ == '__main__':
         logging.debug("Debug mode enabled")
 
     silo_config = silomanager.load_config()
-    silomanager.set_config_status(silo_config, "Publishing")
+    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISHING, "Publishing")
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"]).name
     src_ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
@@ -65,12 +65,12 @@ if __name__ == '__main__':
             logging.info("Last step didn't finish successfully, but the ignore flag is set.")
         else:
             logging.error("Last step didn't finish successfully. You need to either ignore that the previous step didn't finished successfully or ensuring that prepare, build and checked passed.")
-            silomanager.set_config_status(silo_config, "Can't publish: wrong status or parameters for job.")
+            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: wrong status or parameters for job.")
             sys.exit(1)
         # reset it
         if not silomanager.set_config_step(silo_config, SILO_BUILTCHECKED):
             logging.error("Couldn't reset the step in the configuration file.")
-            silomanager.set_config_status(silo_config, "Publication failed: couldn't reset status or parameters for job.")
+            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: couldn't reset status or parameters for job.")
             sys.exit(1)
     all_silo_projects = silomanager.get_all_projects(silo_config)
 
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     except KeyError:
         message = "{} isn't a valid launchpad user name. Can't publish the silo".format(publisher_nickname)
         logging.error(message)
-        silomanager.set_config_status(silo_config, "Publication failed: {}".format(message))
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: {}".format(message))
         sys.exit(1)
 
     logging.info("Publishing as {}.".format(publisher_nickname))
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     if not args.ackpackaging and all_packages_uploaded and manual_publish_cause_list:
         logging.info("Don't upload the silo automatically.")
         generate_xml_artefacts("Publisher", manual_publish_cause_list, PUBLISHER_ARTEFACTS_FILENAME)
-        silomanager.set_config_status(silo_config, "Publication needs action: some packaging changes needs manual acking. See them at {}".format(os.getenv('BUILD_URL')), add_url=False)
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication needs action: some packaging changes needs manual acking. See them at {}".format(os.getenv('BUILD_URL')), add_url=False)
         sys.exit(0)
 
     packagelist_to_copy = []
@@ -135,7 +135,7 @@ if __name__ == '__main__':
             # TODO2: add an option to say "it's ok, please remove from file system everything that's not mentionned in the config file"
             message = "{} wasn't in the initiale configuration.\nUnknown state. Please reconfigure and reprepare the whole silo.".format(source)
             logging.error(message)
-            silomanager.set_config_status(silo_config, "Can't publish: " + message)
+            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: " + message)
             sys.exit(1)
         supposed_dest_version = get_previous_distro_version_from_config(source)
 
@@ -175,7 +175,7 @@ if __name__ == '__main__':
     if error_pushing_branch:
         message = "We had some branches that couldn't be pushed to their proposed location."
         logging.error(message)
-        silomanager.set_config_status(silo_config, "Can't publish: " + message)
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: " + message)
         sys.exit(1)
 
     # remove eventual already published projects:
@@ -189,13 +189,13 @@ if __name__ == '__main__':
             logging.info(message + "The ignore missing projects flag was set.")
         else:
             logging.error(message + "Prepare either prepare the latest missing projects or use the ignore missing projects flag which will release the lock on them.")
-            silomanager.set_config_status(silo_config, "Can't publish: " + message)
+            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: " + message)
             sys.exit(1)
 
     if src_version_check_fail:
         message = "Some packages in the ppa are not at the latest version. Please rerun the prepare job, eventually only with that project."
         logging.error(message)
-        silomanager.set_config_status(silo_config, "Can't publish: " + message)
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: " + message)
         sys.exit(1)
 
     if dest_version_check_fail:
@@ -204,7 +204,7 @@ if __name__ == '__main__':
         else:
             message = "Not all versions when starting prepare are the latest at destination. Read above and either use ignore version destination option or rerun prepare"
             logging.error(message)
-            silomanager.set_config_status(silo_config, "Can't publish: " + message)
+            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: " + message)
             sys.exit(1)
 
     #  now ack the changes (if copy is needed)
@@ -227,8 +227,8 @@ if __name__ == '__main__':
     if not silomanager.set_config_step(silo_config, SILO_PUBLISHED):
         message = "Couldn't save the step in the configuration file."
         logging.error(message)
-        silomanager.set_config_status(silo_config, "Publication failed: " + message)
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: " + message)
         sys.exit(1)
 
     silomanager.set_config_pkgversionlist(silo_config, published_packagelist)
-    silomanager.set_config_status(silo_config, "Packages migrating to destination. Wait a couple of hours and click merge & clean", add_url=False)
+    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_MIGRATING, "Packages migrating to destination. Wait a couple of hours and click merge & clean", add_url=False)

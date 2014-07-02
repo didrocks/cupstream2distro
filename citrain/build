@@ -52,7 +52,7 @@ if __name__ == '__main__':
         logging.debug("Debug mode enabled")
 
     silo_config = silomanager.load_config()
-    silomanager.set_config_status(silo_config, "Preparing packages", ping=False)
+    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILDING, "Preparing packages", ping=False)
 
     src_ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     dest = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
@@ -64,7 +64,7 @@ if __name__ == '__main__':
                 logging.warning("You already tried to build everything. But the ignore option is set.")
             else:
                 logging.error("You already tried to build everything. You need to either:\n - use the ignore step option (to rebuild all MPs)\n - use the \"only rebuild packages\" option (to rebuild only some components associated to a MP) \n - use the watch only option (to only check ppa status without any rebuild).")
-                silomanager.set_config_status(silo_config, "Can't build: prevent a whole rebuild as one full build was already successful. Is that on purpose? Please check available options.")
+                silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Can't build: prevent a whole rebuild as one full build was already successful. Is that on purpose? Please check available options.")
                 sys.exit(1)
         # remove everything but the archived .project_ files
         logging.info("Whole rebuild, ensuring that the silo is in a coherent state. Keep the published files")
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     # reset the status
     if not silomanager.set_config_step(silo_config, SILO_EMPTY):
         logging.error("Couldn't reset the step in the configuration file.")
-        silomanager.set_config_status(silo_config, "Build failed: couldn't reset status or parameters for job.")
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Build failed: couldn't reset status or parameters for job.")
         sys.exit(1)
 
 
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     if components_not_in_config:
         message = "One or more components provided in rebuildpackages ({}) are not in the MP silo configuration. Ask for a reconfiguration of the silo with the new MPs to add please.".format(", ".join(components_not_in_config))
         logging.error(message)
-        silomanager.set_config_status(silo_config, "Can't build: " + message)
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Can't build: " + message)
         sys.exit(1)
 
     # cycle through all branches and prepare them
@@ -136,7 +136,7 @@ if __name__ == '__main__':
                     logging.warning(message + "But the allow-unapproved flag has been set.");
                 else:
                     logging.error(message + "Please review all merges and re-run the build job")
-                    silomanager.set_config_status(silo_config, "Can't build: Some merges are unapproved.")
+                    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Can't build: Some merges are unapproved.")
                     sys.exit(1)
 
             bugs_fixes = ""
@@ -158,13 +158,13 @@ if __name__ == '__main__':
                 if not branchhandling.merge_branch(bzr_pending_branch_uri, branch, commit_message, authors=committers):
                     logging.error("Conflicts when attempting to merge {} into previous merged + {}. You will need to reconcile manually branches that you provided as a parameter for merging into the destination branch and rerun this job".format(branch, mp.target_branch.web_link))
                     os.chdir('..')
-                    silomanager.set_config_status(silo_config, "Can't build: Merge conflict.")
+                    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Can't build: Merge conflict.")
                     sys.exit(1)
             # TODO: we should loop to show if there is more issues and then exit
             except branchhandling.NoCommitFoundException as e:
                 message = "There is no commit message in {} and we can't get it from debian/changelog. Please check that you set a commit message on all your MPs if you didn't touch debian/changelog.".format(branch)
                 logging.error(message)
-                silomanager.set_config_status(silo_config, "Can't build: " + message)
+                silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Can't build: " + message)
                 sys.exit(1)
 
         #  Get changelog informations
@@ -202,7 +202,7 @@ if __name__ == '__main__':
                     message = ("A version ({}) is available at the destination archive for that component but is not in the destination branch which is still at {}. You need to ensure that your version contains the fix in the destination or you can force rebuild to bypass the check.".format(previous_finaledest_version, packaging_version_in_prepared_branch))
                     logging.warning(message)
                     os.chdir('..')
-                    silomanager.set_config_status(silo_config, "Can't build: Some projects are missing revisions from distribution.")
+                    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Can't build: Some projects are missing revisions from distribution.")
                     sys.exit(1)
 
         if not launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
@@ -292,7 +292,7 @@ if __name__ == '__main__':
                                "If you modify debian/changelog in your commit, the commit message for the merge proposal isn't used, so you need to put yourself some changelog content into that file. "
                                "Please change those MP and rerun the build job.".format(source_package_name))
                     logging.error(message)
-                    silomanager.set_config_status(silo_config, "Build failed: Some packages generate an empty changelog. Check the job for more info.")
+                    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Build failed: Some packages generate an empty changelog. Check the job for more info.")
                     sys.exit(1)
 
 
@@ -349,16 +349,16 @@ if __name__ == '__main__':
     if direct_upload_not_in_list:
         message = "Some packages ({}) that are not in the MP and not in sources list have been detected in the ppa. Please remove them from the ppa or ask for a reconfiguration.".format(", ".join(direct_upload_not_in_list))
         logging.error(message)
-        silomanager.set_config_status(silo_config, "Build failed: " + message)
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Build failed: " + message)
         sys.exit(1)
 
     # watch ppa
-    silomanager.set_config_status(silo_config, "Building", ping=False)
+    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILDING, "Building", ping=False)
     logging.info("Check ppa status in {}".format(src_ppa.web_link))
     watch_ppa_exec = os.path.join(os.path.dirname(__file__), "watch-ppa")
     call_params = [watch_ppa_exec, "-s", series.name, "-p", "{}/{}".format(src_ppa.owner.name, src_ppa.name)]
     if not launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
         call_params.extend(["--destppa", dest_ppa_name])
     if subprocess.call(call_params) != 0:
-        silomanager.set_config_status(silo_config, "Build failed: Some packages failed to build.")
+        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Build failed: Some packages failed to build.")
         sys.exit(1)
