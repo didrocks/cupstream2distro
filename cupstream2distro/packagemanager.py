@@ -287,7 +287,7 @@ def generate_diff_between_dsc(diff_filepath, oldsource_dsc, newsource_dsc):
 
     The diff contains autotools files and cmakeries'''
     if _packaging_changes_between_dsc(oldsource_dsc, newsource_dsc):
-        with open(diff_filepath, "w") as f:
+        with open(diff_filepath, "a") as f:
             if not oldsource_dsc:
                 f.writelines("This source is a new package, if the destination is ubuntu, please ensure it has been preNEWed by an archive admin before publishing that stack.")
                 return
@@ -316,6 +316,24 @@ def generate_diff_between_dsc(diff_filepath, oldsource_dsc, newsource_dsc):
                 f.write("(!) Warning! This package seems to add new binary packages ({}). Please consult an archive admin before proceeding!\n\n".format(', '.join(new_binary_packages)))
 
             f.write(changes_to_publish)
+
+
+def check_if_packages_require_twin_upload(sources):
+    '''This is an ugly method used for actually 'protecting' us from forgetting uploading the so-called twin packages of certain projects
+
+    The most well known ones are the -gles counterparts for some Qt/UITK related packages'''
+    twin_packages = { "qtbase-opensource-src": "qtbase-opensource-src-gles", "qtdeclarative-opensource-src": "qtdeclarative-opensource-src-gles",
+        "qt3d-opensource-src": "qt3d-opensource-src-gles", "qtlocation-opensource-src": "qtlocation-opensource-src-gles",
+        "qtubuntu": "qtubuntu-gles", "ubuntu-ui-toolkit": "ubuntu-ui-toolkit-gles", "qtmultimedia-opensource-src": "qtmultimedia-opensource-src-gles" }
+
+    missing = []
+    for source in sources:
+        if source in twin_packages:
+            # Check if the twin package has been also uploaded
+            if twin_packages[source] not in sources:
+                missing.append(twin_packages[source])
+
+    return missing
 
 
 def create_new_packaging_version(base_package_version, series_version, destppa=''):

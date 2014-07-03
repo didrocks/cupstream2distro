@@ -47,6 +47,11 @@
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>IGNORE_MISSING_TWINS</name>
+          <description>(Usually irrelevant) Ignore missing 'twin' packages for the selected list (like those having -gles duplicates).</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>ALLOW_UNAPPROVED</name>
           <description>Allow build to proceed even if some of the merge requests listed in the silo are still not 'Approved'.</description>
           <defaultValue>false</defaultValue>
@@ -86,6 +91,9 @@ if [ "${FORCE_REBUILD}" == "true" ]; then
 fi
 if [ "${IGNORE_STEP}" == "true" ]; then
   OPTS="$OPTS --ignorestep"
+fi
+if [ "${IGNORE_MISSING_TWINS}" == "true" ]; then
+  OPTS="$OPTS --ignoremissingtwins"
 fi
 if [ "${ALLOW_UNAPPROVED}" == "true" ]; then
   OPTS="$OPTS --allowunapproved"

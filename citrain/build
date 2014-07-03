@@ -41,6 +41,7 @@ if __name__ == '__main__':
     parser.add_argument("--watchonly", action='store_true', help="Only watch the current ppa")
     parser.add_argument("--forcerebuild", action='store_true', help="Force rebuilding components associated to a MP even if there is no diff with dest")
     parser.add_argument("--ignorestep", action='store_true', help="Ack a whole rebuild even if one was already requested.")
+    parser.add_argument("--ignoremissingtwins", action='store_true', help="(Usually irrelevant) Ignore missing 'twin' packages for the selected list (like those having -gles duplicates).")
     parser.add_argument("--allowunapproved", action='store_true', help="Allow building even if there are branches that are not approved yet.")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
@@ -103,6 +104,17 @@ if __name__ == '__main__':
                 components_to_prepare.setdefault(source, []).append(launchpadmanager.get_resource_from_token(mp_link))
             # cleaning (in case of partial rebuild)
             clean_source(source)
+
+    all_sources = components_to_prepare.keys() + silo_config["sources"]
+    missing = packagemanager.check_if_packages_require_twin_upload(all_sources)
+    if missing:
+        message = "Some projects are missing their 'twin package' uploads (e.g. their -gles counter-parts): {}.".format(", ".join(missing))
+        if args.ignoremissingtwins:
+            logging.warning(message + " But the ignore flag was set.")
+        else:
+            logging.error(message)
+            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Can't build: " + message)
+            sys.exit(1)
 
     # prepare source and dput by one
     src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
