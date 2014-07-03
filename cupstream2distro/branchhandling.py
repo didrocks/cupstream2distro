@@ -302,17 +302,14 @@ def grab_committers_compared_to(source_uri, lp_branch_to_scan):
         raise Exception("bzr missing on {} returned a failure: {}".format(lp_branch_to_scan, stderr.decode("utf-8").strip()))
     committer_regexp = re.compile("\nauthor: (?P<author>.*)\n|\ncommitter: (?P<committer>.*)\n")
     for stanza in re.split("\n-+\n", stdout):
-        print("~~~~\nstanza: {}\n++++".format(stanza))
         for match in committer_regexp.finditer(stanza):
             authors = match.group('author')
             committers = match.group('committer')
             if authors:
                 for author in authors.split(', '):
-                    print("author: {}".format(author))
                     names.add(author)
             elif committers:
                 for committer in committers.split(', '):
-                    print("commiter: {}".format(committer))
                     names.add(committer)
     os.chdir(cur_dir)
     return names
