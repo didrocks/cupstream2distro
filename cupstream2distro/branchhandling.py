@@ -102,7 +102,7 @@ def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp=""):
             if line.startswith("diff:"):
                 commit_message_stenza = False
                 current_commit, current_bugs = _extract_commit_bugs(current_commit, additional_stamp)
-            else not line.startswith("  Approved by: "): # do not include the approved-by line
+            elif not line.startswith("  Approved by: "): # do not include the approved-by line
                 line = line[2:] # Dedent the message provided by bzr
                 if line[0:2] in ('* ', '- '): # paragraph line.
                     line = line[2:] # Remove bullet
