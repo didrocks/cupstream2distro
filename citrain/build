@@ -159,9 +159,18 @@ if __name__ == '__main__':
                     bugs_fixes += ", "
                 bugs_fixes += bug.self_link.split('/')[-1]
 
+            approved_by = ""
+            for review in mp.all_comments_collection_link:
+                if review.vote == "Approve":
+                    if not approved_by:
+                        approved_by = "\nApproved by: "
+                    else:
+                        approved_by += ", "
+                    approved_by += review.author_link.display_name
+
             commit_message = mp.commit_message
             if commit_message:
-                commit_message = "{} {}".format(commit_message.encode('utf-8'), bugs_fixes)
+                commit_message = "{} {}{}".format(commit_message.encode('utf-8'), bugs_fixes, approved_by)
 
             # grab committers
             committers = branchhandling.grab_committers_compared_to(bzr_pending_branch_uri, branch)

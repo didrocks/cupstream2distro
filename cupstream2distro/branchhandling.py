@@ -102,7 +102,7 @@ def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp=""):
             if line.startswith("diff:"):
                 commit_message_stenza = False
                 current_commit, current_bugs = _extract_commit_bugs(current_commit, additional_stamp)
-            else:
+            else not line.startswith("  Approved by: "): # do not include the approved-by line
                 line = line[2:] # Dedent the message provided by bzr
                 if line[0:2] in ('* ', '- '): # paragraph line.
                     line = line[2:] # Remove bullet
@@ -268,10 +268,15 @@ def merge_branch(uri_to_merge, lp_parent_branch, commit_message, authors=set()):
             if subprocess.call(["debcommit"]) != 0:
                 raise NoCommitFoundException("No commit and no change in debian/changelog")
         else:
-            cmd = ["bzr", "commit", "-m", commit_message, "--unchanged"]
+            (f, path) = tempfile.mkstemp("commitmsg")
+            f.write(commit_message)
+            f.close()
+            # use the --file command instead to allow for newlines in the commit message
+            cmd = ["bzr", "commit", "--file", path, "--unchanged"]
             for author in authors:
                 cmd.extend(['--author', author])
             subprocess.call(cmd)
+            os.remove(path)
         success = True
     os.chdir(cur_dir)
     return success
