@@ -170,7 +170,7 @@ if __name__ == '__main__':
 
             commit_message = mp.commit_message
             if commit_message:
-                commit_message = "{} {}{}".format(commit_message.encode('utf-8'), bugs_fixes, approved_by)
+                commit_message = "{} {}{}".format(commit_message.encode('utf-8'), bugs_fixes, approved_by.encode('utf-8'))
 
             # grab committers
             committers = branchhandling.grab_committers_compared_to(bzr_pending_branch_uri, branch)
