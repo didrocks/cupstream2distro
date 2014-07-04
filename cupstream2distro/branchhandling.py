@@ -297,8 +297,8 @@ def push_to_branch(source_uri, lp_parent_branch, overwrite=False):
     return success
 
 def grab_committers_compared_to(source_uri, lp_branch_to_scan):
-    """Return unique list of committers for a given branch"""
-    committers = set()
+    """Return unique list of author or committer names for a given branch"""
+    names = set()
     cur_dir = os.path.abspath('.')
     os.chdir(source_uri)
     lp_branch_to_scan = lp_branch_to_scan.replace("https://code.launchpad.net/", "lp:")
@@ -306,12 +306,19 @@ def grab_committers_compared_to(source_uri, lp_branch_to_scan):
     (stdout, stderr) = instance.communicate()
     if stderr != "":
         raise Exception("bzr missing on {} returned a failure: {}".format(lp_branch_to_scan, stderr.decode("utf-8").strip()))
-    committer_regexp = re.compile("\ncommitter: (.*)\n")
-    for match in committer_regexp.findall(stdout):
-        for committer in match.split(', '):
-            committers.add(committer)
+    committer_regexp = re.compile("\nauthor: (?P<author>.*)\n|\ncommitter: (?P<committer>.*)\n")
+    for stanza in re.split("\n-+\n", stdout):
+        for match in committer_regexp.finditer(stanza):
+            authors = match.group('author')
+            committers = match.group('committer')
+            if authors:
+                for author in authors.split(', '):
+                    names.add(author)
+            elif committers:
+                for committer in committers.split(', '):
+                    names.add(committer)
     os.chdir(cur_dir)
-    return committers
+    return names
 
 
 def get_source_package_name_from_branch(branch_url):
