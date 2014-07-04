@@ -23,6 +23,7 @@ import logging
 import os
 import re
 import subprocess
+import tempfile
 
 from .settings import BRANCH_URL, IGNORECHANGELOG_COMMIT, PACKAGING_MERGE_COMMIT_MESSAGE, PROJECT_CONFIG_SUFFIX, SILO_PACKAGING_RELEASE_COMMIT_MESSAGE
 
@@ -268,15 +269,15 @@ def merge_branch(uri_to_merge, lp_parent_branch, commit_message, authors=set()):
             if subprocess.call(["debcommit"]) != 0:
                 raise NoCommitFoundException("No commit and no change in debian/changelog")
         else:
-            (f, path) = tempfile.mkstemp("commitmsg")
+            f = tempfile.NamedTemporaryFile()
             f.write(commit_message)
-            f.close()
-            # use the --file command instead to allow for newlines in the commit message
-            cmd = ["bzr", "commit", "--file", path, "--unchanged"]
+            f.flush()
+            # use the --file option instead to allow for newlines in the commit message
+            cmd = ["bzr", "commit", "--file", f.name, "--unchanged"]
             for author in authors:
                 cmd.extend(['--author', author])
             subprocess.call(cmd)
-            os.remove(path)
+            f.close()
         success = True
     os.chdir(cur_dir)
     return success
