@@ -85,7 +85,7 @@ if __name__ == '__main__':
             merge_clean_exec = os.path.join(os.path.dirname(__file__), "merge-clean")
             call_params = [merge_clean_exec]
             if args.debug:
-                call_params.append("--debug"))
+                call_params.append("--debug")
             subprocess.call(call_params)
             continue
 
