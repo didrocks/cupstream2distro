@@ -159,14 +159,22 @@ if __name__ == '__main__':
                     bugs_fixes += ", "
                 bugs_fixes += bug.self_link.split('/')[-1]
 
-            approved_by = ""
+            # use a set to fetch the reviewer list
+            approved_by_set = set()
             for review in mp.all_comments:
                 if review.vote == "Approve":
-                    if not approved_by:
-                        approved_by = "\nApproved by: "
-                    else:
-                        approved_by += ", "
-                    approved_by += review.author.display_name
+                    approved_by_set.add(review.author.display_name)
+                elif review.vote == "Disapprove" or review.vote == "Needs Fixing":
+                    if review.author.display_name in approved_by_set:
+                        approved_by_set.remove(review.author.display_name)
+
+            approved_by = ""
+            for reviewer in approved_by_set:
+                if not approved_by:
+                    approved_by = "\nApproved by: "
+                else:
+                    approved_by += ", "
+                approved_by += reviewer
 
             commit_message = mp.commit_message
             if commit_message:
