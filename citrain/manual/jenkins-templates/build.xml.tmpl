@@ -57,6 +57,11 @@
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>DONT_REORDER_PREREQS</name>
+          <description>Don't forcefully reorder branches if prerequisites are used - leave it up to the lander.</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>DEBUG</name>
           <description>Print extra debugging information in the log.</description>
           <defaultValue>false</defaultValue>
@@ -97,6 +102,9 @@ if [ "${IGNORE_MISSING_TWINS}" == "true" ]; then
 fi
 if [ "${ALLOW_UNAPPROVED}" == "true" ]; then
   OPTS="$OPTS --allowunapproved"
+fi
+if [ "${DONT_REORDER_PREREQS}" == "true" ]; then
+  OPTS="$OPTS --dontreorderprereqs"
 fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"

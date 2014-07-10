@@ -43,6 +43,7 @@ if __name__ == '__main__':
     parser.add_argument("--ignorestep", action='store_true', help="Ack a whole rebuild even if one was already requested.")
     parser.add_argument("--ignoremissingtwins", action='store_true', help="(Usually irrelevant) Ignore missing 'twin' packages for the selected list (like those having -gles duplicates).")
     parser.add_argument("--allowunapproved", action='store_true', help="Allow building even if there are branches that are not approved yet.")
+    parser.add_argument("--dontreorderprereqs", action='store_true', help="Don't forcefully reorder branches if prerequisites are used.")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
     args = parser.parse_args()
@@ -135,7 +136,10 @@ if __name__ == '__main__':
 
         # first, try looking into the merge list and re-order it if there are any prereqs present
         # if no prereqs are present, the components list stays the same
-        components = tools.reorder_branches_regarding_prereqs(components_to_prepare[source_package_name])
+        if not args.dontreorderprereqs:
+            components = tools.reorder_branches_regarding_prereqs(components_to_prepare[source_package_name])
+        else:
+            components = components_to_prepare[source_package_name]
 
         # get all branches one after another and merge them in bzr_pending_branch_uri
         for mp in components:
