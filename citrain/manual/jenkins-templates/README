@@ -1,0 +1,12 @@
+The format of these XML files is essentially undocumented (I googled for hours
+and found NOTHING), but what you can do is make whatever changes you want to
+the live jenkins job[0], and then visit the xml export[1] page, and then copy
+the result of that overtop of these files here.
+
+Note that the link to the config.xml file can be found by going to the very
+bottom of the /configure page, clicking 'REST API', and then clicking the 'this
+URL' link under the 'Fetch/Update config.xml' section. Or you can just
+s/ure/.xml/ in the URL when you make a change.
+
+[0] https://ci-train.ubuntu.com/job/prepare-silo/configure
+[1] https://ci-train.ubuntu.com/job/prepare-silo/config.xml
