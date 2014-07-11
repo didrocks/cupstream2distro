@@ -101,6 +101,9 @@ if __name__ == '__main__':
 
 
     silo_config = silomanager.load_config()
+    if silo_config["global"]["status"]["state"] == silomanager.SILO_STATE_MERGING:
+        logging.error("The merge and clean job seems to have been already ran. Skipping.")
+        sys.exit(1)
     silomanager.set_config_status(silo_config, silomanager.SILO_STATE_MERGING, "Merging", ping=False)
 
     if not args.onlyfreesilo:

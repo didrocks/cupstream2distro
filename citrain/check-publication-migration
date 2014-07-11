@@ -82,12 +82,12 @@ if __name__ == '__main__':
         (all_pkg_in_dest, message) = packagemanager.check_package_reached_destination(silo_config, packages_in_dest, False, False)
 
         if all_pkg_in_dest and not args.disableautomerge:
-            # if all packages are in destination, run merge and clean on the silo automatically
+            # if all packages are in destination, run merge and clean on the silo automatically in the background
             merge_clean_exec = os.path.join(os.path.dirname(__file__), "merge-clean")
             call_params = [merge_clean_exec]
             if args.debug:
                 call_params.append("--debug")
-            subprocess.call(call_params)
+            subprocess.Popen(call_params)
             continue
 
         # check that the config file status hasn't change
