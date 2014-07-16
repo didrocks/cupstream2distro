@@ -40,6 +40,7 @@ if __name__ == '__main__':
     parser.add_argument("--ignoremissingprojects", action='store_true', help="Ignore if some projects that are going to be published are missing from the initial set (can be a second publication for instance).")
     parser.add_argument("--ignorestep", action='store_true', help="Ignore if previous step didn't successfully end.")
     parser.add_argument("--ignoreversiondestination", action='store_true', help="Ignore if the latest version in destination doesn't match when prepare was started.")
+    parser.add_argument("--allowunapproved", action='store_true', help="Allow publishing even if there are branches that are not approved yet.")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
     args = parser.parse_args()
@@ -73,6 +74,17 @@ if __name__ == '__main__':
             silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: couldn't reset status or parameters for job.")
             sys.exit(1)
     all_silo_projects = silomanager.get_all_projects(silo_config)
+
+    if not args.allowunapproved:
+        for source in silo_config["mps"]:
+            for mp_link in silo_config["mps"][source]:
+                mp = launchpadmanager.get_resource_from_token(mp_link)
+                if mp.queue_status != "Approved":
+                    logging.error("Some merge requests are not yet approved. Please review all merges and re-run the build job")
+                    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: Some merges are unapproved.")
+                    sys.exit(1)
+    else:
+        logging.warning("Allowing unapproved merges has been requested. Publishing merges as they are.")
 
     # check the publisher exists
     try:
