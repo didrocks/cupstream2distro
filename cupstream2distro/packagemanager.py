@@ -302,7 +302,7 @@ def generate_diff_between_dsc(diff_filepath, oldsource_dsc, newsource_dsc):
             split_diff = changes_to_publish.split('\n')
             re_replace = re.compile('\+Package: *(.*)')
             new_binary_packages = []
-            
+
             logging.debug("Looking for new binary packages in the diff")
             for line in split_diff:
                 if line.startswith('+Package:'):
@@ -521,22 +521,23 @@ def refresh_symbol_files(packaging_version):
     Add a changelog entry if needed'''
 
     new_upstream_version = packaging_version.split("-")[0]
-    replacement_done = False
+    files_replaced = set()
     for filename in os.listdir("debian"):
-        # support also cases like ".symbols.<arch>"
-        if filename.count("symbols") > 0:
-            for line in fileinput.input(os.path.join('debian', filename), inplace=1):
-                if settings.REPLACEME_TAG in line:
-                    replacement_done = True
-                    line = line.replace(settings.REPLACEME_TAG, new_upstream_version)
-                sys.stdout.write(line)
+        for line in fileinput.input(os.path.join('debian', filename), inplace=1):
+            if settings.REPLACEME_TAG in line:
+                files_replaced.add(filename)
+                line = line.replace(settings.REPLACEME_TAG, new_upstream_version)
+            sys.stdout.write(line)
 
-    if replacement_done:
+    if files_replaced:
         dch_env = os.environ.copy()
         dch_env["DEBFULLNAME"] = settings.BOT_DEBFULLNAME
         dch_env["DEBEMAIL"] = settings.BOT_DEBEMAIL
-        subprocess.Popen(["dch", "--release-heuristic", "changelog", "debian/*symbols: auto-update new symbols to released version"], env=dch_env).communicate()
-        subprocess.call(["bzr", "commit", "-m", "Update symbols"])
+        for filename in files_replaced:
+            subprocess.Popen(["dch", "--release-heuristic", "changelog",
+                "debian/{}: auto-update to released version".format(filename)],
+                env=dch_env).communicate()
+        subprocess.call(["bzr", "commit", "-m", "Replaced 0replaceme with real versions."])
 
 
 def has_dont_change_version_flag():
