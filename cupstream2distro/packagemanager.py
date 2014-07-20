@@ -524,7 +524,7 @@ def refresh_symbol_files(packaging_version):
     files_replaced = set()
     for filename in os.listdir("debian"):
         path = os.path.join('debian', filename)
-        if not os.path.isfile(path):
+        if not os.path.isfile(path) or os.path.islink(path):
             continue
         for line in fileinput.input(path, inplace=1):
             if settings.REPLACEME_TAG in line:

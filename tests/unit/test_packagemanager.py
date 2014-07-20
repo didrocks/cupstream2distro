@@ -962,6 +962,15 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
         packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
         self.assertTrue(os.path.isdir(debian_source_path))
 
+    def test_dont_refresh_symbols_files_for_symlink(self):
+        '''We don't touch symlinks under debian/'''
+        self.get_data_branch('basic_symbols')
+        symlink_path = os.path.join("debian", "foo.symbols.link")
+        os.symlink("foo.symbols", symlink_path)
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        self.assertTrue(os.path.islink(symlink_path))
+        self.assertEqual("foo.symbols", os.readlink(symlink_path))
+
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
     '''Test that uses online services, but as we just pull from them, we can use them'''
