@@ -954,7 +954,7 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
             subprocess.Popen(['bzr', 'revno'],
                              stdout=subprocess.PIPE).communicate()[0], "8\n")
 
-    def test_dont_refresh_symbols_files_in_directory(self):
+    def test_dont_refresh_symbols_files_for_directory(self):
         '''We don't fail for directories under debian/'''
         self.get_data_branch('dummypackage')
         debian_source_path = os.path.join("debian", "source")
