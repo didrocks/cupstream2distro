@@ -954,6 +954,15 @@ class PackageManagerOfflineTests(BaseUnitTestCase):
             subprocess.Popen(['bzr', 'revno'],
                              stdout=subprocess.PIPE).communicate()[0], "8\n")
 
+    def test_dont_refresh_symbols_files_in_directory(self):
+        '''We don't fail for directories under debian/'''
+        self.get_data_branch('dummypackage')
+        debian_source_path = os.path.join(
+            self.data_dir, "branches", "dummypackage", "debian", "source")
+        self.assertTrue(os.path.isdir(debian_source_path))
+        packagemanager.refresh_symbol_files('42.0daily83.09.14-0ubuntu1')
+        self.assertTrue(os.path.isdir(debian_source_path))
+
 
 class PackageManagerOnlineTests(BaseUnitTestCase):
     '''Test that uses online services, but as we just pull from them, we can use them'''
