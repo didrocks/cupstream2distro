@@ -523,7 +523,10 @@ def refresh_symbol_files(packaging_version):
     new_upstream_version = packaging_version.split("-")[0]
     files_replaced = set()
     for filename in os.listdir("debian"):
-        for line in fileinput.input(os.path.join('debian', filename), inplace=1):
+        path = os.path.join('debian', filename)
+        if not os.path.isfile(path) or os.path.islink(path):
+            continue
+        for line in fileinput.input(path, inplace=1):
             if settings.REPLACEME_TAG in line:
                 files_replaced.add(filename)
                 line = line.replace(settings.REPLACEME_TAG, new_upstream_version)
