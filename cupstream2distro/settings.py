@@ -95,7 +95,7 @@ SILO_RSYNCDIR = "~/out"
 SILO_STATUS_RSYNCDIR = os.path.expanduser("~/status")
 CITRAIN_BINDIR = "~/citrain/citrain"
 CITRAIN_PREPROD_BINDIR = "~/citrain-preprod/citrain"
-CITRAIN_SETTINGS = "~/.citrain_settings"
+CITRAIN_SETTINGS = os.path.expanduser("~/.citrain_settings")
 
 (SILO_EMPTY, SILO_BUILTCHECKED, SILO_PUBLISHED, SILO_DONE) = range(4)
 
