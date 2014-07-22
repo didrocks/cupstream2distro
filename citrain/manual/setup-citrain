@@ -30,7 +30,7 @@ import urllib2
 
 sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))  # add local cupstream2distro
 
-from cupstream2distro.settings import CITRAIN_BINDIR, CITRAIN_PREPROD_BINDIR, SILO_NAME_LIST, SILO_PREPROD_NAME_LIST, SILOS_DIR, SILO_RSYNCDIR
+from cupstream2distro.settings import CITRAIN_BINDIR, CITRAIN_PREPROD_BINDIR, SILO_NAME_LIST, SILO_PREPROD_NAME_LIST, SILOS_DIR, SILO_RSYNCDIR, CITRAIN_SETTINGS
 
 DEFAULT_CREDENTIALS = os.path.expanduser('~/.cu2d.cred')
 JENKINS_DAILY_CONFIG_NAME = 'citrain'
@@ -121,11 +121,18 @@ def setup_silo(jenkins_handle, jjenv, silo_name):
     """Setup a silo jenkins job"""
     logging.info("Configure {}".format(silo_name))
     ctx = {"SILOS_DIR": SILOS_DIR,
-           "SILO_NAME": silo_name}
+           "SILO_NAME": silo_name,
+           "MERGE_AND_CLEAN_TOKEN": ""}
+
+    settings = yaml.load(file(CITRAIN_SETTINGS))
+    if "auto_merge_token" in settings:
+        ctx["MERGE_AND_CLEAN_TOKEN"] = settings["auto_merge_token"]
+
     setup_job(jenkins_handle, jjenv, "{}-0-reconfigure".format(silo_name), TEMPLATES["reconfigure-silo"], ctx)
     setup_job(jenkins_handle, jjenv, "{}-1-build".format(silo_name), TEMPLATES["build"], ctx)
     setup_job(jenkins_handle, jjenv, "{}-2-publish".format(silo_name), TEMPLATES["publish"], ctx)
     setup_job(jenkins_handle, jjenv, "{}-3-merge-clean".format(silo_name), TEMPLATES["merge-clean"], ctx)
+    setup_job(jenkins_handle, jjenv, "{}-4-auto-merge-clean".format(silo_name), TEMPLATES["merge-clean"], ctx)
 
 
 if __name__ == "__main__":

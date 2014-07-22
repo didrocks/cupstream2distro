@@ -23,10 +23,12 @@ import logging
 import os
 import sys
 import subprocess
+import urllib2
+import yaml
 
 
 from cupstream2distro import packageinppamanager, packagemanager, silomanager
-from cupstream2distro.settings import SILOS_DIR, SILO_NAME_LIST, SILO_PUBLISHED, SILO_CONFIG_FILENAME
+from cupstream2distro.settings import SILOS_DIR, SILO_NAME_LIST, SILO_PUBLISHED, SILO_CONFIG_FILENAME, CITRAIN_SETTINGS
 
 if __name__ == '__main__':
 
@@ -80,6 +82,17 @@ if __name__ == '__main__':
 
         # check if all packages have reached their destination
         (all_pkg_in_dest, message) = packagemanager.check_package_reached_destination(silo_config, packages_in_dest, False, False)
+
+        if all_pkg_in_dest:
+            settings = yaml.load(file(CITRAIN_SETTINGS))
+            if "auto_merge_token" in settings:
+                if silo_config["global"]["status"]["state"] == silomanager.SILO_STATE_MERGING:
+                    logging.info("Merge and clean seems to be already running, skipping automatic merge and clean.")
+                else:
+                    logging.info("Performing automatic merge and clean.")
+                    urllib2.urlopen("https://ci-train.ubuntu.com/job/{}-4-auto-merge-clean/buildWithParameters?token={}&cause=Automatic".format(silo_name, settings["auto_merge_token"])).read()
+            else:
+                logging.warning("No token in settings file. Not performing automatic merge and clean.")
 
         # check that the config file status hasn't change
         try:

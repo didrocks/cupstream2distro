@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>The simplified merge and clean for automatic use for "{{ SILO_NAME }}" projects</description>
+  <logRotator>
+    <daysToKeep>15</daysToKeep>
+    <numToKeep>-1</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <permission>hudson.model.Item.Read:ubuntu-core-dev</permission>
+      <permission>hudson.model.Item.Cancel:ubuntu-core-dev</permission>
+      <permission>hudson.model.Item.Build:ubuntu-core-dev</permission>
+      <permission>hudson.model.Item.Read:canonical-ci-eng</permission>
+      <permission>hudson.model.Item.Cancel:canonical-ci-eng</permission>
+      <permission>hudson.model.Item.Build:canonical-ci-eng</permission>
+      <permission>hudson.model.Item.Read:ci-train-users</permission>
+      <permission>hudson.model.Item.Cancel:ci-train-users</permission>
+      <permission>hudson.model.Item.Build:ci-train-users</permission>
+      <permission>hudson.model.Item.Read:ubuntu-unity</permission>
+      <permission>hudson.model.Item.Cancel:ubuntu-unity</permission>
+      <permission>hudson.model.Item.Build:ubuntu-unity</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DEBUG</name>
+          <description>Debug mode</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>{{ MERGE_AND_CLEAN_TOKEN }}</authToken>
+  <triggers class="vector"/>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -eu
+export LANG=en_US.UTF-8
+export WORKSPACE="$PWD"
+
+cd {{ SILOS_DIR }}/{{ SILO_NAME }}
+
+OPTS=""
+if [ "$DEBUG" == "true" ]; then
+  OPTS="$OPTS --debug"
+fi
+
+{{ BINDIR }}/merge-clean $OPTS
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.builduser.BuildUser plugin="build-user-vars-plugin@1.3"/>
+  </buildWrappers>
+</project>
