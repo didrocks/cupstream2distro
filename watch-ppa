@@ -37,6 +37,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Watch for published package in a ppa",
                                      epilog="series and ppa options can be set by the corresponding long option name env variables as well")
 
+    parser.add_argument("-D", "--distribution", help="Distribution used to build the package (default: ubuntu)")
     parser.add_argument("-s", "--series", help="Serie used to build the package")
     parser.add_argument("-p", "--ppa", help="PPA to publish this package to (for instance: 'ubuntu-unity/daily-build')")
     parser.add_argument("-a", "--arch", default=None, help="Only consider the provided target")
@@ -44,8 +45,13 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    distribution = args.distribution
     series = args.series
     ppa = args.ppa
+    if not distribution:
+        distribution = os.getenv("distribution")
+        if not distribution:
+            distribution = "ubuntu" # In the end, default to the ubuntu distribution
     if not series:
         series = os.getenv("series")
     if not ppa:
@@ -63,7 +69,7 @@ if __name__ == '__main__':
     if args.destppa:
         dest_archive = launchpadmanager.get_ppa(args.destppa)
     else:
-        dest_archive = launchpadmanager.get_ubuntu_archive()
+        dest_archive = launchpadmanager.get_distribution(distribution).main_archive
     (available_archs_in_ppa, arch_all_arch, archs_to_eventually_ignore, archs_to_unconditionally_ignore) = launchpadmanager.get_available_all_and_ignored_archs(lp_series, monitored_ppa)
 
     # Collecting all packages that have been uploaded to the ppa

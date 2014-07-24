@@ -51,6 +51,7 @@ if __name__ == "__main__":
                         help='Source package name. To force a specific version to downgrade to, use source=<version>')
     parser.add_argument('commitmessage', 
                         help='Commit message to use in all packages')
+    parser.add_argument('--distribution', default='ubuntu', help="The destination distribution (default: ubuntu)")
     parser.add_argument('--ppa', help="ppa destination if destination isn't ubuntu archives")
     parser.add_argument('--series', help="force a specific series")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
@@ -69,13 +70,13 @@ if __name__ == "__main__":
             logging.error("{} doesn't exist".format(args.series))
             sys.exit(1)
     else:
-        series = launchpadmanager.get_ubuntu().current_series
+        series = launchpadmanager.get_distribution(distribution).current_series
         logging.info("Taking {} as current destination series".format(series.name))
 
     if args.ppa:
         dest = launchpadmanager.get_ppa(args.ppa)
     else:
-        dest = launchpadmanager.get_ubuntu_archive()
+        dest = launchpadmanager.get_distribution_archive(distribution)
 
     workdir = tempfile.mkdtemp()
     os.chdir(workdir)
