@@ -19,7 +19,7 @@
       <parameterDefinitions>
         <hudson.model.BooleanParameterDefinition>
           <name>ALL_SILOS</name>
-          <description>onfigure all silos jenkins job</description>
+          <description>Configure all silos jenkins job</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -45,6 +45,11 @@
         <hudson.model.BooleanParameterDefinition>
           <name>DEPLOY_PROD_CITRAIN</name>
           <description>Deploy latest preprod code to production</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DEPLOY_CHROOT</name>
+          <description>Deploy chroot maintenance job(s)"</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -92,6 +97,9 @@ if [ "${DEPLOY_PREPROD_CITRAIN}" == "true" ]; then
 fi
 if [ "${DEPLOY_PROD_CITRAIN}" == "true" ]; then
   OPTS="$OPTS --deploycitrain"
+fi
+if [ "${DEPLOY_CHROOT}" == "true" ]; then
+  OPTS="$OPTS --deploychroot"
 fi
 if [ "${DEPLOY_DEPLOY_CITRAIN}" == "true" ]; then
   OPTS="$OPTS --deploydeploy"

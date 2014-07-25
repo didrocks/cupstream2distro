@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Upgrades the cowbuilder chroots.</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>distributions</name>
+          <description>These must correspond to the available set of cowbuilder chroots.</description>
+          <defaultValue>trusty utopic</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>@daily</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#/bin/bash
+set -ex
+
+# Create the script to be executed inside the chroot
+cat &gt; build.sh &lt;&lt; EOF
+#!/bin/bash
+set -x
+
+# apt-get update can encounter transient failures due to archive updates, etc.
+apt-get update || apt-get update || apt-get update
+
+# The following were used to fix a broken package upgrade and should be safe to use on a regular basis
+apt-get dist-upgrade -y --force-yes
+apt-get -f install -y --force-yes
+apt-get dist-upgrade -y --force-yes
+apt-get autoremove -y
+EOF
+
+for dist in $distributions; do
+    # If you want to do a &apos;dry-run&apos; and not commit any changes, just omit the --save option as shown:
+    #DIST=$dist HOME=$JENKINS_HOME/citrain/chroot-tools/ sudo -E cowbuilder --execute -- build.sh
+    DIST=$dist HOME=$JENKINS_HOME/citrain/chroot-tools/ sudo -E cowbuilder --execute --save -- build.sh
+done</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
