@@ -50,7 +50,6 @@ if __name__ == '__main__':
 
     parser.add_argument("--request-id", help="Update/Configure this request id")
 
-    parser.add_argument("--distribution", default="ubuntu", help="Which distribution to target (default: ubuntu)")
     parser.add_argument("--series", help="Series used to build the package")
     parser.add_argument("--destppa", help="Consider this destppa instead of {series}-proposed")
     parser.add_argument("--mps", nargs='*', default = [], help="Merge proposal urls")
@@ -133,7 +132,7 @@ if __name__ == '__main__':
         if args.destppa:
             dest = launchpadmanager.get_ppa(args.destppa)
         else:
-            dest = launchpadmanager.get_distribution_archive(distribution)
+            dest = launchpadmanager.get_ubuntu_archive()
 
     logging.info("Configuring for {} ({}) in {}".format(", ".join(project_urls), series.name, dest.name))
     config = {"requestid": request_id,

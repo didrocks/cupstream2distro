@@ -100,7 +100,7 @@ if __name__ == '__main__':
     # getting the archives and series objects
     is_sru = not launchpadmanager.is_series_current(series)
     dest_archive = launchpadmanager.get_resource_from_token(dest_link)
-    if not launchpadmanager.is_dest_distro_archive(dest_link):
+    if not launchpadmanager.is_dest_ubuntu_archive(dest_link):
         dest_pocket = 'Release'
         logging.info("Direct copy from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series".format(
                       src_archive=src_ppa.name, src_pocket=src_pocket, dest_archive=dest_archive.name, dest_pocket=dest_pocket,
@@ -161,10 +161,9 @@ if __name__ == '__main__':
 
         # check destination version
         message = "Previous available version ({}) is not the latest version anymore in [] ([]).\nPlease ensure that this version has been merged back in trunk and relaunch prepare or use ignore version destination option.".format(supposed_dest_version)
-        if launchpadmanager.is_dest_distro_archive(dest_link):
+        if launchpadmanager.is_dest_ubuntu_archive(dest_link):
             # Check that we don't skip a version unintendly
-            archive = launchpadmanager.get_resource_from_token(dest_link)
-            version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=archive)
+            version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=launchpadmanager.get_ubuntu_archive())
             if not version_in_dest == supposed_dest_version:
                 logging.error(message.replace('[]', '{}').format("the archive", version_in_dest))
                 dest_version_check_fail = True
@@ -221,7 +220,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
     #  now ack the changes (if copy is needed)
-    if not launchpadmanager.is_dest_distro_archive(dest_link):
+    if not launchpadmanager.is_dest_ubuntu_archive(dest_link):
         for (source, version, tip_rev, branch) in all_packages_uploaded:
             dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=series,
                                      include_binaries=True, to_pocket=dest_pocket, to_series=series,

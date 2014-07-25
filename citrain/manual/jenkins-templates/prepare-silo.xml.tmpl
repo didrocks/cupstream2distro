@@ -26,11 +26,6 @@
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>DISTRIBUTION</name>
-          <description>Distribution that's being targetted by this landing (mandatory)</description>
-          <defaultValue>ubuntu</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>SERIES</name>
           <description>Publish for this series (empty to reconfigure if doesn't match default value)</description>
           <defaultValue></defaultValue>
@@ -80,9 +75,6 @@ REQUEST_ID=${REQUEST_ID-}
 SERIES=${SERIES-}
 DEST=${DEST-}
 
-if [ ! -z "$DISTRIBUTION" ]; then
-  OPTS="$OPTS --distribution $DISTRIBUTION"
-fi
 if [ ! -z "$SERIES" ]; then
   OPTS="$OPTS --series $SERIES"
 fi

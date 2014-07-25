@@ -23,16 +23,11 @@
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>DISTRIBUTION</name>
-          <description>Distribution that's being targetted by this landing (mandatory)</description>
-          <defaultValue>ubuntu</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>SERIES</name>
           <description>Publish for this series (mandatory)</description>
           <defaultValue>utopic</defaultValue>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDe
+        <hudson.model.StringParameterDefinition>
           <name>MERGE_PROPOSALS</name>
           <description>Merge proposal urls (space separated)</description>
           <defaultValue></defaultValue>
@@ -95,9 +90,6 @@ SOURCES=${SOURCES-}
 LANDERS=${LANDERS-}
 DEST=${DEST-}
 
-if [ ! -z "$DISTRIBUTION" ]; then
-  OPTS="$OPTS --distribution $DISTRIBUTION"
-fi
 if [ ! -z "$SERIES" ]; then
   OPTS="$OPTS --series $SERIES"
 fi

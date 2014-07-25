@@ -35,10 +35,7 @@ def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_
         if use_staging:
             server = 'staging'
         else:
-            # XXX: This is completely temporary. As we want to test on 'dogfood' for preprod, we need to actually explicitly switch to it
-            server = 'https://api.dogfood.paddev.net/' 
-
-        use_cred_file = None
+            server = 'production'
 
         # as launchpadlib isn't multiproc, fiddling the cache dir if any
         launchpadlib_dir = os.getenv("JOB_NAME")
@@ -58,20 +55,10 @@ def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_
     return launchpad
 
 
-def get_distribution(name):
-    '''Get the given distribution, e.g. ubuntu'''
-    lp = get_launchpad()
-    return lp.distributions[name]
-
-
-def get_distribution_archive(name):
-    '''Get the archive for the given distribution'''
-    return get_distribution(name).main_archive
-
-
 def get_ubuntu():
     '''Get the ubuntu distro'''
-    return get_distribution('ubuntu')
+    lp = get_launchpad()
+    return lp.distributions['ubuntu']
 
 
 def get_ubuntu_archive():
@@ -79,9 +66,9 @@ def get_ubuntu_archive():
     return get_ubuntu().main_archive
 
 
-def get_series(series_name, distribution='ubuntu'):
+def get_series(series_name):
     '''Return the launchpad object for the requested series'''
-    return get_distribution(distribution).getSeries(name_or_version=series_name)
+    return get_ubuntu().getSeries(name_or_version=series_name)
 
 
 def get_bugs_titles(author_bugs):
@@ -144,9 +131,9 @@ def get_ppa(ppa_name):
     ppa_dispatch = ppa_name.split("/")
     return get_launchpad().people[ppa_dispatch[0]].getPPAByName(name=ppa_dispatch[1])
 
-def is_series_current(series_name, distribution='ubuntu'):
+def is_series_current(series_name):
     '''Return if series_name is the edge development version'''
-    return get_distribution(distribution).current_series.name == series_name
+    return get_ubuntu().current_series.name == series_name
 
 def get_resource_from_url(url):
     '''Return a lp resource from a launchpad url'''
@@ -159,10 +146,9 @@ def get_resource_from_token(url):
     lp = get_launchpad()
     return lp.load(url)
 
-def is_dest_distro_archive(series_link):
-    '''return if series_link is the given distribution's main archive'''
-    archive = get_resource_from_token(series_link)
-    return archive.distribution.main_archive_link == series_link
+def is_dest_ubuntu_archive(series_link):
+    '''return if series_link is the ubuntu archive'''
+    return series_link == get_ubuntu_archive().self_link
 
 def get_person(nickname):
     '''Return a launchpad person'''

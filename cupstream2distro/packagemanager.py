@@ -595,7 +595,7 @@ def check_package_reached_destination(silo_config, packages_in_dest, ignoremissi
             one_package_not_in_dest = True
 
             # if destination is the archive, try to check if it's in proposed or in any queue
-            if launchpadmanager.is_dest_distro_archive(dest_link):
+            if launchpadmanager.is_dest_ubuntu_archive(dest_link):
                 if is_version_for_series_in_dest(source, packages_in_dest[source], series, dest, pocket="Proposed"):
                     in_proposed_msg = "{} ({}) is in the proposed pocket. ".format(source, packages_in_dest[source])
                     logging.warning(in_proposed_msg + "You run that job either too quickly or it's stuck there. More information available at https://wiki.ubuntu.com/ProposedMigration.")
