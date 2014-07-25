@@ -42,7 +42,8 @@ TEMPLATES = {
     'build': 'build.xml.tmpl',
     'publish': 'publish.xml.tmpl',
     'merge-clean': 'merge-clean.xml.tmpl',
-    'deploy-citrain': 'deploy-citrain.xml.tmpl'
+    'deploy-citrain': 'deploy-citrain.xml.tmpl',
+    'upgrade-chroot': 'upgrade-chroot.xml.tmpl',
 }
 
 def load_jenkins_credentials(path, jenkins_name):
@@ -152,6 +153,8 @@ if __name__ == "__main__":
                         help='Deploy latest preprod code to production')
     parser.add_argument('--deploydeploy', action='store_true',
                         help='Configure the deploy "deploy CI train job" as well')
+    parser.add_argument('--deploychroot', action='store_true',
+                        help='Deploy the chroot maintenance job(s)')
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
     args = parser.parse_args()
@@ -201,3 +204,6 @@ if __name__ == "__main__":
     if args.deploydeploy:
         logging.info("Configure deploy citrain job")
         setup_job(jkh, jjenv, "deploy-citrain", TEMPLATES["deploy-citrain"])
+    if args.deploychroot:
+        logging.info("Configure chroot maintenance job(s)")
+        setup_job(jkh, jjenv, "upgrade-chroot", TEMPLATES["upgrade-chroot"])
