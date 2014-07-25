@@ -79,9 +79,9 @@ def get_ubuntu_archive():
     return get_ubuntu().main_archive
 
 
-def get_series(series_name):
+def get_series(series_name, distribution='ubuntu'):
     '''Return the launchpad object for the requested series'''
-    return get_ubuntu().getSeries(name_or_version=series_name)
+    return get_distribution(distribution).getSeries(name_or_version=series_name)
 
 
 def get_bugs_titles(author_bugs):
