@@ -37,6 +37,7 @@ def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_
         else:
             # XXX: This is completely temporary. As we want to test on 'dogfood' for preprod, we need to actually explicitly switch to it
             server = 'https://api.dogfood.paddev.net/' 
+            server = 'production'
 
         use_cred_file = None
 
