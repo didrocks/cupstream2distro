@@ -26,6 +26,7 @@ import requests
 import subprocess
 import sys
 import tempfile
+import re
 
 from cupstream2distro.settings import SPREADSHEET_CSV_URL
 from cupstream2distro.tools import parse_and_clean_entry
