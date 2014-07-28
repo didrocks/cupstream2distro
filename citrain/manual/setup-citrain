@@ -27,6 +27,7 @@ import yaml
 import subprocess
 import sys
 import urllib2
+import shutil
 
 sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))  # add local cupstream2distro
 
@@ -101,22 +102,37 @@ def setup_job(jenkins_handle, jjenv, jobname, template_name, ctx={}):
         jenkins_handle.reconfig_job(jobname, jkcfg)
 
 
-def deploy_citrain(preprod=False):
-    """Deploy latest citrain code"""
+def deploy_citrain(preprod_branch=None):
+    """Deploy latest citrain code or use new code for preprod"""
     cur_dir = os.path.abspath('.')
-    citrain_dir = os.path.join(cur_dir, 'citrain')
-    source_dir = 'lp:cupstream2distro'
-    preprod_dir = os.path.join(cur_dir, 'citrain-preprod')
-    if preprod:
-        citrain_dir = preprod_dir
+
+    if preprod_branch:
+        # Deploy preproduction
+        preprod_dir = os.path.join(cur_dir, 'citrain-preprod')
+        preprod_dir_new = preprod_dir + "_new"
+        preprod_dir_old = preprod_dir + "_old"
+
+        # Clean up on start in case last upgrade didn't happen completely
+        if os.path.exists(preprod_dir_new):
+            shutil.rmtree(preprod_dir_new)
+        if os.path.exists(preprod_dir_old):
+            shutil.rmtree(preprod_dir_old)
+
+        subprocess.call(['bzr', 'branch', preprod_branch, preprod_dir_new])
+        if os.path.exists(preprod_dir):
+            os.rename(preprod_dir, preprod_dir_old)
+        os.rename(preprod_dir_new, preprod_dir)
     else:
-        source_dir = preprod_dir
-    if not os.path.isdir(citrain_dir):
-        subprocess.call(['bzr', 'branch', source_dir, citrain_dir])
-    else:
-        os.chdir(citrain_dir)
-        subprocess.call(['bzr', 'pull', '--overwrite'])
-        os.chdir(cur_dir)
+        # Deploy production
+        citrain_dir = os.path.join(cur_dir, 'citrain')
+        source_dir = 'lp:cupstream2distro'
+        if not os.path.isdir(citrain_dir):
+            subprocess.call(['bzr', 'branch', source_dir, citrain_dir])
+        else:
+            os.chdir(citrain_dir)
+            subprocess.call(['bzr', 'pull', '--overwrite'])
+            os.chdir(cur_dir)
+
 
 def setup_silo(jenkins_handle, jjenv, silo_name):
     """Setup a silo jenkins job"""
@@ -147,8 +163,8 @@ if __name__ == "__main__":
                         help='Configure prepare job as well')
     parser.add_argument('--checkpublicationmigration', action='store_true',
                         help='Configure check-publication-migration job as well')
-    parser.add_argument('--deploypreprod', action='store_true',
-                        help='Deploy preproduction code of citrain')
+    parser.add_argument('--deploypreprod', 
+                        help='Deploy custom branch for preproduction code of citrain')
     parser.add_argument('--deploycitrain', action='store_true',
                         help='Deploy latest preprod code to production')
     parser.add_argument('--deploydeploy', action='store_true',
@@ -178,8 +194,8 @@ if __name__ == "__main__":
     jjenv = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 
     if args.deploypreprod:
-        logging.info("Deploy latest citrain to preprod")
-        deploy_citrain(preprod=True)
+        logging.info("Deploy latest citrain from branch {} to preprod".format(args.deploypreprod))
+        deploy_citrain(args.deploypreprod)
     if args.deploycitrain:
         logging.info("Deploy latest preprod citrain code to production")
         deploy_citrain()

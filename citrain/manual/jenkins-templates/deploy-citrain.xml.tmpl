@@ -37,14 +37,14 @@
           <description>Configure check-publication-migration job as well</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>DEPLOY_PREPROD_CITRAIN</name>
-          <description>Deploy preproduction code of citrain</description>
-          <defaultValue>false</defaultValue>
+          <description>Deploy preproduction code of citrain from the selected branch</description>
+          <defaultValue></defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>DEPLOY_PROD_CITRAIN</name>
-          <description>Deploy latest preprod code to production</description>
+          <description>Deploy latest citrain code to production</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
@@ -92,8 +92,8 @@ fi
 if [ "$CHECKPUBLICATIONMIGRATION" == "true" ]; then
   OPTS="$OPTS --checkpublicationmigration"
 fi
-if [ "${DEPLOY_PREPROD_CITRAIN}" == "true" ]; then
-  OPTS="$OPTS --deploypreprod"
+if [ ! -z "$DEPLOY_PREPROD_CITRAIN" ]; then
+  OPTS="$OPTS --deploypreprod $DEPLOY_PREPROD_CITRAIN"
 fi
 if [ "${DEPLOY_PROD_CITRAIN}" == "true" ]; then
   OPTS="$OPTS --deploycitrain"
