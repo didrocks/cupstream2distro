@@ -20,11 +20,6 @@
 import os
 
 SPREADSHEET_CSV_URL = "https://docs.google.com/a/canonical.com/spreadsheet/ccc?key=0AuDk72Lpx8U5dFVHQ3FuMDJGLUZCamJfSjYzbWh3Wnc&output=csv"
-LANDERS_COL_NUM = 1
-SPREADSHEET_ID_COL_NUM = 10
-SPREADSHEET_SILONAME_COL_NUM = 11
-SPREADSHEET_MPS_COL_NUM = 5
-SPREADSHEET_SOURCES_COL_NUM = 6
 
 REV_STRING_FORMAT = "Automatic snapshot from revision"
 NEW_CHANGELOG_PATTERN = "^{} \(.*\) (?!UNRELEASED)"

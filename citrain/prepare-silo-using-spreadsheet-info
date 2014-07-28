@@ -27,8 +27,12 @@ import subprocess
 import sys
 import tempfile
 
-from cupstream2distro.settings import SPREADSHEET_CSV_URL, LANDERS_COL_NUM, SPREADSHEET_ID_COL_NUM, SPREADSHEET_SILONAME_COL_NUM, SPREADSHEET_MPS_COL_NUM, SPREADSHEET_SOURCES_COL_NUM
+from cupstream2distro.settings import SPREADSHEET_CSV_URL
 from cupstream2distro.tools import parse_and_clean_entry
+
+
+class COL:
+    pass
 
 
 if __name__ == '__main__':
@@ -82,23 +86,32 @@ if __name__ == '__main__':
     unique_silo_name = True
     with open(filename, 'rb') as f:
         content = csv.reader(f)
+
+        # First two rows are misc header data that don't conform to the columns
+        content.next() and content.next()
+
+        # Map column header names to column numbers
+        for i, heading in enumerate(content.next()):
+            setattr(COL, re.split('\W', heading.lower())[0], i)
+
+        # Now iterate over the remaining rows, which are just the actual data
         for row in content:
             if args.reconfigure_for_silo:
-                if row[SPREADSHEET_SILONAME_COL_NUM] == args.reconfigure_for_silo:
+                if row[COL.assigned] == args.reconfigure_for_silo:
                     # second matching
                     if request_found:
                         logging.error("{} is available more than once in the spreadsheet. Please request to fix some wrong metadata due to a bad automated sync.".format(args.reconfigure_for_silo))
                         unique_silo_name = False
-                    args.request_id = row[SPREADSHEET_ID_COL_NUM]
-                    raw_mps = row[SPREADSHEET_MPS_COL_NUM]
-                    raw_sources = row[SPREADSHEET_SOURCES_COL_NUM]
-                    raw_landers = row[LANDERS_COL_NUM]
+                    args.request_id = row[COL.request]
+                    raw_mps = row[COL.merge]
+                    raw_sources = row[COL.additional]
+                    raw_landers = row[COL.lander]
                     request_found = True
             else:
-                if row[SPREADSHEET_ID_COL_NUM] == args.request_id:
-                    raw_mps = row[SPREADSHEET_MPS_COL_NUM]
-                    raw_sources = row[SPREADSHEET_SOURCES_COL_NUM]
-                    raw_landers = row[LANDERS_COL_NUM]
+                if row[COL.request] == args.request_id:
+                    raw_mps = row[COL.merge]
+                    raw_sources = row[COL.additional]
+                    raw_landers = row[COL.lander]
                     request_found = True
                     break
     os.remove(filename)
