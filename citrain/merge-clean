@@ -43,7 +43,7 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
 
     for source in silo_config["mps"]:
         source_branch_uri = os.path.join(base_path, source)
-        target_branch = launchpadmanager.get_resource_from_token(silo_config['mps'][source][0]).target_branch
+        target_branch = launchpadmanager.get_resource_from_token(silo_config['mps'][source][0], True).target_branch
 
         version = packages_in_dest[source]
         config = ConfigParser.RawConfigParser()
@@ -68,7 +68,7 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
     push_all_branches = True
     for source in silo_config["mps"]:
         branch_uri = os.path.join(base_path, source)
-        target_branch_link = launchpadmanager.get_resource_from_token(silo_config['mps'][source][0]).target_branch.web_link
+        target_branch_link = launchpadmanager.get_resource_from_token(silo_config['mps'][source][0], True).target_branch.web_link
         logging.info("Trying to push to {}".format(target_branch_link))
         if not branchhandling.push_to_branch(branch_uri, target_branch_link):
             url = BRANCH_URL.format(source, "recup")

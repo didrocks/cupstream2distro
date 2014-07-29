@@ -24,6 +24,7 @@ import lazr
 import logging
 import os
 launchpad = None
+launchpad_main = None
 
 from .settings import ARCHS_TO_EVENTUALLY_IGNORE, ARCHS_TO_UNCONDITIONALLY_IGNORE, VIRTUALIZED_PPA_ARCH, CRED_FILE_PATH, COMMON_LAUNCHPAD_CACHE_DIR
 
@@ -54,6 +55,32 @@ def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_
                                              launchpadlib_dir=launchpadlib_dir)
 
     return launchpad
+
+def get_launchpad_main(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_PATH)):
+    '''Get THE Launchpad'''
+    global launchpad_main
+    if not launchpad_main:
+        if use_staging:
+            server = 'staging'
+        else:
+            server = 'production' 
+
+        # as launchpadlib isn't multiproc, fiddling the cache dir if any
+        launchpadlib_dir = os.getenv("JOB_NAME")
+        if launchpadlib_dir:
+            launchpadlib_dir = os.path.join(COMMON_LAUNCHPAD_CACHE_DIR, launchpadlib_dir)
+
+        if use_cred_file:
+            launchpad_main = Launchpad.login_with('cupstream2distro', server, allow_access_levels=["WRITE_PRIVATE"],
+                                             version='devel',  # devel because copyPackage is only available there
+                                             credentials_file=use_cred_file,
+                                             launchpadlib_dir=launchpadlib_dir)
+        else:
+            launchpad_main = Launchpad.login_with('cupstream2distro', server, allow_access_levels=["WRITE_PRIVATE"],
+                                             version='devel',  # devel because copyPackage is only available there
+                                             launchpadlib_dir=launchpadlib_dir)
+
+    return launchpad_main
 
 
 def get_distribution(name):
@@ -146,15 +173,21 @@ def is_series_current(series_name, distribution='ubuntu'):
     '''Return if series_name is the edge development version'''
     return get_distribution(distribution).current_series.name == series_name
 
-def get_resource_from_url(url):
+def get_resource_from_url(url, use_main=False):
     '''Return a lp resource from a launchpad url'''
-    lp = get_launchpad()
+    if use_main:
+        lp = get_launchpad_main()
+    else:
+        lp = get_launchpad()
     url = lp.resource_type_link.replace("/#service-root", "") + url.split("launchpad.net")[1]
     return lp.load(url)
 
-def get_resource_from_token(url):
+def get_resource_from_token(url, use_main=False):
     '''Return a lp resource from a launchpad token'''
-    lp = get_launchpad()
+    if use_main:
+        lp = get_launchpad_main()
+    else:
+        lp = get_launchpad()
     return lp.load(url)
 
 def is_dest_distro_archive(series_link):

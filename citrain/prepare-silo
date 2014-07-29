@@ -155,7 +155,7 @@ if __name__ == '__main__':
     one_project_already_in_use = False
     # grab the project name of all MP
     for mp_url in args.mps:
-        mp = launchpadmanager.get_resource_from_url(mp_url)
+        mp = launchpadmanager.get_resource_from_url(mp_url, True)
         try:
             source_package_name = branchhandling.get_source_package_name_from_branch(mp.target_branch.web_link)
         except AttributeError:
@@ -201,7 +201,7 @@ if __name__ == '__main__':
     for source in config["mps"]:
         first_mp = None
         for mp_link in config['mps'][source]:
-            mp = launchpadmanager.get_resource_from_token(mp_link)
+            mp = launchpadmanager.get_resource_from_token(mp_link, True)
             if not first_mp:
                 first_mp = mp
             else:
