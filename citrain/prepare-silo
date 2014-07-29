@@ -129,11 +129,11 @@ if __name__ == '__main__':
         if not args.series:
             logging.error("You need to provide a series to attribute a new silo")
             sys.exit(1)
-        series = launchpadmanager.get_series(args.series)
+        series = launchpadmanager.get_series(args.series, args.distribution)
         if args.destppa:
             dest = launchpadmanager.get_ppa(args.destppa)
         else:
-            dest = launchpadmanager.get_distribution_archive(distribution)
+            dest = launchpadmanager.get_distribution_archive(args.distribution)
 
     logging.info("Configuring for {} ({}) in {}".format(", ".join(project_urls), series.name, dest.name))
     config = {"requestid": request_id,
