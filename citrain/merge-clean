@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])
-    ppa_base_path = "http://ppa.launchpad.net/{}/{}/ubuntu/dists/{}/main/".format(ppa.owner.name, ppa.name, series.name)
+    ppa_base_path = "http://ppa.launchpad.net/{}/{}/{}/dists/{}/main/".format(ppa.owner.name, ppa.name, ppa.distribution.name, series.name)
     logging.info("Clean now the source ppa {} in {}".format(ppa.web_link, series.name))
 
     for pkg in ppa.getPublishedSources(distro_series=series):
