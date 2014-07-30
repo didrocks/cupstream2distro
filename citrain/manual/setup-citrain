@@ -209,13 +209,13 @@ if __name__ == "__main__":
     if args.silos:
         logging.info("Configure a set of silos")
         for silo_name in args.silos:
-            if silo_name not in SILO_NAME_LIST:
-                logging.error("silo {} doesn't exist in {}".format(silo_name, SILO_NAME_LIST))
+            if silo_name not in SILO_NAME_LIST['ubuntu'] + SILO_NAME_LIST['ubuntu-rtm']:
+                logging.error("silo {} doesn't exist in {}".format(silo_name, SILO_NAME_LIST['ubuntu'] + SILO_NAME_LIST['ubuntu-rtm']))
                 sys.exit(1)
             setup_silo(jkh, jjenv, silo_name)
     elif args.allsilos:
         logging.info("Configure all silos")
-        for silo_name in SILO_NAME_LIST:
+        for silo_name in SILO_NAME_LIST['ubuntu'] + SILO_NAME_LIST['ubuntu-rtm']:
             setup_silo(jkh, jjenv, silo_name)
     if args.deploydeploy:
         logging.info("Configure deploy citrain job")

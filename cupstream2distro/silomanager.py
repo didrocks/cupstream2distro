@@ -96,8 +96,8 @@ def remove_status_file(silo_name):
 
 def is_project_not_in_any_configs(project_name, series, dest, base_silo_uri, ignore_silo, dont_error_but_warn=False):
     """Return true if the project for that serie in that dest is not in any configuration"""
-    logging.info("Checking if {} is already configured for {} ({}) in another silo".format(project_name, dest.name, series.name))
-    for silo_name in SILO_NAME_LIST:
+    logging.info("Checking if {} is already configured for {} ({} {}) in another silo".format(project_name, dest.name, dest.distribution.name, series.name))
+    for silo_name in SILO_NAME_LIST[dest.distribution.name]:
         # we are reconfiguring current silo, ignoring it
         if ignore_silo == silo_name:
             continue
@@ -117,7 +117,7 @@ def is_project_not_in_any_configs(project_name, series, dest, base_silo_uri, ign
 def find_silo_config_for_request_id(request_id, base_silo_uri):
     """Find a config silo matching the request id, return None otherwise"""
     logging.info("Checking if {} is in any assigned silo".format(request_id))
-    for silo_name in SILO_NAME_LIST:
+    for silo_name in SILO_NAME_LIST['ubuntu'] + SILO_NAME_LIST['ubuntu-rtm']:
         config = load_config(os.path.join(base_silo_uri, silo_name))
         if config:
             if config["requestid"] == request_id:
@@ -125,11 +125,11 @@ def find_silo_config_for_request_id(request_id, base_silo_uri):
     return None
 
 
-def return_first_available_silo(base_silo_uri, preprod=False):
+def return_first_available_silo(base_silo_uri, preprod=False, distribution='ubuntu'):
     """Check which silos are free and return the first available one. We separate preprod and production silos"""
-    silo_list = [silo for silo in SILO_NAME_LIST if silo not in SILO_PREPROD_NAME_LIST]
+    silo_list = [silo for silo in SILO_NAME_LIST[distribution] if silo not in SILO_PREPROD_NAME_LIST[distribution]]
     if preprod:
-        silo_list = SILO_PREPROD_NAME_LIST
+        silo_list = SILO_PREPROD_NAME_LIST[distribution]
 
     for silo_name in silo_list:
         if not os.path.isfile(os.path.join(base_silo_uri, silo_name, SILO_CONFIG_FILENAME)):

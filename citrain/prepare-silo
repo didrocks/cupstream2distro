@@ -83,10 +83,15 @@ if __name__ == '__main__':
     project_urls = args.mps[:]
     project_urls.extend(args.sources)
 
+    # make sure the distribution parameter is one of the two supported right now
+    if args.distribution not in [ 'ubuntu', 'ubuntu-rtm' ]:
+        logging.error("Distribution {} is currently not supported in the CI Train. Not assigning".format(args.distribution))
+        sys.exit(1)
+
     # create all silo names
     with ignored(OSError):
         os.mkdir(SILOS_DIR)
-    for silo_name in SILO_NAME_LIST:
+    for silo_name in SILO_NAME_LIST[args.distribution]:
         with ignored(OSError):
             os.mkdir(os.path.join(SILOS_DIR, silo_name))
 
@@ -119,7 +124,7 @@ if __name__ == '__main__':
         logging.debug("Components in previous configure: " + ", ".join(allowed_components_from_previous_config))
     else:
         logging.info("Checking that a silo is available")
-        silo_name = silomanager.return_first_available_silo(SILOS_DIR, preprod=args.use_preprod_silo)
+        silo_name = silomanager.return_first_available_silo(SILOS_DIR, preprod=args.use_preprod_silo, distribution=args.distribution)
         if not silo_name:
             logging.error("No silo is available")
             sys.exit(1)
@@ -214,7 +219,7 @@ if __name__ == '__main__':
         logging.error("Not all MP targetting the same source package are targetting the same branch. Please recheck your configuration.")
         sys.exit(1)
 
-    ppa_uri = SILO_BUILDPPA_SCHEME.format(silo_name)
+    ppa_uri = SILO_BUILDPPA_SCHEME.format(distribution, silo_name)
     try:
         ppa = launchpadmanager.get_ppa(ppa_uri)
     except lazr.restfulclient.errors.NotFound:

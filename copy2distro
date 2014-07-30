@@ -47,7 +47,7 @@ if __name__ == '__main__':
                 logging.debug("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {}) by {}".format(source, version, ppa, from_series,
                                                                                                                      src_pocket, to_series, dest_pocket,
                                                                                                                      sponsored_name))
-                if ppa not in [SILO_BUILDPPA_SCHEME.format(ppa_name) for ppa_name in SILO_NAME_LIST]:
+                if ppa not in [SILO_BUILDPPA_SCHEME.format(dest_archive.distribution.name, ppa_name) for ppa_name in SILO_NAME_LIST['ubuntu']]:
                     logging.error("Rejecting {} as {} isn't in the allowed ppa list.".format(source, ppa))
                     continue
 
