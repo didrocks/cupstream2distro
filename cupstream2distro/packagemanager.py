@@ -41,14 +41,14 @@ def sort_by_date_created(sources):
     return sorted(filtered_sources, key=attrgetter("date_created"), reverse=True)
 
 
-def get_current_version_for_series(source_package_name, series_name, ppa_name=None, dest=None, distribution='ubuntu'):
+def get_current_version_for_series(source_package_name, series_name, ppa_name=None, dest=None):
     '''Get current version for a package name in that series'''
-    series = launchpadmanager.get_series(series_name, distribution)
     if not dest:
         if ppa_name:
             dest = launchpadmanager.get_ppa(ppa_name)
         else:
-            dest = launchpadmanager.get_distribution_archive(distribution)
+            dest = launchpadmanager.get_ubuntu_archive()
+    series = launchpadmanager.get_series(series_name, dest.distribution.name)
     source_collection = dest.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series)
     try:
         return sort_by_date_created(source_collection)[0].source_package_version
