@@ -117,8 +117,8 @@ if __name__ == '__main__':
             sys.exit(1)
 
     # prepare source and dput by one
-    src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
-    dest_ppa_name = "{}/{}".format(dest.owner.name, dest.name)
+    src_ppa_name = "{}/{}/{}".format(src_ppa.owner.name, src_ppa.distribution.name, src_ppa.name)
+    dest_ppa_name = "{}/{}/{}".format(dest.owner.name, src_ppa.distribution.name, dest.name)
 
     src_pkgs_to_upload = {}
     for source_package_name in components_to_prepare:
