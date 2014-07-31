@@ -181,7 +181,7 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
 
     logging.info("Grab code for {} ({}) from {}".format(source_package_name, dest_current_version, series_name))
     source_package_download_dir = os.path.join('ubuntu', source_package_name)
-    series = launchpadmanager.get_series(series_name)
+    series = launchpadmanager.get_series(series_name, dest_archive.distribution.name)
     with ignored(OSError):
         os.makedirs(source_package_download_dir)
     os.chdir(source_package_download_dir)
