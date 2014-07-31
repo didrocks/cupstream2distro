@@ -101,5 +101,6 @@ SERIES_VERSION = {
     'raring': '13.04',
     'saucy': '13.10',
     'trusty': '14.04',
-    'utopic': '14.10'
+    'utopic': '14.10',
+    '14.09': '14.09'
 }
