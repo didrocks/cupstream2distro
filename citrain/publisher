@@ -76,13 +76,18 @@ if __name__ == '__main__':
     all_silo_projects = silomanager.get_all_projects(silo_config)
 
     if not args.allowunapproved:
+        unapproved = []
         for source in silo_config["mps"]:
             for mp_link in silo_config["mps"][source]:
                 mp = launchpadmanager.get_resource_from_token(mp_link)
                 if mp.queue_status != "Approved":
-                    logging.error("Some merge requests are not yet approved. Please review all merges and re-run the build job")
-                    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: Some merges are unapproved.")
-                    sys.exit(1)
+                    unapproved.append(mp.web_link)
+        if unapproved:
+            logging.error("Some merge requests are not yet approved. Please review the following merges and re-run the build job:")
+            for mp in unapproved:
+                logging.error(mp)
+            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: Some merges are unapproved.")
+            sys.exit(1)
     else:
         logging.warning("Allowing unapproved merges has been requested. Publishing merges as they are.")
 
