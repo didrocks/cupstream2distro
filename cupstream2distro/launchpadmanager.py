@@ -125,15 +125,15 @@ def get_bugs_titles(author_bugs):
     return author_bugs_with_title
 
 
-def open_bugs_for_source(bugs_list, source_name, series_name):
+def open_bugs_for_source(bugs_list, source_name, series_name, distribution_name='ubuntu'):
     lp = get_launchpad()
-    ubuntu = get_ubuntu()
+    distro = get_distribution(distribution_name)
 
     # don't nominate for current series
-    if ubuntu.current_series.name == series_name:
-        package = ubuntu.getSourcePackage(name=source_name)
+    if distro.current_series.name == series_name:
+        package = distro.getSourcePackage(name=source_name)
     else:
-        series = get_series(series_name)
+        series = get_series(series_name, distribution_name)
         package = series.getSourcePackage(name=source_name)
 
     for bug_num in bugs_list:

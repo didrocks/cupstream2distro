@@ -290,7 +290,7 @@ if __name__ == '__main__':
         branchhandling.commit_release(packaging_version)
 
         logging.info("Sync launchpad with current proposed work")
-        launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series.name)
+        launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series.name, dest.distribution.name)
 
         logging.info("Build source package")
         packagemanager.build_source_package(series.name, previous_finaledest_version)
