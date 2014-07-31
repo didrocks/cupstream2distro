@@ -188,8 +188,8 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
     os.chdir(source_package_download_dir)
 
     # XXX: Temporary
-    timeout = socket.gettimeout()
-    socket.settimeout(300)
+    timeout = socket.getdefaulttimeout()
+    socket.setdefaulttimeout(300)
 
     try:
         sourcepkg = sort_by_date_created(dest_archive.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series, version=dest_current_version))[0]
@@ -203,7 +203,7 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
     if instance.returncode != 0:
         raise Exception(stderr.decode("utf-8").strip())
 
-    socket.settimeout(timeout)
+    socket.setdefaulttimeout(timeout)
 
     # check the dir exist
     splitted_version = dest_current_version.split(':')[-1].split('-')  # remove epoch is there is one
