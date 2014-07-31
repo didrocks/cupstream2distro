@@ -324,7 +324,8 @@ def check_if_packages_require_twin_upload(sources):
     The most well known ones are the -gles counterparts for some Qt/UITK related packages'''
     twin_packages = { "qtbase-opensource-src": "qtbase-opensource-src-gles", "qtdeclarative-opensource-src": "qtdeclarative-opensource-src-gles",
         "qt3d-opensource-src": "qt3d-opensource-src-gles", "qtlocation-opensource-src": "qtlocation-opensource-src-gles",
-        "qtubuntu": "qtubuntu-gles", "ubuntu-ui-toolkit": "ubuntu-ui-toolkit-gles", "qtmultimedia-opensource-src": "qtmultimedia-opensource-src-gles" }
+        "qtubuntu": "qtubuntu-gles", "ubuntu-ui-toolkit": "ubuntu-ui-toolkit-gles", "qtmultimedia-opensource-src": "qtmultimedia-opensource-src-gles",
+        "qtmir": "qtmir-gles" }
 
     missing = []
     for source in sources:

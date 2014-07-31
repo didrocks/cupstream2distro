@@ -197,7 +197,7 @@ if __name__ == "__main__":
         logging.info("Deploy latest citrain from branch {} to preprod".format(args.deploypreprod))
         deploy_citrain(args.deploypreprod)
     if args.deploycitrain:
-        logging.info("Deploy latest preprod citrain code to production")
+        logging.info("Deploy latest citrain code to production")
         deploy_citrain()
     if args.prepare:
         logging.info("Configure prepare silos job")
