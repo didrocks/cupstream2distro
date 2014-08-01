@@ -380,11 +380,10 @@ if __name__ == '__main__':
     logging.info("Check ppa status in {}".format(src_ppa.web_link))
     watch_ppa_exec = os.path.join(os.path.dirname(__file__), "watch-ppa")
     call_params = [watch_ppa_exec, "-s", series.name, "-p", "{}/{}".format(src_ppa.owner.name, src_ppa.name)]
+    dest_archive = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
+    call_params.extend(["--distribution", dest_archive.distribution.name])
     if not launchpadmanager.is_dest_distro_archive(silo_config["global"]["dest"]):
         call_params.extend(["--destppa", dest_ppa_name])
-    else:
-        dest_archive = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
-        call_params.extend(["--distribution", dest_archive.distribution.name])
     if subprocess.call(call_params) != 0:
         silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Build failed: Some packages failed to build.")
         sys.exit(1)

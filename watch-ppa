@@ -63,7 +63,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Prepare launchpad connection:
-    lp_series = launchpadmanager.get_series(series)
+    lp_series = launchpadmanager.get_series(series, distribution)
     monitored_ppa = launchpadmanager.get_ppa(ppa)
     # getting the archives and series objects
     if args.destppa:
