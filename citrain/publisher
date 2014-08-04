@@ -168,7 +168,7 @@ if __name__ == '__main__':
             if not version_in_dest == supposed_dest_version:
                 logging.error(message.replace('[]', '{}').format("the archive", version_in_dest))
                 dest_version_check_fail = True
-            packagelist_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(src_ppa_name, src_ppa_pocket, series, distro_pocket, series, source, version, version_in_dest, publisher_nickname))
+            packagelist_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(src_ppa_name, src_ppa_pocket, series, distro_pocket, series, source, version, version_in_dest, publisher_nickname, dest_archive.distribution.name))
 
             if source in silo_config["mps"]:
                 branch_uri = os.path.join(base_path, source)

@@ -36,18 +36,28 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     launchpadmanager.get_launchpad(use_cred_file=None)
-    dest_archive = launchpadmanager.get_ubuntu_archive()
+    dest_archive = None
+    distro = None
 
     logging.debug("Check if there are some stacks to synchronize")
     for (file, release) in get_stack_files_to_sync():
         logging.info("Found {}".format(file))
         with open(file) as f:
             for line in f.readlines():
-                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, distro_version_at_prepare_time, sponsored_name) = line.strip().split("\t")
-                logging.debug("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {}) by {}".format(source, version, ppa, from_series,
-                                                                                                                     src_pocket, to_series, dest_pocket,
-                                                                                                                     sponsored_name))
-                if ppa not in [SILO_BUILDPPA_SCHEME.format(dest_archive.distribution.name, ppa_name.split('.')[0]) for ppa_name in SILO_NAME_LIST['ubuntu']]:
+                values = line.strip().split("\t")
+                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, distro_version_at_prepare_time, sponsored_name) = values[:9]
+                if len(values) > 9:
+                    distro = values[9]
+                    dest_archive = launchpadmanager.get_distro_archive(distro)
+                else:
+                    distro = "ubuntu"
+                    dest_archive = launchpadmanager.get_ubuntu_archive()
+
+                logging.debug("Received copy request for {} ({}), from {} ({}, {}), to {} ({}, {}) by {}".format(source, version, ppa, from_series,
+                                                                                                                     src_pocket, distro, to_series,
+                                                                                                                     dest_pocket, sponsored_name))
+
+                if ppa not in [SILO_BUILDPPA_SCHEME.format(distro, ppa_name.split('.')[0]) for ppa_name in SILO_NAME_LIST[distro]]:
                     logging.error("Rejecting {} as {} isn't in the allowed ppa list.".format(source, ppa))
                     continue
 
