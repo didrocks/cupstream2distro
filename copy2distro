@@ -27,6 +27,13 @@ from cupstream2distro import launchpadmanager, packagemanager
 from cupstream2distro.stacks import get_stack_files_to_sync, get_allowed_projects
 from cupstream2distro.settings import OLD_STACK_DIR, SILO_NAME_LIST, SILO_BUILDPPA_SCHEME
 
+
+# XXX: This is completely temporary. We need to use this not to use dogfood for normal packages
+def workaround_get_normal_ubuntu_distribution():
+    lp = launchpadmanager.get_launchpad_main(use_cred_file=None)
+    return lp.distributions['ubuntu'].main_archive
+
+
 if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -51,7 +58,7 @@ if __name__ == '__main__':
                     dest_archive = launchpadmanager.get_distro_archive(distro)
                 else:
                     distro = "ubuntu"
-                    dest_archive = launchpadmanager.get_ubuntu_archive()
+                    dest_archive = workaround_get_normal_ubuntu_distribution()
 
                 logging.debug("Received copy request for {} ({}), from {} ({}, {}), to {} ({}, {}) by {}".format(source, version, ppa, from_series,
                                                                                                                      src_pocket, distro, to_series,
