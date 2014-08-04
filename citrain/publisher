@@ -52,11 +52,12 @@ if __name__ == '__main__':
 
     silo_config = silomanager.load_config()
     silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISHING, "Publishing")
+    dest_link = silo_config["global"]["dest"]
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"]).name
     src_ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
-    src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
+    dest_archive = launchpadmanager.get_resource_from_token(dest_link)
+    src_ppa_name = "{}/{}/{}".format(src_ppa.owner.name, dest_archive.distribution.name, src_ppa.name)
     src_pocket = 'Release'
-    dest_link = silo_config["global"]["dest"]
     publisher_nickname = args.publisher
 
     base_path = os.path.abspath('.')
@@ -98,16 +99,15 @@ if __name__ == '__main__':
     logging.info("Publishing as {}.".format(publisher_nickname))
 
     # getting the archives and series objects
-    is_sru = not launchpadmanager.is_series_current(series)
-    dest_archive = launchpadmanager.get_resource_from_token(dest_link)
+    is_sru = not launchpadmanager.is_series_current(series, dest_archive.distribution.name)
     if not launchpadmanager.is_dest_distro_archive(dest_link):
         dest_pocket = 'Release'
-        logging.info("Direct copy from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series".format(
+        logging.info("Direct copy from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series ({distro})".format(
                       src_archive=src_ppa.name, src_pocket=src_pocket, dest_archive=dest_archive.name, dest_pocket=dest_pocket,
-                      series=series))
+                      series=series, distro=dest_archive.distribution.name))
     else:
-        logging.info("Copy from {src_archive} ({src_pocket}) to {series} series in distro".format(
-                      src_archive=src_ppa.name, src_pocket=src_pocket, series=series))
+        logging.info("Copy from {src_archive} ({src_pocket}) to {series} series in {distro} distro".format(
+                      src_archive=src_ppa.name, src_pocket=src_pocket, series=series, distro=dest_archive.distribution.name))
         distro = launchpadmanager.get_resource_from_token(dest_link)
         distro_pocket = 'Proposed'
         src_ppa_pocket = src_pocket
@@ -173,7 +173,7 @@ if __name__ == '__main__':
             if source in silo_config["mps"]:
                 branch_uri = os.path.join(base_path, source)
                 lp_project_name = launchpadmanager.get_resource_from_token(silo_config["mps"][source][0], True).target_branch.project.name
-                proposed_branch = PROPOSED_URL.format(lp_project_name, series)
+                proposed_branch = PROPOSED_URL.format(lp_project_name, dest_archive.distribution.name, series)
                 logging.info("Pushing {} to {}".format(source, proposed_branch))
                 if not branchhandling.push_to_branch(branch_uri, proposed_branch, overwrite=True):
                     logging.error("We couldn't push {} to {}".format(source, proposed_branch))
