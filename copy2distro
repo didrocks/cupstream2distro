@@ -33,10 +33,39 @@ def workaround_get_normal_ubuntu_distribution():
     lp = launchpadmanager.get_launchpad_main(use_cred_file=None)
     return lp.distributions['ubuntu'].main_archive
 
+def _return_correct_lp(distribution):
+    if distribution == 'ubuntu':
+        return launchpadmanager.get_launchpad_main(use_cred_file=None)
+    else:
+        return launchpadmanager.get_launchpad(use_cred_file=None)
+
+# XXX: This is completely temporary.
+def workaround_get_person(nickname, distribution):
+    lp = _return_correct_lp(distribution)
+    return lp.people[nickname]
+
+# XXX: This is completely temporary.
+def workaround_get_ppa(ppa_name, distribution):
+    lp = _return_correct_lp(distribution)
+    ppa_dispatch = ppa_name.split("/")
+    distro = lp.distributions[ppa_dispatch[1]]
+    return lp.people[ppa_dispatch[0]].getPPAByName(name=ppa_dispatch[2], distribution=distro)
+
+# XXX: This is completely temporary.
+def workaround_get_current_version_for_series(source_package_name, series_name, distribution, dest=None):
+    lp = _return_correct_lp(distribution)
+    series = lp.distributions[distribution].getSeries(name_or_version=series_name)
+    source_collection = dest.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series)
+    try:
+        return packagemanager.sort_by_date_created(source_collection)[0].source_package_version
+    # was never in the dest, set the lowest possible version
+    except IndexError:
+        return "0"
+
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s")
 
     parser = argparse.ArgumentParser(description="Rsync all availables packages to be copied to the ubuntu archive from a ppa")
     parser.add_argument("--no-filter", action='store_true', help="Don't filter list (case coming from silos where there is no more filtering needed)")
@@ -55,9 +84,11 @@ if __name__ == '__main__':
                 (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, distro_version_at_prepare_time, sponsored_name) = values[:9]
                 if len(values) > 9:
                     distro = values[9]
-                    dest_archive = launchpadmanager.get_distro_archive(distro)
+                    dest_archive = launchpadmanager.get_distribution_archive(distro)
                 else:
                     distro = "ubuntu"
+                    ppa_parts = ppa.split('/')
+                    ppa = "{}/ubuntu/{}".format(ppa_parts[0], ppa_parts[1])
                     dest_archive = workaround_get_normal_ubuntu_distribution()
 
                 logging.debug("Received copy request for {} ({}), from {} ({}, {}), to {} ({}, {}) by {}".format(source, version, ppa, from_series,
@@ -69,7 +100,7 @@ if __name__ == '__main__':
                     continue
 
                 try:
-                    sponsored = launchpadmanager.get_person(sponsored_name)
+                    sponsored = workaround_get_person(sponsored_name, distro)
                 except KeyError:
                     logging.error("{} isn't a valid launchpad user name. Can't copy that package".format(sponsored_name))
                     continue
@@ -78,14 +109,14 @@ if __name__ == '__main__':
                     logging.error("The project {} is not in the allowed stack to be copied to distro. Rejecting.".format(source))
                     continue
 
-                distro_version = packagemanager.get_current_version_for_series(source, to_series)
+                distro_version = workaround_get_current_version_for_series(source, to_series, distro, dest=dest_archive)
                 if distro_version != distro_version_at_prepare_time:
                     message = ("A manual upload of {} ({}) to distro has been done after the current daily release was prepared (it was at {}) at this time."
                                "Ignore uploading {}.".format(source, distro_version, distro_version_at_prepare_time, version))
                     logging.error(message)
                     continue
 
-                src_ppa = launchpadmanager.get_ppa(ppa)
+                src_ppa = workaround_get_ppa(ppa, distro)
 
                 dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=from_series,
                                          include_binaries=True, to_pocket=dest_pocket, to_series=to_series,
