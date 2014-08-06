@@ -95,7 +95,7 @@ if __name__ == '__main__':
                                                                                                                      src_pocket, distro, to_series,
                                                                                                                      dest_pocket, sponsored_name))
 
-                if ppa not in [SILO_BUILDPPA_SCHEME.format(distro, ppa_name.split('.')[0]) for ppa_name in SILO_NAME_LIST[distro]]:
+                if ppa not in [SILO_BUILDPPA_SCHEME.format(distro, ppa_name.split('/')[-1]) for ppa_name in SILO_NAME_LIST[distro]]:
                     logging.error("Rejecting {} as {} isn't in the allowed ppa list.".format(source, ppa))
                     continue
 

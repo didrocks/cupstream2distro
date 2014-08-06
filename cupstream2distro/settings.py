@@ -78,11 +78,11 @@ STACK_STATUS_PUBLISHING_DIR = "/iSCSI/jenkins/cu2d/result_publishing"
 SILO_NAME_LIST = { 'ubuntu': [], 'ubuntu-rtm': [] }
 for i in xrange(0, 21):
     SILO_NAME_LIST['ubuntu'].append("landing-{:03d}".format(i))
-    SILO_NAME_LIST['ubuntu-rtm'].append("landing-{:03d}.rtm".format(i))
+    SILO_NAME_LIST['ubuntu-rtm'].append("ubuntu-rtm/landing-{:03d}".format(i))
 SILO_PREPROD_NAME_LIST = { 'ubuntu': [], 'ubuntu-rtm': [] }
 for i in xrange(0, 1):
     SILO_PREPROD_NAME_LIST['ubuntu'].append("landing-{:03d}".format(i))
-    SILO_PREPROD_NAME_LIST['ubuntu-rtm'].append("landing-{:03d}.rtm".format(i))
+    SILO_PREPROD_NAME_LIST['ubuntu-rtm'].append("ubuntu-rtm/landing-{:03d}".format(i))
 SILO_CONFIG_FILENAME = "config"
 SILO_BUILDPPA_SCHEME = "ci-train-ppa-service/{}/{}"
 SILO_PACKAGING_RELEASE_COMMIT_MESSAGE = "Releasing {}"

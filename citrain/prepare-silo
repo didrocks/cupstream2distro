@@ -219,7 +219,7 @@ if __name__ == '__main__':
         logging.error("Not all MP targetting the same source package are targetting the same branch. Please recheck your configuration.")
         sys.exit(1)
 
-    ppa_uri = SILO_BUILDPPA_SCHEME.format(args.distribution, silo_name.split('.')[0]) # make sure the silo name does not include the distro appendix
+    ppa_uri = SILO_BUILDPPA_SCHEME.format(args.distribution, silo_name.split('/')[-1]) # make sure the silo name does not include the distro prefix
     try:
         ppa = launchpadmanager.get_ppa(ppa_uri)
     except lazr.restfulclient.errors.NotFound:
