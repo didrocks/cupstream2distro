@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+    logging.basicConfig(level=logging.DEBUG, #if args.debug else logging.INFO,
                         format="%(asctime)s %(levelname)s %(message)s")
     if args.debug:
         logging.debug("Debug mode enabled")
