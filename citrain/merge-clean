@@ -186,7 +186,7 @@ if __name__ == '__main__':
 
     # Finally, archive the current directory
     current_dir = os.path.abspath(".")
-    silo_name = current_dir.split(os.path.sep)[-1]
+    silo_name = silo_config["siloname"]
     silo_back_dir = "{}.previous".format(SILOS_DIR)
     with ignored(OSError):
         os.mkdir(silo_back_dir)
