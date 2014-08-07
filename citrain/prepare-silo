@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG, #if args.debug else logging.INFO,
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
                         format="%(asctime)s %(levelname)s %(message)s")
     if args.debug:
         logging.debug("Debug mode enabled")
@@ -152,6 +152,7 @@ if __name__ == '__main__':
               "mps": {}
     }
     silo_path = os.path.join(SILOS_DIR, silo_name)
+    logging.info("Silo path: {}, silo name: {}".format(silo_path, silo_name))
 
     if args.sources:
         logging.info("Additional packages will be directly uploaded to the ppa: {}".format(", ".join(args.sources)))
