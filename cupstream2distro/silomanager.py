@@ -67,7 +67,12 @@ def save_config(config, uri=''):
     # copy to outdir
     with ignored(OSError):
         os.makedirs(SILO_STATUS_RSYNCDIR)
-    silo_name = os.path.dirname(silo_config_path).split(os.path.sep)[-1]
+
+    # try using the right silo name from the config itself, if possible
+    if "siloname" in config and config["siloname"] in silo_config_path:
+        silo_name = config["siloname"]
+    else:
+        silo_name = os.path.dirname(silo_config_path).split(os.path.sep)[-1]
     dest = os.path.join(SILO_STATUS_RSYNCDIR, silo_name)
     logging.debug("Copying configuration from {} to {}".format(silo_config_path, dest))
     shutil.copy2(silo_config_path, os.path.join(SILO_STATUS_RSYNCDIR, silo_name))
