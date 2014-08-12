@@ -101,7 +101,7 @@ if __name__ == '__main__':
         if (not args.rebuildpackages and not args.watchonly) or source in args.rebuildpackages:
             logging.info("Adding {} MP(s) to prepare".format(source))
             for mp_link in silo_config['mps'][source]:
-                components_to_prepare.setdefault(source, []).append(launchpadmanager.get_resource_from_token(mp_link, True))
+                components_to_prepare.setdefault(source, []).append(launchpadmanager.get_resource_from_token(mp_link))
             # cleaning (in case of partial rebuild)
             clean_source(source)
 

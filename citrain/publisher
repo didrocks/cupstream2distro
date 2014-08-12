@@ -79,7 +79,7 @@ if __name__ == '__main__':
     if not args.allowunapproved:
         for source in silo_config["mps"]:
             for mp_link in silo_config["mps"][source]:
-                mp = launchpadmanager.get_resource_from_token(mp_link, True)
+                mp = launchpadmanager.get_resource_from_token(mp_link)
                 if mp.queue_status != "Approved":
                     logging.error("Some merge requests are not yet approved. Please review all merges and re-run the build job")
                     silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: Some merges are unapproved.")
@@ -172,7 +172,7 @@ if __name__ == '__main__':
 
             if source in silo_config["mps"]:
                 branch_uri = os.path.join(base_path, source)
-                lp_project_name = launchpadmanager.get_resource_from_token(silo_config["mps"][source][0], True).target_branch.project.name
+                lp_project_name = launchpadmanager.get_resource_from_token(silo_config["mps"][source][0]).target_branch.project.name
                 proposed_branch = PROPOSED_URL.format(lp_project_name, dest_archive.distribution.name, series)
                 logging.info("Pushing {} to {}".format(source, proposed_branch))
                 if not branchhandling.push_to_branch(branch_uri, proposed_branch, overwrite=True):
