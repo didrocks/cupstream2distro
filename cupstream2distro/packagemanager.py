@@ -510,10 +510,7 @@ def upload_package(source, version, ppa):
     '''Upload the new package to a ppa'''
     # remove epoch is there is one
     version_for_source_file = version.split(':')[-1]
-    #cmd = ["dput", "ppa:{}".format(ppa),
-    #       "{}_{}_source.changes".format(source, version_for_source_file)]
-    # XXX: This is completely temporary. For testing, we need to upload to dogfood
-    cmd = ["dput", "df:{}".format(ppa),
+    cmd = ["dput", "ppa:{}".format(ppa),
            "{}_{}_source.changes".format(source, version_for_source_file)]
     if subprocess.call(cmd) != 0:
         raise Exception("%r returned an error." % (cmd,))
