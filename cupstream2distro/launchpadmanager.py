@@ -139,8 +139,14 @@ def get_available_all_and_ignored_archs(series, ppa=None):
 def get_ppa(ppa_name):
     '''Return a launchpad ppa'''
     ppa_dispatch = ppa_name.split("/")
-    distro = get_distribution(ppa_dispatch[1])
-    return get_launchpad().people[ppa_dispatch[0]].getPPAByName(name=ppa_dispatch[2], distribution=distro)
+
+    # we still need to handle the case of PPAs that follow the old alias, defaulting to ubuntu
+    if len(ppa_dispatch) < 3:
+        distro = get_ubuntu()
+    else:
+        distro = get_distribution(ppa_dispatch[1])
+
+    return get_launchpad().people[ppa_dispatch[0]].getPPAByName(name=ppa_dispatch[-1], distribution=distro)
 
 def is_series_current(series_name, distribution='ubuntu'):
     '''Return if series_name is the edge development version'''
