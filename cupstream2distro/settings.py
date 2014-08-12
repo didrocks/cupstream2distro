@@ -102,5 +102,5 @@ SERIES_VERSION = {
     'saucy': '13.10',
     'trusty': '14.04',
     'utopic': '14.10',
-    '14.09': '14.09'
+    '14.09': 'rtm+14.09' # we need the RTM branch to have a higher version than 14.09
 }
