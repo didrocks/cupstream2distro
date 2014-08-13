@@ -51,6 +51,8 @@ if __name__ == '__main__':
                     distro = values[9]
                 else:
                     distro = "ubuntu"
+                    ppa_split = ppa.split("/")
+                    ppa = "{}/ubuntu/{}".format(ppa_split[0], ppa_split[1])
                 dest_archive = launchpadmanager.get_distribution_archive(distro)
 
                 logging.debug("Received copy request for {} ({}), from {} ({}, {}), to {} ({}, {}) by {}".format(source, version, ppa, from_series,
