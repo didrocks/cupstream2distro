@@ -107,12 +107,14 @@ if __name__ == '__main__':
                     raw_mps = row[COL.merge]
                     raw_sources = row[COL.additional]
                     raw_landers = row[COL.lander]
+                    distribution = row[COL.target]
                     request_found = True
             else:
                 if row[COL.request] == args.request_id:
                     raw_mps = row[COL.merge]
                     raw_sources = row[COL.additional]
                     raw_landers = row[COL.lander]
+                    distribution = row[COL.target]
                     request_found = True
                     break
     os.remove(filename)
@@ -141,9 +143,18 @@ if __name__ == '__main__':
     if landers:
         cmd.append('--landers')
         cmd.extend(landers)
+    if distribution:
+        split = distribution.split('/')
+        cmd.extend(['--distribution', split[0]])
+        if len(split) > 1:
+            series = split[1]
+
     # add command options
     if args.series:
-        cmd.extend(['--series', args.series])
+        series = args.series
+    if series:
+        cmd.extend(['--series', series])
+
     if args.destppa:
         cmd.extend(['--destppa', args.destppa])
     if args.reconfiguresilo:
