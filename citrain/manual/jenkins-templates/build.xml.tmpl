@@ -57,6 +57,11 @@
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>TAKE_WHOLE_COMMIT_MESSAGE</name>
+          <description>Use whole commit message when generating changelog, not just the brief part.</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>DEBUG</name>
           <description>Print extra debugging information in the log.</description>
           <defaultValue>false</defaultValue>
@@ -97,6 +102,9 @@ if [ "${IGNORE_MISSING_TWINS}" == "true" ]; then
 fi
 if [ "${DONT_REORDER_PREREQS}" == "true" ]; then
   OPTS="$OPTS --dontreorderprereqs"
+fi
+if [ "${TAKE_WHOLE_COMMIT_MESSAGE}" == "true" ]; then
+  OPTS="$OPTS --takewholecommitmsg"
 fi
 if [ "$DEBUG" == "true" ]; then
   OPTS="$OPTS --debug"

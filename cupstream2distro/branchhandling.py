@@ -52,7 +52,7 @@ def get_tip_bzr_revision():
     return (int(stdout.split(':')[0]))
 
 
-def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp=""):
+def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp="", take_whole_commit=False):
     '''return a tuple of a dict with authors and commits message from the content to parse
 
     bugs_to_skip is a set of bugs we need to skip
@@ -66,6 +66,7 @@ def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp=""):
     current_commit = ""
     current_bugs = set()
     commit_message_stenza = False
+    do_not_add_to_log = False
     for line in content_to_parse.splitlines():
         # new revision, collect what we have found
         if line.startswith("------------------------------------------------------------"):
@@ -105,11 +106,16 @@ def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp=""):
                 current_commit, current_bugs = _extract_commit_bugs(current_commit, additional_stamp)
             elif not line.startswith("  Approved by: "): # do not include the approved-by line
                 line = line[2:] # Dedent the message provided by bzr
-                if line[0:2] in ('* ', '- '): # paragraph line.
-                    line = line[2:] # Remove bullet
-                    if line and line[-1] != '.': # Grammar nazi...
-                        line += '.' # ... or the lines will be merged.
-                line = line + ' ' # Add a space to preserve lines
+
+                if not take_whole_commit and line == "":
+                    do_not_add_to_log = True
+
+                if not do_not_add_to_log:
+                    if line[0:2] in ('* ', '- '): # paragraph line.
+                        line = line[2:] # Remove bullet
+                        if line and line[-1] != '.': # Grammar nazi...
+                            line += '.' # ... or the lines will be merged.
+                    line = line + ' ' # Add a space to preserve lines
                 current_commit += line
                 #  Maybe add something like that
                 #for content in mp.commit_message.split('\n'):
@@ -119,6 +125,7 @@ def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp=""):
                 #    description_content.append(content.strip())
         elif line.startswith("message:"):
             commit_message_stenza = True
+            do_not_add_to_log = False
         elif line.startswith("fixes bug: "):
             current_bugs = current_bugs.union(_return_bugs(line[11:]))
 

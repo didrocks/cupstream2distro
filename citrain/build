@@ -43,6 +43,7 @@ if __name__ == '__main__':
     parser.add_argument("--ignorestep", action='store_true', help="Ack a whole rebuild even if one was already requested.")
     parser.add_argument("--ignoremissingtwins", action='store_true', help="(Usually irrelevant) Ignore missing 'twin' packages for the selected list (like those having -gles duplicates).")
     parser.add_argument("--dontreorderprereqs", action='store_true', help="Don't forcefully reorder branches if prerequisites are used.")
+    parser.add_argument("--takewholecommitmsg", action='store_true', default=False, help="Use whole commit message when generating changelog, not just the brief part.")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
     args = parser.parse_args()
@@ -283,7 +284,7 @@ if __name__ == '__main__':
         alreadyfixed_bugs = set()
         with open("debian/changelog") as f:
             alreadyfixed_bugs = packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name)
-        (authors_commits, bugs_set) = branchhandling.collect_author_commits(log_content, alreadyfixed_bugs)
+        (authors_commits, bugs_set) = branchhandling.collect_author_commits(log_content, alreadyfixed_bugs, take_whole_commit=args.takewholecommitmsg)
         if force_rebuild:
             authors_commits.setdefault(BOT_DEBFULLNAME, []).append("New rebuild forced")
         packagemanager.update_changelog(packaging_version, series.name, None, authors_commits)
