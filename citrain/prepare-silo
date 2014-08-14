@@ -85,7 +85,7 @@ if __name__ == '__main__':
     project_urls.extend(args.sources)
 
     # make sure the distribution parameter is one of the two supported right now
-    if args.distribution not in [ 'ubuntu', 'ubuntu-rtm' ]:
+    if args.distribution not in SILO_NAME_LIST:
         logging.error("Distribution {} is currently not supported in the CI Train. Not assigning".format(args.distribution))
         sys.exit(1)
 
