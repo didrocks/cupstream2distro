@@ -4,6 +4,7 @@
 # Authors:
 #  Didier Roche
 #  Rodney Dawes
+#  Łukasz 'sil2100' Zemczak
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -28,6 +29,7 @@ import shutil
 import sys
 import subprocess
 import urllib
+import socket
 
 import launchpadmanager
 import settings
@@ -43,12 +45,12 @@ def sort_by_date_created(sources):
 
 def get_current_version_for_series(source_package_name, series_name, ppa_name=None, dest=None):
     '''Get current version for a package name in that series'''
-    series = launchpadmanager.get_series(series_name)
     if not dest:
         if ppa_name:
             dest = launchpadmanager.get_ppa(ppa_name)
         else:
             dest = launchpadmanager.get_ubuntu_archive()
+    series = launchpadmanager.get_series(series_name, dest.distribution.name)
     source_collection = dest.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series)
     try:
         return sort_by_date_created(source_collection)[0].source_package_version
@@ -181,7 +183,7 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
 
     logging.info("Grab code for {} ({}) from {}".format(source_package_name, dest_current_version, series_name))
     source_package_download_dir = os.path.join('ubuntu', source_package_name)
-    series = launchpadmanager.get_series(series_name)
+    series = launchpadmanager.get_series(series_name, dest_archive.distribution.name)
     with ignored(OSError):
         os.makedirs(source_package_download_dir)
     os.chdir(source_package_download_dir)
@@ -596,7 +598,7 @@ def check_package_reached_destination(silo_config, packages_in_dest, ignoremissi
             one_package_not_in_dest = True
 
             # if destination is the archive, try to check if it's in proposed or in any queue
-            if launchpadmanager.is_dest_ubuntu_archive(dest_link):
+            if launchpadmanager.is_dest_distro_archive(dest_link):
                 if is_version_for_series_in_dest(source, packages_in_dest[source], series, dest, pocket="Proposed"):
                     in_proposed_msg = "{} ({}) is in the proposed pocket. ".format(source, packages_in_dest[source])
                     logging.warning(in_proposed_msg + "You run that job either too quickly or it's stuck there. More information available at https://wiki.ubuntu.com/ProposedMigration.")

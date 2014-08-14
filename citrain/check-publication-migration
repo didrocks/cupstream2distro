@@ -48,7 +48,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # loop on all known silos
-    for silo_name in SILO_NAME_LIST:
+    for silo_name in SILO_NAME_LIST['ubuntu'] + SILO_NAME_LIST['ubuntu-rtm']:
         logging.info("Checking {}".format(silo_name))
         try:
             os.chdir(os.path.join(SILOS_DIR, silo_name))    

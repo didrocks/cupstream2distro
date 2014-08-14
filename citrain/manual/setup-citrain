@@ -145,6 +145,9 @@ def setup_silo(jenkins_handle, jjenv, silo_name):
     if "auto_merge_token" in settings:
         ctx["MERGE_AND_CLEAN_TOKEN"] = settings["auto_merge_token"]
 
+    # change the names from 'distro/landing-num' to 'distro-landing-num'
+    silo_name = silo_name.replace("/", "-")
+
     setup_job(jenkins_handle, jjenv, "{}-0-reconfigure".format(silo_name), TEMPLATES["reconfigure-silo"], ctx)
     setup_job(jenkins_handle, jjenv, "{}-1-build".format(silo_name), TEMPLATES["build"], ctx)
     setup_job(jenkins_handle, jjenv, "{}-2-publish".format(silo_name), TEMPLATES["publish"], ctx)
@@ -209,13 +212,13 @@ if __name__ == "__main__":
     if args.silos:
         logging.info("Configure a set of silos")
         for silo_name in args.silos:
-            if silo_name not in SILO_NAME_LIST:
-                logging.error("silo {} doesn't exist in {}".format(silo_name, SILO_NAME_LIST))
+            if silo_name not in SILO_NAME_LIST['ubuntu'] + SILO_NAME_LIST['ubuntu-rtm']:
+                logging.error("silo {} doesn't exist in {}".format(silo_name, SILO_NAME_LIST['ubuntu'] + SILO_NAME_LIST['ubuntu-rtm']))
                 sys.exit(1)
             setup_silo(jkh, jjenv, silo_name)
     elif args.allsilos:
         logging.info("Configure all silos")
-        for silo_name in SILO_NAME_LIST:
+        for silo_name in SILO_NAME_LIST['ubuntu'] + SILO_NAME_LIST['ubuntu-rtm']:
             setup_silo(jkh, jjenv, silo_name)
     if args.deploydeploy:
         logging.info("Configure deploy citrain job")

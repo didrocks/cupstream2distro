@@ -4,6 +4,7 @@
 #
 # Authors:
 #  Didier Roche
+#  Łukasz 'sil2100' Zemczak
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -52,11 +53,12 @@ if __name__ == '__main__':
 
     silo_config = silomanager.load_config()
     silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISHING, "Publishing")
+    dest_link = silo_config["global"]["dest"]
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"]).name
     src_ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
-    src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
+    dest_archive = launchpadmanager.get_resource_from_token(dest_link)
+    src_ppa_name = "{}/{}/{}".format(src_ppa.owner.name, dest_archive.distribution.name, src_ppa.name)
     src_pocket = 'Release'
-    dest_link = silo_config["global"]["dest"]
     publisher_nickname = args.publisher
 
     base_path = os.path.abspath('.')
@@ -103,16 +105,15 @@ if __name__ == '__main__':
     logging.info("Publishing as {}.".format(publisher_nickname))
 
     # getting the archives and series objects
-    is_sru = not launchpadmanager.is_series_current(series)
-    dest_archive = launchpadmanager.get_resource_from_token(dest_link)
-    if not launchpadmanager.is_dest_ubuntu_archive(dest_link):
+    is_sru = not launchpadmanager.is_series_current(series, dest_archive.distribution.name)
+    if not launchpadmanager.is_dest_distro_archive(dest_link):
         dest_pocket = 'Release'
-        logging.info("Direct copy from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series".format(
+        logging.info("Direct copy from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series ({distro})".format(
                       src_archive=src_ppa.name, src_pocket=src_pocket, dest_archive=dest_archive.name, dest_pocket=dest_pocket,
-                      series=series))
+                      series=series, distro=dest_archive.distribution.name))
     else:
-        logging.info("Copy from {src_archive} ({src_pocket}) to {series} series in distro".format(
-                      src_archive=src_ppa.name, src_pocket=src_pocket, series=series))
+        logging.info("Copy from {src_archive} ({src_pocket}) to {series} series in {distro} distro".format(
+                      src_archive=src_ppa.name, src_pocket=src_pocket, series=series, distro=dest_archive.distribution.name))
         distro = launchpadmanager.get_resource_from_token(dest_link)
         distro_pocket = 'Proposed'
         src_ppa_pocket = src_pocket
@@ -166,18 +167,19 @@ if __name__ == '__main__':
 
         # check destination version
         message = "Previous available version ({}) is not the latest version anymore in [] ([]).\nPlease ensure that this version has been merged back in trunk and relaunch prepare or use ignore version destination option.".format(supposed_dest_version)
-        if launchpadmanager.is_dest_ubuntu_archive(dest_link):
+        if launchpadmanager.is_dest_distro_archive(dest_link):
             # Check that we don't skip a version unintendly
-            version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=launchpadmanager.get_ubuntu_archive())
+            archive = launchpadmanager.get_resource_from_token(dest_link)
+            version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=archive)
             if not version_in_dest == supposed_dest_version:
                 logging.error(message.replace('[]', '{}').format("the archive", version_in_dest))
                 dest_version_check_fail = True
-            packagelist_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(src_ppa_name, src_ppa_pocket, series, distro_pocket, series, source, version, version_in_dest, publisher_nickname))
+            packagelist_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(src_ppa_name, src_ppa_pocket, series, distro_pocket, series, source, version, version_in_dest, publisher_nickname, dest_archive.distribution.name))
 
             if source in silo_config["mps"]:
                 branch_uri = os.path.join(base_path, source)
                 lp_project_name = launchpadmanager.get_resource_from_token(silo_config["mps"][source][0]).target_branch.project.name
-                proposed_branch = PROPOSED_URL.format(lp_project_name, series)
+                proposed_branch = PROPOSED_URL.format(lp_project_name, dest_archive.distribution.name, series)
                 logging.info("Pushing {} to {}".format(source, proposed_branch))
                 if not branchhandling.push_to_branch(branch_uri, proposed_branch, overwrite=True):
                     logging.error("We couldn't push {} to {}".format(source, proposed_branch))
@@ -225,7 +227,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
     #  now ack the changes (if copy is needed)
-    if not launchpadmanager.is_dest_ubuntu_archive(dest_link):
+    if not launchpadmanager.is_dest_distro_archive(dest_link):
         for (source, version, tip_rev, branch) in all_packages_uploaded:
             dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=series,
                                      include_binaries=True, to_pocket=dest_pocket, to_series=series,

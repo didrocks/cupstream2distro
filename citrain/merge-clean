@@ -4,6 +4,7 @@
 #
 # Authors:
 #  Didier Roche
+#  Łukasz 'sil2100' Zemczak
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -40,6 +41,7 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
     reconciliate_all_branches = True
     base_path = os.path.abspath('.')
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"]).name
+    dest = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
 
     for source in silo_config["mps"]:
         source_branch_uri = os.path.join(base_path, source)
@@ -55,7 +57,7 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
         if tip_rev != stored_tip_rev:
             logging.info("New revision ({}) in {} when prepared is based on {}. Trying to merge it for you.".format(tip_rev, source, stored_tip_rev))
             if not branchhandling.merge_branch(source_branch_uri, target_branch.web_link, "Resync trunk"):
-                proposed_branch = PROPOSED_URL.format(target_branch.project.name, series)
+                proposed_branch = PROPOSED_URL.format(target_branch.project.name, dest.distribution.name, series)
                 logging.error("We can't reconciliate your proposed branch (pushed to {}) with the new commits in target (merge conflicts).".format(proposed_branch))
                 reconciliate_all_branches = False
     if not reconciliate_all_branches:
@@ -71,7 +73,7 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
         target_branch_link = launchpadmanager.get_resource_from_token(silo_config['mps'][source][0]).target_branch.web_link
         logging.info("Trying to push to {}".format(target_branch_link))
         if not branchhandling.push_to_branch(branch_uri, target_branch_link):
-            url = BRANCH_URL.format(source, "recup")
+            url = BRANCH_URL.format(source, "{}-recup".format(dest.distribution.name))
             logging.error("Can't push this branch to {}, pushing temporarly to {}.".format(target_branch_link, url))
             branchhandling.push_to_branch(branch_uri, url, overwrite=True)
             push_all_branches = False
@@ -154,7 +156,7 @@ if __name__ == '__main__':
 
     ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])
-    ppa_base_path = "http://ppa.launchpad.net/{}/{}/ubuntu/dists/{}/main/".format(ppa.owner.name, ppa.name, series.name)
+    ppa_base_path = "http://ppa.launchpad.net/{}/{}/{}/dists/{}/main/".format(ppa.owner.name, ppa.name, ppa.distribution.name, series.name)
     logging.info("Clean now the source ppa {} in {}".format(ppa.web_link, series.name))
 
     for pkg in ppa.getPublishedSources(distro_series=series):
@@ -185,7 +187,7 @@ if __name__ == '__main__':
 
     # Finally, archive the current directory
     current_dir = os.path.abspath(".")
-    silo_name = current_dir.split(os.path.sep)[-1]
+    silo_name = silo_config["siloname"]
     silo_back_dir = "{}.previous".format(SILOS_DIR)
     with ignored(OSError):
         os.mkdir(silo_back_dir)

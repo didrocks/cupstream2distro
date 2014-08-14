@@ -4,6 +4,7 @@
 #
 # Authors:
 #  Didier Roche
+#  Łukasz 'sil2100' Zemczak
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -118,8 +119,8 @@ if __name__ == '__main__':
             sys.exit(1)
 
     # prepare source and dput by one
-    src_ppa_name = "{}/{}".format(src_ppa.owner.name, src_ppa.name)
-    dest_ppa_name = "{}/{}".format(dest.owner.name, dest.name)
+    src_ppa_name = "{}/{}/{}".format(src_ppa.owner.name, src_ppa.distribution.name, src_ppa.name)
+    dest_ppa_name = "{}/{}/{}".format(dest.owner.name, src_ppa.distribution.name, dest.name)
 
     src_pkgs_to_upload = {}
     for source_package_name in components_to_prepare:
@@ -206,10 +207,10 @@ if __name__ == '__main__':
 
         # Check version in distro
         logging.info("Get version available in distro")
-        distro_version = packagemanager.get_current_version_for_series(source_package_name, series.name)
+        distro_version = packagemanager.get_current_version_for_series(source_package_name, series.name, dest=dest.distribution.main_archive)
 
         # if the target is the distro, we ensure we have all releases in proposed branch
-        if launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
+        if launchpadmanager.is_dest_distro_archive(silo_config["global"]["dest"]):
             previous_finaledest_version = distro_version
         # target is a ppa
         else:
@@ -229,7 +230,7 @@ if __name__ == '__main__':
                     silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Can't build: Some projects are missing revisions from distribution.")
                     sys.exit(1)
 
-        if not launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
+        if not launchpadmanager.is_dest_distro_archive(silo_config["global"]["dest"]):
             # if the version in the distro is higher than the previous packaging version (either the version in intermediate ppa or packaging bzr version
             # We are going to force releasing, but basing on this version
             if packagemanager.is_version1_higher_than_version2(distro_version, previous_packaging_version):
@@ -254,13 +255,13 @@ if __name__ == '__main__':
                 continue
             logging.info("No new useful revision published but force rebuilding is set")
 
-        if launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
+        if launchpadmanager.is_dest_distro_archive(silo_config["global"]["dest"]):
 
             # only version if we don't see the flag to not version it.
             if not packagemanager.has_dont_change_version_flag():
                 packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, series_version=SERIES_VERSION[series.name])
             else:
-                packaging_version = packagemanager.get_packaging_version()
+                packaging_version = packagemanager.get_packaging_verbsion()
         else:
             packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=dest_ppa_name, series_version=SERIES_VERSION[series.name])
 
@@ -291,7 +292,7 @@ if __name__ == '__main__':
         branchhandling.commit_release(packaging_version)
 
         logging.info("Sync launchpad with current proposed work")
-        launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series.name)
+        launchpadmanager.open_bugs_for_source(bugs_set, source_package_name, series.name, dest.distribution.name)
 
         logging.info("Build source package")
         packagemanager.build_source_package(series.name, previous_finaledest_version)
@@ -379,9 +380,11 @@ if __name__ == '__main__':
     # watch ppa
     silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILDING, "Building", ping=False)
     logging.info("Check ppa status in {}".format(src_ppa.web_link))
+    dest_archive = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
     watch_ppa_exec = os.path.join(os.path.dirname(__file__), "watch-ppa")
-    call_params = [watch_ppa_exec, "-s", series.name, "-p", "{}/{}".format(src_ppa.owner.name, src_ppa.name)]
-    if not launchpadmanager.is_dest_ubuntu_archive(silo_config["global"]["dest"]):
+    call_params = [watch_ppa_exec, "-s", series.name, "-p", "{}/{}/{}".format(src_ppa.owner.name, dest_archive.distribution.name, src_ppa.name)]
+    call_params.extend(["--distribution", dest_archive.distribution.name])
+    if not launchpadmanager.is_dest_distro_archive(silo_config["global"]["dest"]):
         call_params.extend(["--destppa", dest_ppa_name])
     if subprocess.call(call_params) != 0:
         silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_FAILED, "Build failed: Some packages failed to build.")

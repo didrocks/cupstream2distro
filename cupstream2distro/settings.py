@@ -26,7 +26,7 @@ NEW_CHANGELOG_PATTERN = "^{} \(.*\) (?!UNRELEASED)"
 PACKAGING_MERGE_COMMIT_MESSAGE = "Releasing {} (revision {} from {})"
 REPLACEME_TAG = "0replaceme"
 BRANCH_URL = "lp:~ps-jenkins/{}/latestsnapshot-{}"
-PROPOSED_URL = "lp:~ps-jenkins/{}/{}-proposed"
+PROPOSED_URL = "lp:~ps-jenkins/{}/{}-{}-proposed"
 
 AUTOUPLOAD_CONTROL_TAG = "X-Auto-Uploader:"
 NO_REWRITE_VERSION_TAG = "no-rewrite-version"
@@ -75,14 +75,16 @@ STACK_RUNNING_DIR = "/iSCSI/jenkins/cu2d/work"
 STACK_STATUS_PUBLISHING_DIR = "/iSCSI/jenkins/cu2d/result_publishing"
 
 # for citrain
-SILO_NAME_LIST = []
+SILO_NAME_LIST = { 'ubuntu': [], 'ubuntu-rtm': [] }
 for i in xrange(0, 21):
-    SILO_NAME_LIST.append("landing-{:03d}".format(i))
-SILO_PREPROD_NAME_LIST = []
+    SILO_NAME_LIST['ubuntu'].append("ubuntu/landing-{:03d}".format(i))
+    SILO_NAME_LIST['ubuntu-rtm'].append("ubuntu-rtm/landing-{:03d}".format(i))
+SILO_PREPROD_NAME_LIST = { 'ubuntu': [], 'ubuntu-rtm': [] }
 for i in xrange(0, 1):
-    SILO_PREPROD_NAME_LIST.append("landing-{:03d}".format(i))
+    SILO_PREPROD_NAME_LIST['ubuntu'].append("ubuntu/landing-{:03d}".format(i))
+    SILO_PREPROD_NAME_LIST['ubuntu-rtm'].append("ubuntu-rtm/landing-{:03d}".format(i))
 SILO_CONFIG_FILENAME = "config"
-SILO_BUILDPPA_SCHEME = "ci-train-ppa-service/{}"
+SILO_BUILDPPA_SCHEME = "ci-train-ppa-service/{}/{}"
 SILO_PACKAGING_RELEASE_COMMIT_MESSAGE = "Releasing {}"
 SILOS_RAW_DIR = "~/silos"
 SILOS_DIR = os.path.expanduser(SILOS_RAW_DIR)
@@ -99,5 +101,6 @@ SERIES_VERSION = {
     'raring': '13.04',
     'saucy': '13.10',
     'trusty': '14.04',
-    'utopic': '14.10'
+    'utopic': '14.10',
+    '14.09': 'rtm+14.09' # we need the RTM branch to have a higher version than 14.09
 }

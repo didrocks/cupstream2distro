@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012 Canonical
+# Copyright (C) 2012-2014 Canonical
 #
 # Authors:
 #  Didier Roche
@@ -27,6 +27,7 @@ from cupstream2distro import launchpadmanager, packagemanager
 from cupstream2distro.stacks import get_stack_files_to_sync, get_allowed_projects
 from cupstream2distro.settings import OLD_STACK_DIR, SILO_NAME_LIST, SILO_BUILDPPA_SCHEME
 
+
 if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -36,18 +37,29 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     launchpadmanager.get_launchpad(use_cred_file=None)
-    dest_archive = launchpadmanager.get_ubuntu_archive()
+    dest_archive = None
+    distro = None
 
     logging.debug("Check if there are some stacks to synchronize")
     for (file, release) in get_stack_files_to_sync():
         logging.info("Found {}".format(file))
         with open(file) as f:
             for line in f.readlines():
-                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, distro_version_at_prepare_time, sponsored_name) = line.strip().split("\t")
-                logging.debug("Received copy request for {} ({}), from {} ({}, {}), to Ubuntu ({}, {}) by {}".format(source, version, ppa, from_series,
-                                                                                                                     src_pocket, to_series, dest_pocket,
-                                                                                                                     sponsored_name))
-                if ppa not in [SILO_BUILDPPA_SCHEME.format(ppa_name) for ppa_name in SILO_NAME_LIST]:
+                values = line.strip().split("\t")
+                (ppa, src_pocket, from_series, dest_pocket, to_series, source, version, distro_version_at_prepare_time, sponsored_name) = values[:9]
+                if len(values) > 9:
+                    distro = values[9]
+                else:
+                    distro = "ubuntu"
+                    ppa_split = ppa.split("/")
+                    ppa = "{}/ubuntu/{}".format(ppa_split[0], ppa_split[1])
+                dest_archive = launchpadmanager.get_distribution_archive(distro)
+
+                logging.debug("Received copy request for {} ({}), from {} ({}, {}), to {} ({}, {}) by {}".format(source, version, ppa, from_series,
+                                                                                                                     src_pocket, distro, to_series,
+                                                                                                                     dest_pocket, sponsored_name))
+
+                if ppa not in [SILO_BUILDPPA_SCHEME.format(distro, ppa_name.split('/')[-1]) for ppa_name in SILO_NAME_LIST[distro]]:
                     logging.error("Rejecting {} as {} isn't in the allowed ppa list.".format(source, ppa))
                     continue
 
@@ -61,7 +73,7 @@ if __name__ == '__main__':
                     logging.error("The project {} is not in the allowed stack to be copied to distro. Rejecting.".format(source))
                     continue
 
-                distro_version = packagemanager.get_current_version_for_series(source, to_series)
+                distro_version = packagemanager.get_current_version_for_series(source, to_series, dest=dest_archive)
                 if distro_version != distro_version_at_prepare_time:
                     message = ("A manual upload of {} ({}) to distro has been done after the current daily release was prepared (it was at {}) at this time."
                                "Ignore uploading {}.".format(source, distro_version, distro_version_at_prepare_time, version))

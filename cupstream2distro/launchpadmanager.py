@@ -3,6 +3,7 @@
 #
 # Authors:
 #  Didier Roche
+#  Łukasz 'sil2100' Zemczak
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -55,10 +56,20 @@ def get_launchpad(use_staging=False, use_cred_file=os.path.expanduser(CRED_FILE_
     return launchpad
 
 
+def get_distribution(name):
+    '''Get the given distribution, e.g. ubuntu'''
+    lp = get_launchpad()
+    return lp.distributions[name]
+
+
+def get_distribution_archive(name):
+    '''Get the archive for the given distribution'''
+    return get_distribution(name).main_archive
+
+
 def get_ubuntu():
     '''Get the ubuntu distro'''
-    lp = get_launchpad()
-    return lp.distributions['ubuntu']
+    return get_distribution('ubuntu')
 
 
 def get_ubuntu_archive():
@@ -66,9 +77,9 @@ def get_ubuntu_archive():
     return get_ubuntu().main_archive
 
 
-def get_series(series_name):
+def get_series(series_name, distribution='ubuntu'):
     '''Return the launchpad object for the requested series'''
-    return get_ubuntu().getSeries(name_or_version=series_name)
+    return get_distribution(distribution).getSeries(name_or_version=series_name)
 
 
 def get_bugs_titles(author_bugs):
@@ -87,15 +98,15 @@ def get_bugs_titles(author_bugs):
     return author_bugs_with_title
 
 
-def open_bugs_for_source(bugs_list, source_name, series_name):
+def open_bugs_for_source(bugs_list, source_name, series_name, distribution_name='ubuntu'):
     lp = get_launchpad()
-    ubuntu = get_ubuntu()
+    distro = get_distribution(distribution_name)
 
     # don't nominate for current series
-    if ubuntu.current_series.name == series_name:
-        package = ubuntu.getSourcePackage(name=source_name)
+    if distro.current_series.name == series_name:
+        package = distro.getSourcePackage(name=source_name)
     else:
-        series = get_series(series_name)
+        series = get_series(series_name, distribution_name)
         package = series.getSourcePackage(name=source_name)
 
     for bug_num in bugs_list:
@@ -129,11 +140,18 @@ def get_available_all_and_ignored_archs(series, ppa=None):
 def get_ppa(ppa_name):
     '''Return a launchpad ppa'''
     ppa_dispatch = ppa_name.split("/")
-    return get_launchpad().people[ppa_dispatch[0]].getPPAByName(name=ppa_dispatch[1])
 
-def is_series_current(series_name):
+    # we still need to handle the case of PPAs that follow the old alias, defaulting to ubuntu
+    if len(ppa_dispatch) < 3:
+        distro = get_ubuntu()
+    else:
+        distro = get_distribution(ppa_dispatch[1])
+
+    return get_launchpad().people[ppa_dispatch[0]].getPPAByName(name=ppa_dispatch[-1], distribution=distro)
+
+def is_series_current(series_name, distribution='ubuntu'):
     '''Return if series_name is the edge development version'''
-    return get_ubuntu().current_series.name == series_name
+    return get_distribution(distribution).current_series.name == series_name
 
 def get_resource_from_url(url):
     '''Return a lp resource from a launchpad url'''
@@ -146,9 +164,10 @@ def get_resource_from_token(url):
     lp = get_launchpad()
     return lp.load(url)
 
-def is_dest_ubuntu_archive(series_link):
-    '''return if series_link is the ubuntu archive'''
-    return series_link == get_ubuntu_archive().self_link
+def is_dest_distro_archive(series_link):
+    '''return if series_link is the given distribution's main archive'''
+    archive = get_resource_from_token(series_link)
+    return archive.distribution.main_archive_link == series_link
 
 def get_person(nickname):
     '''Return a launchpad person'''
