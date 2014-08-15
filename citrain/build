@@ -261,7 +261,7 @@ if __name__ == '__main__':
             if not packagemanager.has_dont_change_version_flag():
                 packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, series_version=SERIES_VERSION[series.name])
             else:
-                packaging_version = packagemanager.get_packaging_verbsion()
+                packaging_version = packagemanager.get_packaging_version()
         else:
             packaging_version = packagemanager.create_new_packaging_version(previous_packaging_version, destppa=dest_ppa_name, series_version=SERIES_VERSION[series.name])
 
