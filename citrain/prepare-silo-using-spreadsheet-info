@@ -134,6 +134,7 @@ if __name__ == '__main__':
     prepare_silo_cmd = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'prepare-silo')
 
     cmd = [prepare_silo_cmd, '--request-id', args.request_id]
+    series = ''
     if mps:
         cmd.append('--mps')
         cmd.extend(mps)
