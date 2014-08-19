@@ -381,6 +381,7 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
         regexp = re.compile("(.*)\+(rtm.)?([\d\.]{5})\.(\d{8})\.?([\d]*).*-.*")
         try:
             previous_day = regexp.findall(base_package_version)[0]
+            logging.debug('Value of previous_day:', previous_day)
         except IndexError:
             # TRANSITION FALLBACK
             try:
@@ -388,9 +389,11 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
                 previous_day = regexp.findall(base_package_version)[0]
                 # make the version compatible with the new version
                 previous_day = (previous_day[0], previous_day[1], "20" + previous_day[2].replace(".", ""), previous_day[3])
+                logging.debug('Value of previous_day:', previous_day)
             except IndexError:
                 raise Exception("Didn't find a correct versioning in the current package: {}".format(base_package_version))
         upstream_version = previous_day[0]
+        logging.debug('Value of upstream_version:', upstream_version)
         if previous_day[1] == series_version and previous_day[2] == today_version:
             minor = 1
             if previous_day[3]:  # second upload of the day
