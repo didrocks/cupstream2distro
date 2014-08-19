@@ -393,7 +393,12 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
             except IndexError:
                 raise Exception("Didn't find a correct versioning in the current package: {}".format(base_package_version))
         upstream_version = previous_day[0]
+        upstream_version = upstream_version.split('+')[0]
         logging.debug('Value of upstream_version: ' + upstream_version)
+        logging.debug('Value of previous_day[1]: ' + previous_day[1])
+        logging.debug('Value of series_version: ' + series_version)
+        logging.debug('Value of previous_day[2]: ' + previous_day[2])
+        logging.debug('Value of today_version: ' + today_version)
         if previous_day[1] == series_version and previous_day[2] == today_version:
             minor = 1
             if previous_day[3]:  # second upload of the day
