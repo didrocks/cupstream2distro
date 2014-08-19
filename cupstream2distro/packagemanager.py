@@ -399,11 +399,12 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
         logging.debug('Value of series_version: ' + series_version)
         logging.debug('Value of previous_day[2]: ' + previous_day[2])
         logging.debug('Value of today_version: ' + today_version)
-        if previous_day[1] == series_version and previous_day[2] == today_version:
+        if series_version.endswith(previous_day[1]) and previous_day[2] == today_version:
             minor = 1
             if previous_day[3]:  # second upload of the day
                 minor = int(previous_day[3]) + 1
             today_version = "{}.{}".format(today_version, minor)
+            logging.debug('Value of today_version after increment: ' + today_version)
 
     new_upstream_version = "{upstream}+{series}.{date}{destppa}".format(
         upstream=upstream_version, series=series_version,
