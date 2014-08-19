@@ -85,10 +85,6 @@ def merge_and_reconciliate(silo_config, packages_in_dest):
 
 
 if __name__ == '__main__':
-    logging.debug('Env dump:')
-    from pprint import pformat
-    logging.debug(pformat(dict(os.environ)))
-
     parser = argparse.ArgumentParser(description="Merge all branches to merge, clean the ppa and free the silo slot")
 
     parser.add_argument("--onlyfreesilo", action='store_true', help="Only free the ppa and don't merge/check anything.")
@@ -104,6 +100,9 @@ if __name__ == '__main__':
     if args.debug:
         logging.debug("Debug mode enabled")
 
+    logging.debug('Env dump:')
+    from pprint import pformat
+    logging.debug(pformat(dict(os.environ)))
 
     silo_config = silomanager.load_config()
     if silo_config["global"]["status"]["state"] == silomanager.SILO_STATE_MERGING:
