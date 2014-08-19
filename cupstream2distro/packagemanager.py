@@ -378,7 +378,7 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
                 % base_package_version)
     else:
         # extract the day of previous daily upload and bump if already uploaded today
-        regexp = re.compile("(.*)\+(rtm.)?([\d\.]{5})\.(\d{8})\.?([\d]*).*-.*")
+        regexp = re.compile("(.*)\+([\d\.]{5})\.(\d{8})\.?([\d]*).*-.*")
         try:
             previous_day = regexp.findall(base_package_version)[0]
             logging.debug('Value of previous_day: ' + ','.join(previous_day))
