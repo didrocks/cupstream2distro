@@ -349,6 +349,12 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
     # to keep track of whether the package is native or not
     native_pkg = False
 
+    # handle the special case of RTM
+    special_tag = ""
+    if series_version == "14.09":
+        special_tag = "~rtm"
+        series_version = "14.10" # XXX: we agreed that to keep the versioning sane, we need to stick to versioning as per the main archive
+
     today_version = datetime.date.today().strftime('%Y%m%d')
     destppa = destppa.replace("-", '.').replace("_", ".").replace("/", ".")
     # bootstrapping mode or direct upload or UNRELEASED for bumping to a new series
@@ -399,16 +405,16 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
         logging.debug('Value of series_version: ' + series_version)
         logging.debug('Value of previous_day[2]: ' + previous_day[2])
         logging.debug('Value of today_version: ' + today_version)
-        if series_version.endswith(previous_day[1]) and previous_day[2] == today_version:
+        if previous_day[1] == series_version and previous_day[2] == today_version:
             minor = 1
             if previous_day[3]:  # second upload of the day
                 minor = int(previous_day[3]) + 1
             today_version = "{}.{}".format(today_version, minor)
             logging.debug('Value of today_version after increment: ' + today_version)
 
-    new_upstream_version = "{upstream}+{series}.{date}{destppa}".format(
+    new_upstream_version = "{upstream}+{series}.{date}{destppa}{special}".format(
         upstream=upstream_version, series=series_version,
-        date=today_version, destppa=destppa)
+        date=today_version, destppa=destppa, special=special_tag)
     if native_pkg is not True:
         new_upstream_version = "{}-0ubuntu1".format(new_upstream_version)
 
