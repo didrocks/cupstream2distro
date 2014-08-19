@@ -412,6 +412,7 @@ def create_new_packaging_version(base_package_version, series_version, destppa='
     if native_pkg is not True:
         new_upstream_version = "{}-0ubuntu1".format(new_upstream_version)
 
+    logging.debug('Returning new_upstream_version: ' + new_upstream_version)
     return new_upstream_version
 
 
