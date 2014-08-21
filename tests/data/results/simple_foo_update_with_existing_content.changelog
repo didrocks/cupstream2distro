@@ -1,8 +1,12 @@
 foo (42.0daily83.09.13-0ubuntu2) UNRELEASED; urgency=low
 
-  * debian/symbols: auto-update to released version
+  [ Didier Roche ]
+  * Basic content already there
 
- -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 08 Mar 2013 16:33:04 +0100
+  [ Ubuntu daily release ]
+  * debian/foo.symbols: auto-update to released version
+
+ -- Didier Roche <didrocks@ubuntu.com>  Fri, 08 Mar 2013 16:30:07 +0100
 
 foo (42.0daily83.09.13-0ubuntu1) raring; urgency=low
 
