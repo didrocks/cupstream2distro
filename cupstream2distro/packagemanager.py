@@ -37,9 +37,12 @@ from .utils import ignored
 import silomanager
 
 
-def sort_by_date_created(sources):
-    # we also filter out any non-published or not-pending packages, as those should not be relevant in any way
-    filtered_sources = filter(lambda x: x.status == "Published" or x.status == "Pending", sources)
+def sort_by_date_created(sources, all_packages=False):
+    # we also filter out any non-published or not-pending packages by default
+    if not all_packages:
+        filtered_sources = filter(lambda x: x.status == "Published" or x.status == "Pending", sources)
+    else:
+        filtered_sources = sources
     return sorted(filtered_sources, key=attrgetter("date_created"), reverse=True)
 
 
@@ -189,7 +192,7 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
     os.chdir(source_package_download_dir)
 
     try:
-        sourcepkg = sort_by_date_created(dest_archive.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series, version=dest_current_version))[0]
+        sourcepkg = sort_by_date_created(dest_archive.getPublishedSources(exact_match=True, source_name=source_package_name, distro_series=series, version=dest_current_version), True)[0]
     except IndexError:
         raise Exception("Couldn't get in the destination the expected version")
     logging.info('Downloading %s version %s', source_package_name, dest_current_version)

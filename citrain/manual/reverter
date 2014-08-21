@@ -63,6 +63,9 @@ if __name__ == "__main__":
     if args.debug:
         logging.debug("Debug mode enabled")
 
+    # make sure we don't require the default credentials files
+    launchpadmanager.get_launchpad(use_cred_file=None)
+
     if args.series:
         try:
             series = launchpadmanager.get_series(args.series)
@@ -70,13 +73,13 @@ if __name__ == "__main__":
             logging.error("{} doesn't exist".format(args.series))
             sys.exit(1)
     else:
-        series = launchpadmanager.get_distribution(distribution).current_series
+        series = launchpadmanager.get_distribution(args.distribution).current_series
         logging.info("Taking {} as current destination series".format(series.name))
 
     if args.ppa:
         dest = launchpadmanager.get_ppa(args.ppa)
     else:
-        dest = launchpadmanager.get_distribution_archive(distribution)
+        dest = launchpadmanager.get_distribution_archive(args.distribution)
 
     workdir = tempfile.mkdtemp()
     os.chdir(workdir)
