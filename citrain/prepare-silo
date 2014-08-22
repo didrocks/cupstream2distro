@@ -25,6 +25,8 @@ import logging
 import os
 import sys
 
+from pprint import pformat
+
 from cupstream2distro import branchhandling, launchpadmanager, packageinppamanager, silomanager
 from cupstream2distro.settings import SILO_BUILDPPA_SCHEME, SILOS_DIR, SILO_NAME_LIST, SILO_EMPTY
 from cupstream2distro.tools import clean_source
@@ -60,14 +62,13 @@ if __name__ == '__main__':
     parser.add_argument("--use-preprod-silo", action='store_true', help="Assign a silo with preproduction CI Train code")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
-
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
                         format="%(asctime)s %(levelname)s %(message)s")
-    logging.info('Got args: ' + str(args))
-    from pprint import pformat
-    logging.info(pformat(dict(os.environ)))
+
+    logging.debug('Got args: ' + str(args))
+    logging.debug('Env dump:\n' + pformat(dict(os.environ)))
 
     if not args.request_id:
         logging.error("Request id is mandatory")

@@ -30,6 +30,8 @@ import time
 import urllib2
 import ConfigParser
 
+from pprint import pformat
+
 from cupstream2distro import branchhandling, launchpadmanager, packageinppamanager, packagemanager, silomanager
 from cupstream2distro.settings import PROPOSED_URL, SILO_PUBLISHED, SILO_DONE, BRANCH_URL, PROJECT_CONFIG_SUFFIX, TIME_BETWEEN_PPA_CHECKS, SILOS_DIR
 from cupstream2distro.utils import ignored
@@ -97,12 +99,9 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
                         format="%(asctime)s %(levelname)s %(message)s")
-    if args.debug:
-        logging.debug("Debug mode enabled")
 
-    logging.debug('Env dump:')
-    from pprint import pformat
-    logging.debug(pformat(dict(os.environ)))
+    logging.debug('Got args: ' + str(args))
+    logging.debug('Env dump:\n' + pformat(dict(os.environ)))
 
     silo_config = silomanager.load_config()
     if silo_config["global"]["status"]["state"] == silomanager.SILO_STATE_MERGING:
