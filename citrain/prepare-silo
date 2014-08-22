@@ -163,6 +163,7 @@ if __name__ == '__main__':
     source_packages_seen = set()
     # grab the project name of all MP
     for mp_url in args.mps:
+        logging.debug('Checking MP: ' + mp_url)
         mp = launchpadmanager.get_resource_from_url(mp_url)
         try:
             source_package_name = branchhandling.get_source_package_name_from_branch(mp.target_branch.web_link)
@@ -170,6 +171,7 @@ if __name__ == '__main__':
             logging.error("{} doesn't seem to be a valid merge proposal url".format(mp_url))
             sys.exit(1)
         project_name = mp.target_branch.project.name
+        logging.debug('Found project name ' + project_name)
 
         # ensure a self reconfiguring doesn't add new projects
         if args.reconfiguresilo and args.restricted:
@@ -181,6 +183,7 @@ if __name__ == '__main__':
 
         config["mps"].setdefault(source_package_name, []).append(mp.self_link)
 
+        logging.debug('Seen: ' + str(source_packages_seen))
         if (source_package_name not in source_packages_seen):
             source_packages_seen.add(source_package_name)
             # check that any of those components are part of any current transaction
@@ -195,11 +198,13 @@ if __name__ == '__main__':
 
     # check that additional sources are not as well already in use
     for source in config["sources"]:
+        logging.debug('Checking source: ' + source)
 
         # ensure a self reconfiguring doesn't add new projects
         if args.reconfiguresilo and args.restricted:
             check_not_adding_new_components(source, allowed_components_from_previous_config, existing_config, silo_path)
 
+        logging.debug('Seen: ' + str(source_packages_seen))
         if (source not in source_packages_seen):
             source_packages_seen.add(source)
             if not silomanager.is_project_not_in_any_configs(
