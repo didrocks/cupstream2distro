@@ -43,9 +43,6 @@ def check_not_adding_new_components(project_name, allowed_components_from_previo
 
 
 if __name__ == '__main__':
-
-    logging.basicConfig(level=logging.INFO)
-
     parser = argparse.ArgumentParser(description="Prepare and assign a free silo from a ppa",
                                      epilog="You need to either pass an mps or sources")
 
@@ -68,8 +65,9 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
                         format="%(asctime)s %(levelname)s %(message)s")
-    if args.debug:
-        logging.debug("Debug mode enabled")
+    logging.info('Got args: ' + str(args))
+    from pprint import pformat
+    logging.info(pformat(dict(os.environ)))
 
     if not args.request_id:
         logging.error("Request id is mandatory")
