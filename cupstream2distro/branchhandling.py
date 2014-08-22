@@ -116,7 +116,7 @@ def collect_author_commits(content_to_parse, bugs_to_skip, additional_stamp="", 
                         if line and line[-1] != '.': # Grammar nazi...
                             line += '.' # ... or the lines will be merged.
                     line = line + ' ' # Add a space to preserve lines
-                current_commit += line
+                    current_commit += line
                 #  Maybe add something like that
                 #for content in mp.commit_message.split('\n'):
                 #    content = content.strip()
