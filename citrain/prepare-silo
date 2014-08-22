@@ -160,6 +160,7 @@ if __name__ == '__main__':
         config["sources"] = args.sources
 
     one_project_already_in_use = False
+    source_packages_seen = set()
     # grab the project name of all MP
     for mp_url in args.mps:
         mp = launchpadmanager.get_resource_from_url(mp_url)
@@ -180,9 +181,17 @@ if __name__ == '__main__':
 
         config["mps"].setdefault(source_package_name, []).append(mp.self_link)
 
-        # check that any of those components are part of any current transaction
-        if not silomanager.is_project_not_in_any_configs(mp.target_branch.project.name, series, dest, SILOS_DIR, silo_name, dont_error_but_warn=args.ignore_conflicts):
-            one_project_already_in_use = True
+        if (source_package_name not in source_packages_seen):
+            source_packages_seen.add(source_package_name)
+            # check that any of those components are part of any current transaction
+            if not silomanager.is_project_not_in_any_configs(
+                    mp.target_branch.project.name,
+                    series,
+                    dest,
+                    SILOS_DIR,
+                    silo_name,
+                    dont_error_but_warn=args.ignore_conflicts):
+                one_project_already_in_use = True
 
     # check that additional sources are not as well already in use
     for source in config["sources"]:
@@ -191,8 +200,16 @@ if __name__ == '__main__':
         if args.reconfiguresilo and args.restricted:
             check_not_adding_new_components(source, allowed_components_from_previous_config, existing_config, silo_path)
 
-        if not silomanager.is_project_not_in_any_configs(source, series, dest, SILOS_DIR, silo_name, dont_error_but_warn=args.ignore_conflicts):
-            one_project_already_in_use = True
+        if (source not in source_packages_seen):
+            source_packages_seen.add(source)
+            if not silomanager.is_project_not_in_any_configs(
+                    source,
+                    series,
+                    dest,
+                    SILOS_DIR,
+                    silo_name,
+                    dont_error_but_warn=args.ignore_conflicts):
+                one_project_already_in_use = True
 
     if one_project_already_in_use:
         message = "One or more projects are already in use for the same destination and series in another silo (see above)."
