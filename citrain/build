@@ -389,7 +389,7 @@ if __name__ == '__main__':
             packagemanager.build_source_package(series.name, current_version)
 
             # Save infos for uploading later on.
-            src_pkgs_to_upload[source_package_name] = (new_version, "", -1, "")
+            src_pkgs_to_upload[pkg] = (new_version, "", -1, "")
 
             os.chdir("..")
 
