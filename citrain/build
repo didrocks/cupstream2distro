@@ -338,6 +338,7 @@ if __name__ == '__main__':
         source_archive = launchpadmanager.get_resource_from_token(silo_config['source_archive'])
         source_series = silo_config['source_series']
         for pkg in silo_config["sources"]:
+            logging.debug("!!! Looking at {}!".format(pkg))
             current_version = packagemanager.get_current_version_for_series(pkg, source_series, dest=source_archive)
 
             # prepare new version number
@@ -381,6 +382,7 @@ if __name__ == '__main__':
                 os.chdir(dest_source_package)
 
             # to use our building tools, we actually need to hack around and make a bzr repository (for bzr bd -S)
+            logging.debug("Creating the bzr repository")
             subprocess.call(["bzr", "init", "."])
             subprocess.call(["bzr", "add", "."])
 
