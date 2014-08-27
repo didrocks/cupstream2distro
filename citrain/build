@@ -334,13 +334,71 @@ if __name__ == '__main__':
         src_pkgs_to_upload[source_package_name] = (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version)
 
 
+    if "source_archive" in silo_config:
+        source_archive = launchpadmanager.get_resource_from_token(silo_config['source_archive'])
+        source_series = silo_config['source_series']
+        for pkg in silo_config["sources"]:
+            current_version = packagemanager.get_current_version_for_series(pkg, source_series, dest=source_archive)
+
+            # prepare new version number
+            if source_archive.distribution.name == "ubuntu" and dest.distribution.name == "ubuntu-rtm":
+                split_version = current_version.split("-")
+                split_version[0] += "~rtm"
+                new_version = "-".join(split_version)
+            else:
+                new_version = current_version
+
+            if packagemanager.is_version_for_series_in_dest(pkg, new_version, series, src_ppa):
+                logging.info("Package {} seems to be up-to-date in the silo PPA (version {})".format(pkg, new_version))
+                continue
+
+            dest_source_package = packagemanager.get_source_package_from_dest(pkg, source_archive, current_version, source_series)
+            if dest_source_package:
+                dest_source_package = os.path.abspath(dest_source_package)
+            os.chdir(dest_source_package)
+
+            # modify the changelog
+            changelog = open("debian/changelog", "r").readlines()
+            changelog_split = changelog[0].split(" ")
+            changelog_split[1] = "({})".format(new_version)
+            changelog_split[2] = "{};".format(series.name)
+            changelog[0] = " ".join(changelog_split)
+            with open("debian/changelog", "w") as f:
+                for line in changelog:
+                    f.write(line)
+
+            # rename the tarball, if needed
+            if new_version != current_version:
+                os.chdir("..")
+                for file_name in os.listdir('.'):
+                    if pkg in file_name and ".tar." in file_name:
+                        orig_tarball = file_name
+                new_upstream_version = packagemanager.get_upstream_version(new_version)
+                current_upstream_version = packagemanager.get_upstream_version(current_version)
+                new_orig_tarball = orig_tarball.replace(current_upstream_version, new_upstream_version)
+                os.rename(orig_tarball, new_orig_tarball)
+
+                os.chdir(dest_source_package)
+
+            # build the source package
+            logging.info("Preparing source package for the sync of {} version {}".format(pkg, new_version))
+            packagemanager.build_source_package(series.name, current_version)
+
+            # Save infos for uploading later on.
+            src_pkgs_to_upload[source_package_name] = (new_version, "", -1, "")
+
+            os.chdir("..")
+
+
+
     # do the actual upload to the ppas
     logging.info("Uploading components to the ppa")
     for source_package_name in src_pkgs_to_upload:
         (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version) = src_pkgs_to_upload[source_package_name]
         packagemanager.upload_package(source_package_name, packaging_version, src_ppa_name)
-        # Save infos for other jobs
-        tools.save_project_config(source_package_name, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
+        # Save infos for other jobs, in case it's a locally built package
+        if branch:
+            tools.save_project_config(source_package_name, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
 
 
     # look at the ppa and generate .projects
