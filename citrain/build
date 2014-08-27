@@ -380,6 +380,10 @@ if __name__ == '__main__':
 
                 os.chdir(dest_source_package)
 
+            # to use our building tools, we actually need to hack around and make a bzr repository (for bzr bd -S)
+            subprocess.call(["bzr", "init", "."])
+            subprocess.call(["bzr", "add", "."])
+
             # build the source package
             logging.info("Preparing source package for the sync of {} version {}".format(pkg, new_version))
             packagemanager.build_source_package(series.name, current_version)
