@@ -155,13 +155,25 @@ if __name__ == '__main__':
 
     if args.sync_request:
         split = args.sync_request.split(",")
-        source_series = split[1]
-        source_archive = launchpadmanager.get_resource_from_token(split[0])
-        if not hasattr(source_archive, "distribution"):
+        # check if it's a sync from a PPA or a distro
+        if split[0].startswith("ppa:"):
+            source_archive = launchpadmanager.get_ppa(split[0])
+        else:
+            source_archive = launchpadmanager.get_distribution_archive(split[0])
+
+        if not source_archive:
             logging.error("Sync silo requested but source archive is not valid ({})".format(split[0]))
             sys.exit(1)
-        config["source_archive"] = split[0]
-        config["source_series"] = split[1]
+
+        if len(split) < 2:
+            logging.error("Sync silo requested but no series given. Request was the following: {}".format(args.sync_request))
+            sys.exit(1)
+
+        source_archive_link = archive.self_link
+        source_series = split[1]
+
+        config["source_archive"] = source_archive
+        config["source_series"] = source_series
 
     silo_path = os.path.join(SILOS_DIR, silo_name)
     logging.info("Silo path: {}, silo name: {}".format(silo_path, silo_name))

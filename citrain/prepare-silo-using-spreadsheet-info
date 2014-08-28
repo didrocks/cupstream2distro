@@ -139,6 +139,11 @@ if __name__ == '__main__':
         cmd.append('--mps')
         cmd.extend(mps)
     if sources:
+        if sources[0].startswith("sync:"):
+            # in case we have a sync request, remove it from the sources list and mark the silo properly
+            sync = sources[0][5:]
+            cmd.extend(['--sync-request', sync])
+            sources = sources[1:]
         cmd.append('--sources')
         cmd.extend(sources)
     if landers:
