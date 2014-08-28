@@ -174,6 +174,16 @@ def get_packaging_version():
 
     raise Exception("Didn't find any Version in the package: {}".format(stdout))
 
+def get_upstream_version(version, remove_epoch=True):
+    """Return upstream version"""
+
+    if remove_epoch:
+        version = version.split(':')[-1]  # remove epoch is there is one
+    splitted_version = version.split('-')
+    if len(splitted_version) > 1:
+        splitted_version = splitted_version[:-1]  # we don't want the ubuntu or debian version (it's not in the source package name)
+    return '-'.join(splitted_version)
+
 
 def get_source_package_from_dest(source_package_name, dest_archive, dest_current_version, series_name):
     '''Download and return a path containing a checkout of the current dest version.

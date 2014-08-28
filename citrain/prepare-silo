@@ -60,6 +60,7 @@ if __name__ == '__main__':
     parser.add_argument("--restricted", action='store_true', help="Restrict to only add MP for already locked components when reconfiguring an existing silo")
     parser.add_argument("--ignore-conflicts", action='store_true', help="Ignore conflicting components in multiple silos. This should only be used in very rare and identified case. Both silos owners need to be aware about it as the second one will have to rebuild and retest.")
     parser.add_argument("--use-preprod-silo", action='store_true', help="Assign a silo with preproduction CI Train code")
+    parser.add_argument("--sync-request", help="This silo will actually be a silo that's supposed to sync packages from a different archive and series")
     parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
 
     args = parser.parse_args()
@@ -151,6 +152,29 @@ if __name__ == '__main__':
               "sources": [],
               "mps": {}
     }
+
+    if args.sync_request:
+        split = args.sync_request.split(",")
+        # check if it's a sync from a PPA or a distro
+        if split[0].startswith("ppa:"):
+            source_archive = launchpadmanager.get_ppa(split[0].split(":")[1])
+        else:
+            source_archive = launchpadmanager.get_distribution_archive(split[0])
+
+        if not source_archive:
+            logging.error("Sync silo requested but source archive is not valid ({})".format(split[0]))
+            sys.exit(1)
+
+        if len(split) < 2:
+            logging.error("Sync silo requested but no series given. Request was the following: {}".format(args.sync_request))
+            sys.exit(1)
+
+        source_archive_link = source_archive.self_link
+        source_series = split[1]
+
+        config["source_archive"] = source_archive_link
+        config["source_series"] = source_series
+
     silo_path = os.path.join(SILOS_DIR, silo_name)
     logging.info("Silo path: {}, silo name: {}".format(silo_path, silo_name))
 
