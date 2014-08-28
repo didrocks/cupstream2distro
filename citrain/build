@@ -431,7 +431,8 @@ if __name__ == '__main__':
         clean_source(source)
     direct_upload_not_in_list = []
     try:
-        for pkg in src_ppa.getPublishedSources(distro_series=series, status="Published"):
+        sources_list = list(src_ppa.getPublishedSources(distro_series=series, status="Published")) + list(src_ppa.getPublishedSources(distro_series=series, status="Pending"))
+        for pkg in sources_list:
             if pkg.source_package_name in silo_config["mps"]:
                 continue
             if pkg.source_package_name in silo_config["sources"]:
