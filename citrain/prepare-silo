@@ -157,7 +157,7 @@ if __name__ == '__main__':
         split = args.sync_request.split(",")
         # check if it's a sync from a PPA or a distro
         if split[0].startswith("ppa:"):
-            source_archive = launchpadmanager.get_ppa(split[0])
+            source_archive = launchpadmanager.get_ppa(split[0].split(":")[1])
         else:
             source_archive = launchpadmanager.get_distribution_archive(split[0])
 
