@@ -61,6 +61,11 @@ if __name__ == '__main__':
     dest = launchpadmanager.get_resource_from_token(silo_config["global"]["dest"])
     series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"])
 
+    whole_rebuild = False
+    sync_request = False
+    if "source_archive" in silo_config:
+        sync_request = True
+
     if not args.rebuildpackages and not args.watchonly:
         if silomanager.get_config_step(silo_config) != SILO_EMPTY:
             if args.ignorestep:
@@ -71,6 +76,7 @@ if __name__ == '__main__':
                 sys.exit(1)
         # remove everything but the archived .project_ files
         logging.info("Whole rebuild, ensuring that the silo is in a coherent state. Keep the published files")
+        whole_rebuild = True
         for filename in os.listdir("."):
             # don't remove archive file and config file
             if not ".{}_".format(PROJECT_CONFIG_SUFFIX) in filename and not "config" in filename:
@@ -89,7 +95,7 @@ if __name__ == '__main__':
     # detect if we have a prepare only source not in configuration
     components_not_in_config = []
     for source in args.rebuildpackages:
-        if source not in silo_config["mps"]:
+        if source not in silo_config["mps"] and (not sync_request or source not in silo_config["sources"]):
             components_not_in_config.append(source)
     if components_not_in_config:
         message = "One or more components provided in rebuildpackages ({}) are not in the MP silo configuration. Ask for a reconfiguration of the silo with the new MPs to add please.".format(", ".join(components_not_in_config))
@@ -334,11 +340,18 @@ if __name__ == '__main__':
         src_pkgs_to_upload[source_package_name] = (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version)
 
 
-    if "source_archive" in silo_config:
+    # this landing has a sync request in it
+    if sync_request and not args.watchonly:
         source_archive = launchpadmanager.get_resource_from_token(silo_config['source_archive'])
         source_series = silo_config['source_series']
-        for pkg in silo_config["sources"]:
-            logging.debug("!!! Looking at {}!".format(pkg))
+
+        if whole_rebuild:
+            sources_to_sync = silo_config["sources"]
+        else:
+            sources_to_sync = [pkg for pkg in silo_config["sources"] if pkg in args.rebuildpackages]
+
+        for pkg in sources_to_sync:
+            logging.debug("Looking at {} as per sync request".format(pkg))
             current_version = packagemanager.get_current_version_for_series(pkg, source_series, dest=source_archive)
 
             # prepare new version number
@@ -390,11 +403,10 @@ if __name__ == '__main__':
             logging.info("Preparing source package for the sync of {} version {}".format(pkg, new_version))
             packagemanager.build_source_package(series.name, current_version)
 
-            # Save infos for uploading later on.
+            # save infos for uploading later on.
             src_pkgs_to_upload[pkg] = (new_version, "", -1, "")
 
             os.chdir("..")
-
 
 
     # do the actual upload to the ppas
