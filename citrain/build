@@ -68,7 +68,9 @@ if __name__ == '__main__':
 
     if not args.rebuildpackages and not args.watchonly:
         if silomanager.get_config_step(silo_config) != SILO_EMPTY:
-            if args.ignorestep:
+            if "source_sync_from_silo" in silo_config:
+                logging.warning("A landing sync is configured here, doing a whole rebuild.")
+            elif args.ignorestep:
                 logging.warning("You already tried to build everything. But the ignore option is set.")
             else:
                 logging.error("You already tried to build everything. You need to either:\n - use the ignore step option (to rebuild all MPs)\n - use the \"only rebuild packages\" option (to rebuild only some components associated to a MP) \n - use the watch only option (to only check ppa status without any rebuild).")
@@ -345,11 +347,14 @@ if __name__ == '__main__':
         source_archive = launchpadmanager.get_resource_from_token(silo_config['source_archive'])
         source_series = silo_config['source_series']
 
-        if whole_rebuild:
-            sources_to_sync = silo_config["sources"]
+        if "source_sync_from_silo" in silo_config:
+            sources_to_sync = [i.source_package_name for i in packagemanager.sort_by_date_created(getPublishedSources(distro_series=source_series, status="Published"))[0]]
         else:
-            sources_to_sync = [pkg for pkg in silo_config["sources"] if pkg in args.rebuildpackages]
-
+            if whole_rebuild:
+                sources_to_sync = silo_config["sources"]
+            else:
+                sources_to_sync = [pkg for pkg in silo_config["sources"] if pkg in args.rebuildpackages]
+        
         for pkg in sources_to_sync:
             logging.debug("Looking at {} as per sync request".format(pkg))
             current_version = packagemanager.get_current_version_for_series(pkg, source_series, dest=source_archive)

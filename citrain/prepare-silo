@@ -157,7 +157,13 @@ if __name__ == '__main__':
         split = args.sync_request.split(",")
         # check if it's a sync from a PPA or a distro
         if split[0].startswith("ppa:"):
-            source_archive = launchpadmanager.get_ppa(split[0].split(":")[1])
+            ppa_name = split[0].split(":")[1]
+            if ppa_name[0] == "~":
+                ppa_name = ppa_name[1:]
+            source_archive = launchpadmanager.get_ppa(ppa_name)
+        elif split[0].isdigit():
+            source_archive = launchpadmanager.get_ppa("ci-train-ppa-service/ubuntu/landing-{:03d}".format(split[0]))
+            config["source_sync_from_silo"] = true
         else:
             source_archive = launchpadmanager.get_distribution_archive(split[0])
 
