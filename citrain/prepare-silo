@@ -169,7 +169,7 @@ if __name__ == '__main__':
             logging.error("Sync silo requested but no series given. Request was the following: {}".format(args.sync_request))
             sys.exit(1)
 
-        source_archive_link = archive.self_link
+        source_archive_link = source_archive.self_link
         source_series = split[1]
 
         config["source_archive"] = source_archive
