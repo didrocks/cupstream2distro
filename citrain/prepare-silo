@@ -172,7 +172,7 @@ if __name__ == '__main__':
         source_archive_link = source_archive.self_link
         source_series = split[1]
 
-        config["source_archive"] = source_archive
+        config["source_archive"] = source_archive_link
         config["source_series"] = source_series
 
     silo_path = os.path.join(SILOS_DIR, silo_name)
