@@ -63,6 +63,9 @@ if __name__ == '__main__':
 
     whole_rebuild = False
     sync_request = False
+
+    logging.debug("{} and {}".format("source_sync_from_silo" in silo_config, silo_config["source_sync_from_silo"]))
+
     if "source_archive" in silo_config:
         logging.debug("A sync request has been requested. Is landing sync from silo? {}".format("source_sync_from_silo" in silo_config))
         sync_request = True
