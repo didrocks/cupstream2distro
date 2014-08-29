@@ -63,6 +63,7 @@ if __name__ == '__main__':
 
     whole_rebuild = False
     sync_request = False
+
     if "source_archive" in silo_config:
         logging.debug("A sync request has been requested. Is landing sync from silo? {}".format("source_sync_from_silo" in silo_config))
         sync_request = True
@@ -342,6 +343,7 @@ if __name__ == '__main__':
         # Save infos for uploading later on.
         src_pkgs_to_upload[source_package_name] = (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version)
 
+    direct_sources_to_consider = silo_config["sources"]
 
     # this landing has a sync request in it
     if sync_request and not args.watchonly:
@@ -350,7 +352,9 @@ if __name__ == '__main__':
 
         if "source_sync_from_silo" in silo_config:
             logging.debug("Syncing whole silo contents from the selected silo")
-            sources_to_sync = [i.source_package_name for i in packagemanager.sort_by_date_created(source_archive.getPublishedSources(distro_series=source_series, status="Published"))[0]]
+            source_series_object = launchpadmanager.get_series(source_series, distribution=source_archive.distribution.name)
+            sources_to_sync = [i.source_package_name for i in source_archive.getPublishedSources(distro_series=source_series_object, status="Published")]
+            direct_sources_to_consider = sources_to_sync
         else:
             if whole_rebuild:
                 sources_to_sync = silo_config["sources"]
@@ -429,7 +433,7 @@ if __name__ == '__main__':
     # look at the ppa and generate .projects
     logging.info("Looking at the ppa {} ({}) content".format(src_ppa.web_link, series.name))
     # as we recreate all .projects file for those direct uploads, let's clean their metadata
-    for source in silo_config["sources"]:
+    for source in direct_sources_to_consider:
         clean_source(source)
     direct_upload_not_in_list = []
     try:
@@ -437,7 +441,7 @@ if __name__ == '__main__':
         for pkg in sources_list:
             if pkg.source_package_name in silo_config["mps"]:
                 continue
-            if pkg.source_package_name in silo_config["sources"]:
+            if pkg.source_package_name in direct_sources_to_consider:
                 dest_current_version = packagemanager.get_current_version_for_series(pkg.source_package_name, series.name, dest=dest)
                 # if a direct source pacakge upload was already published, ignore it
                 published_sources = tools.get_published_to_distro_projects()
