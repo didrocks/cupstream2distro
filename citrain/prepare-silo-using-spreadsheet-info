@@ -128,7 +128,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     mps = parse_and_clean_entry(raw_mps)
-    sources = parse_and_clean_entry(raw_sources)
+    sources = parse_and_clean_entry(raw_sources, comma_as_sep=False)
     landers = parse_and_clean_entry(raw_landers, slash_as_sep=True)
 
     prepare_silo_cmd = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'prepare-silo')

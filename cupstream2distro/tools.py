@@ -103,15 +103,17 @@ def clean_source(source):
     for filename in glob.glob("packaging_changes_{}_*diff".format(source)):
         os.remove(filename)
 
-def parse_and_clean_entry(raw_entry, slash_as_sep=False):
+def parse_and_clean_entry(raw_entry, slash_as_sep=False, comma_as_sep=True):
     '''Return a strip list of entries and try to separate with any possible delimiter (\n, ',', ' ')'''
     result = []
     if slash_as_sep:
         raw_entry = " ".join(raw_entry.split('/'))
 
-    for entry in raw_entry.split(','):
-        for x in entry.split():
-            result.append(x.strip())
+    if comma_as_sep:
+        raw_entry = " ".join(raw_entry.split(','))
+
+    for entry in raw_entry.split():
+        result.append(entry.strip())
     return result
 
 def reorder_branches_regarding_prereqs(list_of_merges):

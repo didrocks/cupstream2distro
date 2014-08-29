@@ -74,7 +74,7 @@ if __name__ == '__main__':
     if not args.request_id:
         logging.error("Request id is mandatory")
         sys.exit(1)
-    if not args.mps and not args.sources:
+    if not args.mps and not args.sources and not args.sync_request:
         logging.error("You need at least specify a MP or a source")
         sys.exit(1)
     if args.restricted and not args.reconfiguresilo:
