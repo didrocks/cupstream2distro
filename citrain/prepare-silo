@@ -161,23 +161,27 @@ if __name__ == '__main__':
             if ppa_name[0] == "~":
                 ppa_name = ppa_name[1:]
             source_archive = launchpadmanager.get_ppa(ppa_name)
+            if len(split) > 1:
+                source_series = split[1]
         elif split[0].isdigit():
             source_archive = launchpadmanager.get_ppa("ci-train-ppa-service/ubuntu/landing-{:03d}".format(split[0]))
+            source_series = "utopic"
             config["source_sync_from_silo"] = true
         else:
             source_archive = launchpadmanager.get_distribution_archive(split[0])
+            if len(split) > 1:
+                source_series = split[1]
 
         if not source_archive:
             logging.error("Sync silo requested but source archive is not valid ({})".format(split[0]))
             sys.exit(1)
 
-        if len(split) < 2:
+        if not source_series:
             logging.error("Sync silo requested but no series given. Request was the following: {}".format(args.sync_request))
             sys.exit(1)
 
         source_archive_link = source_archive.self_link
-        source_series = split[1]
-
+        
         config["source_archive"] = source_archive_link
         config["source_series"] = source_series
 
