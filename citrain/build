@@ -429,6 +429,12 @@ if __name__ == '__main__':
         if branch:
             tools.save_project_config(source_package_name, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
 
+    # a quick workaround - allow packages in the PPA that were not listed in case of a watchonly build and a sync from a silo
+    logging.debug("Check if we have a watchonly for a silo sync - sync: {}, watchonly: {}".format("source_sync_from_silo" in silo_config, args.watchonly))
+    allow_unlisted_sources = False
+    if ("source_sync_from_silo" in silo_config) and args.watchonly:
+        logging.debug("Because it is a silo sync we will watch the whole PPA contents")
+        allow_unlisted_sources = True
 
     # look at the ppa and generate .projects
     logging.info("Looking at the ppa {} ({}) content".format(src_ppa.web_link, series.name))
@@ -437,12 +443,6 @@ if __name__ == '__main__':
         clean_source(source)
     direct_upload_not_in_list = []
     try:
-        # a quick workaround - allow packages in the PPA that were not listed in case of a watchonly build and a sync from a silo
-        allow_unlisted_sources = False
-        if ("source_sync_from_silo" in silo_config) and args.watchonly:
-            logging.debug("Because it is a silo sync we will watch the whole PPA contents")
-            allow_unlisted_sources = True
-
         sources_list = list(src_ppa.getPublishedSources(distro_series=series, status="Published")) + list(src_ppa.getPublishedSources(distro_series=series, status="Pending"))
         for pkg in sources_list:
             if pkg.source_package_name in silo_config["mps"]:
