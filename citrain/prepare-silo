@@ -164,7 +164,7 @@ if __name__ == '__main__':
             if len(split) > 1:
                 source_series = split[1]
         elif split[0].isdigit():
-            source_archive = launchpadmanager.get_ppa("ci-train-ppa-service/ubuntu/landing-{:03d}".format(split[0]))
+            source_archive = launchpadmanager.get_ppa("ci-train-ppa-service/ubuntu/landing-{:03d}".format(int(split[0])))
             source_series = "utopic"
             config["source_sync_from_silo"] = true
         else:
