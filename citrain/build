@@ -64,6 +64,7 @@ if __name__ == '__main__':
     whole_rebuild = False
     sync_request = False
     if "source_archive" in silo_config:
+        logging.debug("A sync request has been requested. Is landing sync from silo? {}".format("source_sync_from_silo" in silo_config))
         sync_request = True
 
     if not args.rebuildpackages and not args.watchonly:
@@ -348,7 +349,8 @@ if __name__ == '__main__':
         source_series = silo_config['source_series']
 
         if "source_sync_from_silo" in silo_config:
-            sources_to_sync = [i.source_package_name for i in packagemanager.sort_by_date_created(getPublishedSources(distro_series=source_series, status="Published"))[0]]
+            logging.debug("Syncing whole silo contents from the selected silo")
+            sources_to_sync = [i.source_package_name for i in packagemanager.sort_by_date_created(source_archive.getPublishedSources(distro_series=source_series, status="Published"))[0]]
         else:
             if whole_rebuild:
                 sources_to_sync = silo_config["sources"]
