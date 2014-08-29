@@ -353,6 +353,7 @@ if __name__ == '__main__':
 
         if "source_sync_from_silo" in silo_config:
             logging.debug("Syncing whole silo contents from the selected silo")
+            source_series_object = launchpadmanager.get_series(source_series, distribution=source_archive.distribution.name)
             sources_to_sync = [i.source_package_name for i in packagemanager.sort_by_date_created(source_archive.getPublishedSources(distro_series=source_series, status="Published"))[0]]
         else:
             if whole_rebuild:
