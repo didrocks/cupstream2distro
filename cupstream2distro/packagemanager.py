@@ -591,13 +591,16 @@ def check_package_reached_destination(silo_config, packages_in_dest, ignoremissi
 
     # check that all package sources were in the silo configuration
     logging.info("Check that all package sources were in the silo configuration")
-    for source in packages_in_dest:
-        try:
-            all_silo_projects.remove(source)
-        except ValueError:
-            message = "{} wasn't in the initiale configuration. You have messed with the file system directly.\nUnknown state. Please resolve the silo manually and then free it.".format(source)
-            logging.error(message)
-            return (False, "Can't check migration: " + message)
+    if "source_sync_from_silo" not in silo_config:
+        for source in packages_in_dest:
+            try:
+                all_silo_projects.remove(source)
+            except ValueError:
+                message = "{} wasn't in the initiale configuration. You have messed with the file system directly.\nUnknown state. Please resolve the silo manually and then free it.".format(source)
+                logging.error(message)
+                return (False, "Can't check migration: " + message)
+    else:
+        logging.info("Sync request from silo, checking all uploaded projects.")
 
     # additional check for merge and clean, we want all projects in silo configuration to be built and published
     if for_merge_and_clean and all_silo_projects:
