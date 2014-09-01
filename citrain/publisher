@@ -104,6 +104,9 @@ if __name__ == '__main__':
 
     logging.info("Publishing as {}.".format(publisher_nickname))
 
+    if "source_archive" in silo_config:
+        logging.debug("Publishing a sync request? {}".format("source_sync_from_silo" in silo_config))
+
     # getting the archives and series objects
     is_sru = not launchpadmanager.is_series_current(series, dest_archive.distribution.name)
     if not launchpadmanager.is_dest_distro_archive(dest_link):
@@ -147,7 +150,8 @@ if __name__ == '__main__':
     for (source, version, tip_rev, branch) in all_packages_uploaded:
         logging.info("Checking {} ({})".format(source, version))
         try:
-            all_silo_projects.remove(source)
+            if "source_sync_from_silo" not in silo_config:
+                all_silo_projects.remove(source)
         except ValueError:
             # TODO: make that check first in its own loop
             # TODO2: add an option to say "it's ok, please remove from file system everything that's not mentionned in the config file"
