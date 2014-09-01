@@ -360,6 +360,9 @@ if __name__ == '__main__':
                 sources_to_sync = silo_config["sources"]
             else:
                 sources_to_sync = [pkg for pkg in silo_config["sources"] if pkg in args.rebuildpackages]
+
+        main_dir = os.getcwd()
+        logging.debug("The current main directory: {}".format(main_dir))
         
         for pkg in sources_to_sync:
             logging.debug("Looking at {} as per sync request".format(pkg))
@@ -417,7 +420,8 @@ if __name__ == '__main__':
             # save infos for uploading later on.
             src_pkgs_to_upload[pkg] = (new_version, "", -1, "")
 
-            os.chdir("..")
+            # go back to the main directory
+            os.chdir(main_dir)
 
 
     # do the actual upload to the ppas
