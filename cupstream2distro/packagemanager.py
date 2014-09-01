@@ -537,12 +537,12 @@ def build_source_package(series, distro_version, ppa=None):
         raise Exception("%r returned: %s." % (cmd, instance.returncode))
 
 
-def upload_package(source, version, ppa):
+def upload_package(source, version, ppa, path="."):
     '''Upload the new package to a ppa'''
     # remove epoch is there is one
     version_for_source_file = version.split(':')[-1]
     cmd = ["dput", "ppa:{}".format(ppa),
-           "{}_{}_source.changes".format(source, version_for_source_file)]
+           "{}/{}_{}_source.changes".format(path, source, version_for_source_file)]
     if subprocess.call(cmd) != 0:
         raise Exception("%r returned an error." % (cmd,))
 

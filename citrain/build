@@ -341,7 +341,7 @@ if __name__ == '__main__':
                     olddsc_path = os.path.join(os.path.dirname(dest_source_package), file)
         packagemanager.generate_diff_between_dsc(diff_filepath, olddsc_path, newdsc_path)
         # Save infos for uploading later on.
-        src_pkgs_to_upload[source_package_name] = (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version)
+        src_pkgs_to_upload[source_package_name] = (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version, ".")
 
     direct_sources_to_consider = silo_config["sources"]
 
@@ -418,7 +418,7 @@ if __name__ == '__main__':
             packagemanager.build_source_package(series.name, current_version)
 
             # save infos for uploading later on.
-            src_pkgs_to_upload[pkg] = (new_version, "", -1, "")
+            src_pkgs_to_upload[pkg] = (new_version, "", -1, "", "{}/..".format(dest_source_package))
 
             # go back to the main directory
             os.chdir(main_dir)
@@ -427,8 +427,8 @@ if __name__ == '__main__':
     # do the actual upload to the ppas
     logging.info("Uploading components to the ppa")
     for source_package_name in src_pkgs_to_upload:
-        (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version) = src_pkgs_to_upload[source_package_name]
-        packagemanager.upload_package(source_package_name, packaging_version, src_ppa_name)
+        (packaging_version, branch, dest_tip_bzr_rev, previous_finaledest_version, path_to_upload_dir) = src_pkgs_to_upload[source_package_name]
+        packagemanager.upload_package(source_package_name, packaging_version, src_ppa_name, path_to_upload_dir)
         # Save infos for other jobs, in case it's a locally built package
         if branch:
             tools.save_project_config(source_package_name, branch, dest_tip_bzr_rev, previous_finaledest_version, packaging_version)
