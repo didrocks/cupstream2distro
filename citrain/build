@@ -449,7 +449,7 @@ if __name__ == '__main__':
         for pkg in sources_list:
             if pkg.source_package_name in silo_config["mps"]:
                 continue
-            if pkg.source_package_name in direct_sources_to_consider:
+            if pkg.source_package_name in direct_sources_to_consider or allow_unlisted_sources:
                 dest_current_version = packagemanager.get_current_version_for_series(pkg.source_package_name, series.name, dest=dest)
                 # if a direct source pacakge upload was already published, ignore it
                 published_sources = tools.get_published_to_distro_projects()
@@ -462,7 +462,7 @@ if __name__ == '__main__':
                     # download as well the .dsc file for watch-ppa
                     source_dir = packagemanager.get_source_package_from_dest(pkg.source_package_name, src_ppa, pkg.source_package_version, series.name)
                     shutil.copy(glob.glob(os.path.join(os.path.dirname(source_dir), '*.dsc'))[0], os.path.abspath('.'))
-            elif not allow_unlisted_sources:
+            else:
                 direct_upload_not_in_list.append(pkg.source_package_name)
     except lazr.restfulclient.errors.BadRequest:
         pass # no package in the ppa yet
