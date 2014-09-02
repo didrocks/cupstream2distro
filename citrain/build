@@ -415,7 +415,7 @@ if __name__ == '__main__':
 
             # build the source package
             logging.info("Preparing source package for the sync of {} version {}".format(pkg, new_version))
-            packagemanager.build_source_package(series.name, current_version)
+            packagemanager.build_source_package(series.name, new_version)
 
             # save infos for uploading later on.
             src_pkgs_to_upload[pkg] = (new_version, "", -1, "", "{}/..".format(dest_source_package))
