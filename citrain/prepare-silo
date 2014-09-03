@@ -27,41 +27,108 @@ import sys
 
 from pprint import pformat
 
-from cupstream2distro import branchhandling, launchpadmanager, packageinppamanager, silomanager
-from cupstream2distro.settings import SILO_BUILDPPA_SCHEME, SILOS_DIR, SILO_NAME_LIST, SILO_EMPTY
+from cupstream2distro import (
+    branchhandling,
+    launchpadmanager,
+    packageinppamanager,
+    silomanager,
+)
+from cupstream2distro.settings import (
+    SILO_BUILDPPA_SCHEME,
+    SILOS_DIR,
+    SILO_NAME_LIST,
+    SILO_EMPTY,
+)
 from cupstream2distro.tools import clean_source
 from cupstream2distro.utils import ignored
 
 
-def check_not_adding_new_components(project_name, allowed_components_from_previous_config, config, silo_path):
+def check_not_adding_new_components(project_name,
+                                    allowed_components_from_previous_config,
+                                    config,
+                                    silo_path):
     """Check that a self reconfigure doesn't add new components"""
 
     if project_name not in allowed_components_from_previous_config:
-        message = "{} was not in the initial list of components for that silo. You can't reconfigure the silo yourself. Please ask the landing team to reconfigure it for you.".format(project_name)
+        message = ("{} was not in the initial list of components for that "
+                   "silo. You can't reconfigure the silo yourself. "
+                   "Please ask the landing team to reconfigure it for "
+                   "you.".format(project_name))
         logging.error(message)
         silomanager.set_config_step(config, -1, uri=silo_path)
-        silomanager.set_config_status(config, silomanager.SILO_STATE_RECONFIGURE_FAILED, "Reconfigure failed: " + message, uri=silo_path)
+        silomanager.set_config_status(
+            config,
+            silomanager.SILO_STATE_RECONFIGURE_FAILED,
+            "Reconfigure failed: " + message,
+            uri=silo_path)
         sys.exit(1)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Prepare and assign a free silo from a ppa",
-                                     epilog="You need to either pass an mps or sources")
+    parser = argparse.ArgumentParser(
+        description="Prepare and assign a free silo from a ppa",
+        epilog="You need to either pass an mps or sources")
 
-    parser.add_argument("--request-id", help="Update/Configure this request id")
+    parser.add_argument(
+        "--request-id",
+        help="Update/Configure this request id")
 
-    parser.add_argument("--distribution", default="ubuntu", help="Which distribution to target (default: ubuntu)")
-    parser.add_argument("--series", help="Series used to build the package")
-    parser.add_argument("--destppa", help="Consider this destppa instead of {series}-proposed")
-    parser.add_argument("--mps", nargs='*', default = [], help="Merge proposal urls")
-    parser.add_argument("--sources", nargs='*', default = [], help="Add sources packages that will be uploaded later manually to the ppa")
-    parser.add_argument("--landers", nargs='*', default = [], help="Landers who are owners of that request")
-    parser.add_argument("--reconfiguresilo", action='store_true', help="Reconfigure an existing silo")
-    parser.add_argument("--restricted", action='store_true', help="Restrict to only add MP for already locked components when reconfiguring an existing silo")
-    parser.add_argument("--ignore-conflicts", action='store_true', help="Ignore conflicting components in multiple silos. This should only be used in very rare and identified case. Both silos owners need to be aware about it as the second one will have to rebuild and retest.")
-    parser.add_argument("--use-preprod-silo", action='store_true', help="Assign a silo with preproduction CI Train code")
-    parser.add_argument("--sync-request", help="This silo will actually be a silo that's supposed to sync packages from a different archive and series")
-    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
+    parser.add_argument(
+        "--distribution",
+        default="ubuntu",
+        help="Which distribution to target (default: ubuntu)")
+    parser.add_argument(
+        "--series",
+        help="Series used to build the package")
+    parser.add_argument(
+        "--destppa",
+        help="Consider this destppa instead of {series}-proposed")
+    parser.add_argument(
+        "--mps",
+        nargs='*',
+        default=[],
+        help="Merge proposal urls")
+    parser.add_argument(
+        "--sources",
+        nargs='*',
+        default=[],
+        help="Add sources packages that will be uploaded later manually "
+        "to the ppa")
+    parser.add_argument(
+        "--landers",
+        nargs='*',
+        default=[],
+        help="Landers who are owners of that request")
+    parser.add_argument(
+        "--reconfiguresilo",
+        action='store_true',
+        help="Reconfigure an existing silo")
+    parser.add_argument(
+        "--restricted",
+        action='store_true',
+        help="Restrict to only add MP for already locked components when "
+        "reconfiguring an existing silo")
+    parser.add_argument(
+        "--ignore-conflicts",
+        action='store_true',
+        help="Ignore conflicting components in multiple silos. This should "
+        "only be used in very rare and identified case. Both silos owners "
+        "need to be aware about it as the second one will have to rebuild "
+        "and retest.")
+    parser.add_argument(
+        "--use-preprod-silo",
+        action='store_true',
+        help="Assign a silo with preproduction CI Train code")
+    parser.add_argument(
+        "--sync-request",
+        help="This silo will actually be a silo that's supposed to sync "
+        "packages from a different archive and series")
+    parser.add_argument(
+        '-d',
+        '--debug',
+        action='store_true',
+        default=False,
+        help="Enable debug infos")
 
     args = parser.parse_args()
 
@@ -78,15 +145,19 @@ if __name__ == '__main__':
         logging.error("You need at least specify a MP or a source")
         sys.exit(1)
     if args.restricted and not args.reconfiguresilo:
-        logging.error("Restricted mode should only be used to reconfigure a silo")
+        logging.error(
+            "Restricted mode should only be used to reconfigure a silo")
         sys.exit(1)
 
     project_urls = args.mps[:]
     project_urls.extend(args.sources)
 
-    # make sure the distribution parameter is one of the two supported right now
+    # make sure the distribution parameter is one of the two supported right
+    # now
     if args.distribution not in SILO_NAME_LIST:
-        logging.error("Distribution {} is currently not supported in the CI Train. Not assigning".format(args.distribution))
+        logging.error(
+            "Distribution {} is currently not supported in the CI "
+            "Train. Not assigning".format(args.distribution))
         sys.exit(1)
 
     # create all silo names
@@ -101,31 +172,54 @@ if __name__ == '__main__':
     series = None
 
     request_id = args.request_id
-    existing_config = silomanager.find_silo_config_for_request_id(request_id, SILOS_DIR)
+    existing_config = silomanager.find_silo_config_for_request_id(
+        request_id, SILOS_DIR)
 
     # check provided input matches
     if not args.reconfiguresilo and existing_config:
-        logging.error("You didn't ask to reconfigure a silo, but we found it assigned to {}. Please ensure to check the missing option if this is really what you want to do.".format(existing_config['siloname']))
+        logging.error(
+            "You didn't ask to reconfigure a silo, but we found it "
+            "assigned to {}. Please ensure to check the missing "
+            "option if this is really what you want to "
+            "do.".format(existing_config['siloname']))
         sys.exit(1)
     if args.reconfiguresilo and not existing_config:
-        logging.error("You asked to reconfigure request id {}. But we couldn't find it in any existing silo for it. Are you sure you don't want rather to assign a new silo with it?".format(request_id))
+        logging.error(
+            "You asked to reconfigure request id {}. But we couldn't "
+            "find it in any existing silo for it. Are you sure you "
+            "don't want rather to assign a new silo with "
+            "it?".format(request_id))
         sys.exit(1)
 
     if args.reconfiguresilo and existing_config:
         silo_name = existing_config['siloname']
-        logging.info("Reconfiguring {} as an existing silo for request {}".format(silo_name, request_id))
+        logging.info(
+            "Reconfiguring {} as an existing silo for request "
+            "{}".format(silo_name, request_id))
         # set the same destination, series
-        dest = launchpadmanager.get_resource_from_token(existing_config["global"]["dest"])
-        series = launchpadmanager.get_resource_from_token(existing_config["global"]["series"])
+        dest = launchpadmanager.get_resource_from_token(
+            existing_config["global"]["dest"])
+        series = launchpadmanager.get_resource_from_token(
+            existing_config["global"]["series"])
         # ensure that the series matches the old series field or yell
         if args.series and series.name != args.series:
-            logging.error("You provided a series in the reconfigure {} which is different from the original series that request was for {}. To ensure this is what's wanted, it's preferable to free this silo and request a new one for the new series.".format(args.series, series))
+            logging.error(
+                "You provided a series in the reconfigure {} which is "
+                "different from the original series that request was for "
+                "{}. To ensure this is what's wanted, it's preferable to "
+                "free this silo and request a new one for the new "
+                "series.".format(args.series, series))
             sys.exit(1)
-        allowed_components_from_previous_config = existing_config['mps'].keys() + existing_config['sources']
-        logging.debug("Components in previous configure: " + ", ".join(allowed_components_from_previous_config))
+        allowed_components_from_previous_config = existing_config[
+            'mps'].keys() + existing_config['sources']
+        logging.debug("Components in previous configure: " +
+                      ", ".join(allowed_components_from_previous_config))
     else:
         logging.info("Checking that a silo is available")
-        silo_name = silomanager.return_first_available_silo(SILOS_DIR, preprod=args.use_preprod_silo, distribution=args.distribution)
+        silo_name = silomanager.return_first_available_silo(
+            SILOS_DIR,
+            preprod=args.use_preprod_silo,
+            distribution=args.distribution)
         if not silo_name:
             logging.error("No silo is available")
             sys.exit(1)
@@ -133,7 +227,8 @@ if __name__ == '__main__':
     # silo attribution (made automatically or explicitely)
     if not series:
         if not args.series:
-            logging.error("You need to provide a series to attribute a new silo")
+            logging.error(
+                "You need to provide a series to attribute a new silo")
             sys.exit(1)
         series = launchpadmanager.get_series(args.series, args.distribution)
         if args.destppa:
@@ -141,17 +236,18 @@ if __name__ == '__main__':
         else:
             dest = launchpadmanager.get_distribution_archive(args.distribution)
 
-    logging.info("Configuring for {} ({}) in {}".format(", ".join(project_urls), series.name, dest.name))
+    logging.info("Configuring for {} ({}) in {}".format(
+        ", ".join(project_urls), series.name, dest.name))
     config = {"requestid": request_id,
-              "global": { "dest": dest.self_link,
-                          "series": series.self_link,
-                          "step": "",
-                          "status": "" },
+              "global": {"dest": dest.self_link,
+                         "series": series.self_link,
+                         "step": "",
+                         "status": ""},
               "landers": args.landers,
               "siloname": silo_name,
               "sources": [],
               "mps": {}
-    }
+              }
 
     if args.sync_request:
         split = args.sync_request.split(",")
@@ -164,24 +260,31 @@ if __name__ == '__main__':
             if len(split) > 1:
                 source_series = split[1]
         elif split[0].isdigit():
-            source_archive = launchpadmanager.get_ppa("ci-train-ppa-service/ubuntu/landing-{:03d}".format(int(split[0])))
+            source_archive = launchpadmanager.get_ppa(
+                "ci-train-ppa-service/ubuntu/landing-"
+                "{:03d}".format(int(split[0])))
             source_series = "utopic"
             config["source_sync_from_silo"] = True
         else:
-            source_archive = launchpadmanager.get_distribution_archive(split[0])
+            source_archive = launchpadmanager.get_distribution_archive(
+                split[0])
             if len(split) > 1:
                 source_series = split[1]
 
         if not source_archive:
-            logging.error("Sync silo requested but source archive is not valid ({})".format(split[0]))
+            logging.error(
+                "Sync silo requested but source archive is not valid "
+                "({})".format(split[0]))
             sys.exit(1)
 
         if not source_series:
-            logging.error("Sync silo requested but no series given. Request was the following: {}".format(args.sync_request))
+            logging.error(
+                "Sync silo requested but no series given. Request was the "
+                "following: {}".format(args.sync_request))
             sys.exit(1)
 
         source_archive_link = source_archive.self_link
-        
+
         config["source_archive"] = source_archive_link
         config["source_series"] = source_series
 
@@ -189,7 +292,9 @@ if __name__ == '__main__':
     logging.info("Silo path: {}, silo name: {}".format(silo_path, silo_name))
 
     if args.sources:
-        logging.info("Additional packages will be directly uploaded to the ppa: {}".format(", ".join(args.sources)))
+        logging.info(
+            "Additional packages will be directly uploaded to the ppa: "
+            "{}".format(", ".join(args.sources)))
         config["sources"] = args.sources
 
     one_project_already_in_use = False
@@ -199,19 +304,28 @@ if __name__ == '__main__':
         logging.debug('Checking MP: ' + mp_url)
         mp = launchpadmanager.get_resource_from_url(mp_url)
         try:
-            source_package_name = branchhandling.get_source_package_name_from_branch(mp.target_branch.web_link)
+            long_func = branchhandling.get_source_package_name_from_branch
+            source_package_name = long_func(mp.target_branch.web_link)
         except AttributeError:
-            logging.error("{} doesn't seem to be a valid merge proposal url".format(mp_url))
+            logging.error(
+                "{} doesn't seem to be a valid merge proposal "
+                "url".format(mp_url))
             sys.exit(1)
         project_name = mp.target_branch.project.name
         logging.debug('Found project name ' + project_name)
 
         # ensure a self reconfiguring doesn't add new projects
         if args.reconfiguresilo and args.restricted:
-            check_not_adding_new_components(source_package_name, allowed_components_from_previous_config, existing_config, silo_path)
+            check_not_adding_new_components(
+                source_package_name,
+                allowed_components_from_previous_config,
+                existing_config,
+                silo_path)
 
         if (source_package_name != project_name):
-            message = "Project name ({}) doesn't align with the source package name ({})".format(project_name, source_package_name)
+            message = ("Project name ({}) doesn't align with the source "
+                       "package name ({})".format(project_name,
+                                                  source_package_name))
             logging.warning(message)
 
         config["mps"].setdefault(source_package_name, []).append(mp.self_link)
@@ -219,7 +333,8 @@ if __name__ == '__main__':
         logging.debug('Seen: ' + str(source_packages_seen))
         if (source_package_name not in source_packages_seen):
             source_packages_seen.add(source_package_name)
-            # check that any of those components are part of any current transaction
+            # check that any of those components are part of any current
+            # transaction
             if not silomanager.is_project_not_in_any_configs(
                     mp.target_branch.project.name,
                     series,
@@ -235,7 +350,11 @@ if __name__ == '__main__':
 
         # ensure a self reconfiguring doesn't add new projects
         if args.reconfiguresilo and args.restricted:
-            check_not_adding_new_components(source, allowed_components_from_previous_config, existing_config, silo_path)
+            check_not_adding_new_components(
+                source,
+                allowed_components_from_previous_config,
+                existing_config,
+                silo_path)
 
         logging.debug('Seen: ' + str(source_packages_seen))
         if (source not in source_packages_seen):
@@ -250,15 +369,20 @@ if __name__ == '__main__':
                 one_project_already_in_use = True
 
     if one_project_already_in_use:
-        message = "One or more projects are already in use for the same destination and series in another silo (see above)."
+        message = ("One or more projects are already in use for the same "
+                   "destination and series in another silo (see above).")
         if args.ignore_conflicts:
-            logging.warning(message + " However, the ignore flag was set. Please inform both silos owners directly.")
+            logging.warning(
+                message + " However, the ignore flag was set. Please inform "
+                "both silos owners directly.")
         else:
             logging.error(message)
             sys.exit(1)
 
     # check that all MPs for a source are targetting the same branch
-    logging.info("Checking that all target branch for the same source in mps are targetting the same branches")
+    logging.info(
+        "Checking that all target branch for the same source in mps are "
+        "targetting the same branches")
     all_same_dest = True
     for source in config["mps"]:
         first_mp = None
@@ -269,14 +393,23 @@ if __name__ == '__main__':
             else:
                 current_branch_link = mp.target_branch.web_link
                 if current_branch_link != first_mp.target_branch.web_link:
-                    logging.error("{} is targetting {} while {} is targetting {}".format(mp.web_link, current_branch_link, first_mp.web_link, first_mp.target_branch.web_link))
+                    logging.error(
+                        "{} is targetting {} while {} is targetting "
+                        "{}".format(
+                            mp.web_link,
+                            current_branch_link,
+                            first_mp.web_link,
+                            first_mp.target_branch.web_link))
                     all_same_dest = False
 
     if not all_same_dest:
-        logging.error("Not all MP targetting the same source package are targetting the same branch. Please recheck your configuration.")
+        logging.error(
+            "Not all MP targetting the same source package are targetting "
+            "the same branch. Please recheck your configuration.")
         sys.exit(1)
 
-    ppa_uri = SILO_BUILDPPA_SCHEME.format(args.distribution, silo_name.split('/')[-1]) # make sure the silo name does not include the distro prefix
+    ppa_uri = SILO_BUILDPPA_SCHEME.format(args.distribution, silo_name.split(
+        '/')[-1])  # make sure the silo name does not include the distro prefix
     try:
         ppa = launchpadmanager.get_ppa(ppa_uri)
     except lazr.restfulclient.errors.NotFound:
@@ -285,19 +418,24 @@ if __name__ == '__main__':
     config["global"]["ppa"] = ppa.self_link
     if not silomanager.save_config(config, silo_path):
         sys.exit(1)
-    logging.info("Assigning \"{}\" as silo. Build PPA is available at {}".format(silo_name, ppa.web_link))
+    logging.info(
+        "Assigning \"{}\" as silo. Build PPA is available at "
+        "{}".format(silo_name, ppa.web_link))
 
-    # if reconfigure, ensure we remove all projects file and packages from the ppa that are not to take into account anymore
+    # if reconfigure, ensure we remove all projects file and packages from the
+    # ppa that are not to take into account anymore
     if args.reconfiguresilo:
         os.chdir(silo_path)
         logging.info("Check and clean all removed sources")
         all_silo_projects = silomanager.get_all_projects(config)
         logging.debug("all silo projects {}".format(all_silo_projects))
-        # remove all files related to sources that are not in the configuration anymore as well as all additional uploads in the ppa
+        # remove all files related to sources that are not in the configuration
+        # anymore as well as all additional uploads in the ppa
         projects_list_to_eventually_clean = set()
 
         # first source: ppa
-        for (source, version, rev, branch) in packageinppamanager.get_all_packages_uploaded():
+        result = packageinppamanager.get_all_packages_uploaded()
+        for (source, version, rev, branch) in result:
             logging.debug("Detected in the ppa: {}".format(source))
             projects_list_to_eventually_clean.add(source)
         # second source: package that were in the previous config
@@ -306,11 +444,21 @@ if __name__ == '__main__':
             projects_list_to_eventually_clean.add(source)
         for source in projects_list_to_eventually_clean:
             if source not in all_silo_projects:
-                logging.info("Removing {} from ppa and configuration".format(source))
+                logging.info(
+                    "Removing {} from ppa and configuration".format(source))
                 clean_source(source)
-                for pkg in ppa.getPublishedSources(exact_match=True, distro_series=series, source_name=source):
+                for pkg in ppa.getPublishedSources(
+                        exact_match=True,
+                        distro_series=series,
+                        source_name=source):
                     pkg.requestDeletion()
-        # NOTE: we don't wait for the removal to be published. Shouldn't be an issue
+        # NOTE: we don't wait for the removal to be published. Shouldn't be an
+        # issue
 
     silomanager.set_config_step(config, SILO_EMPTY, uri=silo_path)
-    silomanager.set_config_status(config, silomanager.SILO_STATE_NONE, "Silo ready to build packages", uri=silo_path, add_url=False)
+    silomanager.set_config_status(
+        config,
+        silomanager.SILO_STATE_NONE,
+        "Silo ready to build packages",
+        uri=silo_path,
+        add_url=False)
