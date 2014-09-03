@@ -371,7 +371,10 @@ if __name__ == '__main__':
             # prepare new version number
             if source_archive.distribution.name == "ubuntu" and dest.distribution.name == "ubuntu-rtm":
                 split_version = current_version.split("-")
-                split_version[0] += "~rtm"
+                if len(split_version) > 1:
+                    split_version[-2] += "~rtm"
+                else:
+                    split_version[0] += "~rtm"
                 new_version = "-".join(split_version)
             else:
                 new_version = current_version
@@ -380,7 +383,7 @@ if __name__ == '__main__':
                 logging.info("Package {} seems to be up-to-date in the silo PPA (version {})".format(pkg, new_version))
                 continue
 
-            dest_source_package = packagemanager.get_source_package_from_dest(pkg, source_archive, current_version, source_series)
+            dest_source_package = packagemanager.get_source_package_from_dest(pkg, source_archive, current_version, source_series, 'build')
             if dest_source_package:
                 dest_source_package = os.path.abspath(dest_source_package)
             os.chdir(dest_source_package)

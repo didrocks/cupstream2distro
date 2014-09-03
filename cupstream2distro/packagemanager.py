@@ -185,7 +185,7 @@ def get_upstream_version(version, remove_epoch=True):
     return '-'.join(splitted_version)
 
 
-def get_source_package_from_dest(source_package_name, dest_archive, dest_current_version, series_name):
+def get_source_package_from_dest(source_package_name, dest_archive, dest_current_version, series_name, download_dir='ubuntu'):
     '''Download and return a path containing a checkout of the current dest version.
 
     None if this package was never published to dest archive'''
@@ -194,8 +194,8 @@ def get_source_package_from_dest(source_package_name, dest_archive, dest_current
         logging.info("This package was never released to the destination archive, don't return downloaded source")
         return None
 
-    logging.info("Grab code for {} ({}) from {}".format(source_package_name, dest_current_version, series_name))
-    source_package_download_dir = os.path.join('ubuntu', source_package_name)
+    logging.info("Grab code for {} ({}) from {} to the '{}' directory".format(source_package_name, dest_current_version, series_name, download_dir))
+    source_package_download_dir = os.path.join(download_dir, source_package_name)
     series = launchpadmanager.get_series(series_name, dest_archive.distribution.name)
     with ignored(OSError):
         os.makedirs(source_package_download_dir)
