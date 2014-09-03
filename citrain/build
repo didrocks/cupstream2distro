@@ -371,7 +371,10 @@ if __name__ == '__main__':
             # prepare new version number
             if source_archive.distribution.name == "ubuntu" and dest.distribution.name == "ubuntu-rtm":
                 split_version = current_version.split("-")
-                split_version[0] += "~rtm"
+                if len(split_version) > 1:
+                    split_version[-2] += "~rtm"
+                else:
+                    split_version[0] += "~rtm"
                 new_version = "-".join(split_version)
             else:
                 new_version = current_version
