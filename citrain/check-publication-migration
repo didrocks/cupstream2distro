@@ -28,13 +28,31 @@ import yaml
 
 
 from cupstream2distro import packageinppamanager, packagemanager, silomanager
-from cupstream2distro.settings import SILOS_DIR, SILO_NAME_LIST, SILO_PUBLISHED, SILO_CONFIG_FILENAME, CITRAIN_SETTINGS
+from cupstream2distro.settings import (
+    SILOS_DIR,
+    SILO_NAME_LIST,
+    SILO_PUBLISHED,
+    SILO_CONFIG_FILENAME,
+    SETTINGS,
+)
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="Check progression in the destination from all available silos")
-    parser.add_argument("--disableautomerge", action='store_true', default=False, help="Disable automatic merge and clean when the package migrates completely.")
-    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
+    parser = argparse.ArgumentParser(
+        description="Check progression in the destination from all "
+        "available silos")
+    parser.add_argument(
+        "--disableautomerge",
+        action='store_true',
+        default=False,
+        help="Disable automatic merge and clean when the "
+             "package migrates completely.")
+    parser.add_argument(
+        '-d',
+        '--debug',
+        action='store_true',
+        default=False,
+        help="Enable debug infos")
 
     args = parser.parse_args()
 
@@ -51,7 +69,7 @@ if __name__ == '__main__':
     for silo_name in SILO_NAME_LIST['ubuntu'] + SILO_NAME_LIST['ubuntu-rtm']:
         logging.info("Checking {}".format(silo_name))
         try:
-            os.chdir(os.path.join(SILOS_DIR, silo_name))    
+            os.chdir(os.path.join(SILOS_DIR, silo_name))
         except OSError:
             logging.debug("{} isn't created".format(silo_name))
             continue
@@ -69,40 +87,47 @@ if __name__ == '__main__':
             continue
 
         if silomanager.get_config_step(silo_config) != SILO_PUBLISHED:
-            logging.debug("{} isn't published or \"merge and clean\" have been run, do not check.".format(silo_name))
+            logging.debug(
+                "{} isn't published or \"merge and clean\" have been run, "
+                "do not check.".format(silo_name))
             continue
 
         # get latest uploaded version for all packages
-        logging.info("Getting all sources that were uploaded with their latest version")
+        logging.info(
+            "Getting all sources that were uploaded with their latest version")
         packages_in_dest = {}
-        for (source, version) in packageinppamanager.get_packages_and_versions_uploaded():
-            previous_scanned_uploaded_version = packages_in_dest.get(source, "0")
-            if packagemanager.is_version1_higher_than_version2(version, previous_scanned_uploaded_version):
+        packages = packageinppamanager.get_packages_and_versions_uploaded()
+        for (source, version) in packages:
+            previous_scanned_uploaded_version = packages_in_dest.get(
+                source, "0")
+            if packagemanager.is_version1_higher_than_version2(
+                    version,
+                    previous_scanned_uploaded_version):
                 packages_in_dest[source] = version
 
         # check if all packages have reached their destination
-        (all_pkg_in_dest, message) = packagemanager.check_package_reached_destination(silo_config, packages_in_dest, False, False)
-
-# XXX: Commented out, as this is a leftover from the reverts
-#        if all_pkg_in_dest:
-#            settings = yaml.load(file(CITRAIN_SETTINGS))
-#            if "auto_merge_token" in settings:
-#                if silo_config["global"]["status"]["state"] == silomanager.SILO_STATE_MERGING:
-#                    logging.info("Merge and clean seems to be already running, skipping automatic merge and clean.")
-#                else:
-#                    logging.info("Performing automatic merge and clean.")
-#                    urllib2.urlopen("https://ci-train.ubuntu.com/job/{}-4-auto-merge-clean/buildWithParameters?token={}&cause=Automatic".format(silo_name, settings["auto_merge_token"])).read()
-#            else:
-#                logging.warning("No token in settings file. Not performing automatic merge and clean.")
+        result = packagemanager.check_package_reached_destination(
+            silo_config, packages_in_dest, False, False)
+        (all_pkg_in_dest, message) = result
 
         # check that the config file status hasn't change
         try:
             if config_timestamp != os.path.getmtime(SILO_CONFIG_FILENAME):
-                logging.warning("Another process has updated the config file for {}. Do not update it.".format(silo_name))
+                logging.warning(
+                    "Another process has updated the config file for {}. "
+                    "Do not update it.".format(silo_name))
                 continue
         except OSError:
-            logging.warning("{} isn't attributed anymore. Probably cleaned up meanwhile. Do not update it".format(silo_name))
+            logging.warning(
+                "{} isn't attributed anymore. Probably cleaned up meanwhile. "
+                "Do not update it".format(silo_name))
             continue
 
-        # we can have a transient race here (but unlikely to be permanent: as we change the message everytime we start a new process, so finale result will override)
-        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_MIGRATING, "Migration: " + message, ping=all_pkg_in_dest)
+        # we can have a transient race here (but unlikely to be permanent: as
+        # we change the message everytime we start a new process, so finale
+        # result will override)
+        silomanager.set_config_status(
+            silo_config,
+            silomanager.SILO_STATE_MIGRATING,
+            "Migration: " + message,
+            ping=all_pkg_in_dest)
