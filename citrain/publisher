@@ -25,24 +25,71 @@ import os
 import sys
 
 
-from cupstream2distro import branchhandling, launchpadmanager, packageinppamanager, packagemanager, silomanager, tools
+from cupstream2distro import (
+    branchhandling,
+    launchpadmanager,
+    packageinppamanager,
+    packagemanager,
+    silomanager,
+    tools,
+)
 from cupstream2distro.stacks import get_stack_packaging_change_status
-from cupstream2distro.tools import generate_xml_artefacts, get_previous_distro_version_from_config, mark_project_as_published
-from cupstream2distro.settings import PUBLISHER_ARTEFACTS_FILENAME, PACKAGE_LIST_RSYNC_FILENAME_FORMAT, SRU_PPA, SILO_BUILTCHECKED, SILO_PUBLISHED, PROPOSED_URL
+from cupstream2distro.tools import (
+    generate_xml_artefacts,
+    get_previous_distro_version_from_config,
+    mark_project_as_published,
+)
+from cupstream2distro.settings import (
+    PUBLISHER_ARTEFACTS_FILENAME,
+    PACKAGE_LIST_RSYNC_FILENAME_FORMAT,
+    SRU_PPA,
+    SILO_BUILTCHECKED,
+    SILO_PUBLISHED,
+    PROPOSED_URL,
+)
 from cupstream2distro.utils import ignored
 
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="Watch for published package in a ppa. Create a xml artefact if manual copy is needed.")
+    parser = argparse.ArgumentParser(
+        description="Watch for published package in a ppa. "
+                    "Create a xml artefact if manual copy is needed.")
 
-    parser.add_argument("publisher", help="Launchpad nickname of the person publishing that package.")
-    parser.add_argument("--ackpackaging", action='store_true', help="Publish even if there are packaging change. Only done after manual reviews of the diff.")
-    parser.add_argument("--ignoremissingprojects", action='store_true', help="Ignore if some projects that are going to be published are missing from the initial set (can be a second publication for instance).")
-    parser.add_argument("--ignorestep", action='store_true', help="Ignore if previous step didn't successfully end.")
-    parser.add_argument("--ignoreversiondestination", action='store_true', help="Ignore if the latest version in destination doesn't match when prepare was started.")
-    parser.add_argument("--allowunapproved", action='store_true', help="Allow publishing even if there are branches that are not approved yet.")
-    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
+    parser.add_argument(
+        "publisher",
+        help="Launchpad nickname of the person publishing that package.")
+    parser.add_argument(
+        "--ackpackaging",
+        action='store_true',
+        help="Publish even if there are packaging change. "
+             "Only done after manual reviews of the diff.")
+    parser.add_argument(
+        "--ignoremissingprojects",
+        action='store_true',
+        help="Ignore if some projects that are going to be published are "
+             "missing from the initial set (can be a second publication "
+             "for instance).")
+    parser.add_argument(
+        "--ignorestep",
+        action='store_true',
+        help="Ignore if previous step didn't successfully end.")
+    parser.add_argument(
+        "--ignoreversiondestination",
+        action='store_true',
+        help="Ignore if the latest version in destination "
+             "doesn't match when prepare was started.")
+    parser.add_argument(
+        "--allowunapproved",
+        action='store_true',
+        help="Allow publishing even if there are branches "
+             "that are not approved yet.")
+    parser.add_argument(
+        '-d',
+        '--debug',
+        action='store_true',
+        default=False,
+        help="Enable debug infos")
 
     args = parser.parse_args()
 
@@ -52,12 +99,16 @@ if __name__ == '__main__':
         logging.debug("Debug mode enabled")
 
     silo_config = silomanager.load_config()
-    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISHING, "Publishing")
+    silomanager.set_config_status(
+        silo_config, silomanager.SILO_STATE_PUBLISHING, "Publishing")
     dest_link = silo_config["global"]["dest"]
-    series = launchpadmanager.get_resource_from_token(silo_config["global"]["series"]).name
-    src_ppa = launchpadmanager.get_resource_from_token(silo_config["global"]["ppa"])
+    series = launchpadmanager.get_resource_from_token(
+        silo_config["global"]["series"]).name
+    src_ppa = launchpadmanager.get_resource_from_token(
+        silo_config["global"]["ppa"])
     dest_archive = launchpadmanager.get_resource_from_token(dest_link)
-    src_ppa_name = "{}/{}/{}".format(src_ppa.owner.name, dest_archive.distribution.name, src_ppa.name)
+    src_ppa_name = "{}/{}/{}".format(
+        src_ppa.owner.name, dest_archive.distribution.name, src_ppa.name)
     src_pocket = 'Release'
     publisher_nickname = args.publisher
 
@@ -65,15 +116,27 @@ if __name__ == '__main__':
 
     if silomanager.get_config_step(silo_config) != SILO_BUILTCHECKED:
         if args.ignorestep:
-            logging.info("Last step didn't finish successfully, but the ignore flag is set.")
+            logging.info(
+                "Last step didn't finish successfully, "
+                "but the ignore flag is set.")
         else:
-            logging.error("Last step didn't finish successfully. You need to either ignore that the previous step didn't finished successfully or ensuring that prepare, build and checked passed.")
-            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: wrong status or parameters for job.")
+            logging.error(
+                "Last step didn't finish successfully. You need to either "
+                "ignore that the previous step didn't finished successfully "
+                "or ensuring that prepare, build and checked passed.")
+            silomanager.set_config_status(
+                silo_config,
+                silomanager.SILO_STATE_PUBLISH_FAILED,
+                "Can't publish: wrong status or parameters for job.")
             sys.exit(1)
         # reset it
         if not silomanager.set_config_step(silo_config, SILO_BUILTCHECKED):
             logging.error("Couldn't reset the step in the configuration file.")
-            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: couldn't reset status or parameters for job.")
+            silomanager.set_config_status(
+                silo_config,
+                silomanager.SILO_STATE_PUBLISH_FAILED,
+                "Publication failed: couldn't reset status or "
+                "parameters for job.")
             sys.exit(1)
     all_silo_projects = silomanager.get_all_projects(silo_config)
 
@@ -85,56 +148,93 @@ if __name__ == '__main__':
                 if mp.queue_status != "Approved":
                     unapproved.append(mp.web_link)
         if unapproved:
-            logging.error("Some merge requests are not yet approved. Please review the following merges and re-run the build job:")
+            logging.error(
+                "Some merge requests are not yet approved. Please "
+                "review the following merges and re-run the build job:")
             for mp in unapproved:
                 logging.error(mp)
-            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: Some merges are unapproved.")
+            silomanager.set_config_status(
+                silo_config,
+                silomanager.SILO_STATE_PUBLISH_FAILED,
+                "Publication failed: Some merges are unapproved.")
             sys.exit(1)
     else:
-        logging.warning("Allowing unapproved merges has been requested. Publishing merges as they are.")
+        logging.warning(
+            "Allowing unapproved merges has been requested. "
+            "Publishing merges as they are.")
 
     # check the publisher exists
     try:
         launchpadmanager.get_person(publisher_nickname)
     except KeyError:
-        message = "{} isn't a valid launchpad user name. Can't publish the silo".format(publisher_nickname)
+        message = ("{} isn't a valid launchpad user name. Can't publish the "
+                   "silo".format(publisher_nickname))
         logging.error(message)
-        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: {}".format(message))
+        silomanager.set_config_status(
+            silo_config,
+            silomanager.SILO_STATE_PUBLISH_FAILED,
+            "Publication failed: {}".format(message))
         sys.exit(1)
 
     logging.info("Publishing as {}.".format(publisher_nickname))
 
     if "source_archive" in silo_config:
-        logging.debug("Publishing a sync request? {}".format("source_sync_from_silo" in silo_config))
+        logging.debug("Publishing a sync request? {}".format(
+            "source_sync_from_silo" in silo_config))
 
     # getting the archives and series objects
-    is_sru = not launchpadmanager.is_series_current(series, dest_archive.distribution.name)
+    is_sru = not launchpadmanager.is_series_current(
+        series, dest_archive.distribution.name)
     if not launchpadmanager.is_dest_distro_archive(dest_link):
         dest_pocket = 'Release'
-        logging.info("Direct copy from {src_archive} ({src_pocket}) to {dest_archive} ({dest_pocket}) for {series} series ({distro})".format(
-                      src_archive=src_ppa.name, src_pocket=src_pocket, dest_archive=dest_archive.name, dest_pocket=dest_pocket,
-                      series=series, distro=dest_archive.distribution.name))
+        logging.info(
+            "Direct copy from {src_archive} ({src_pocket}) to "
+            "{dest_archive} ({dest_pocket}) for {series} series "
+            "({distro})".format(
+                src_archive=src_ppa.name,
+                src_pocket=src_pocket,
+                dest_archive=dest_archive.name,
+                dest_pocket=dest_pocket,
+                series=series,
+                distro=dest_archive.distribution.name))
     else:
-        logging.info("Copy from {src_archive} ({src_pocket}) to {series} series in {distro} distro".format(
-                      src_archive=src_ppa.name, src_pocket=src_pocket, series=series, distro=dest_archive.distribution.name))
+        logging.info("Copy from {src_archive} ({src_pocket}) to {series} "
+                     "series in {distro} distro".format(
+                         src_archive=src_ppa.name,
+                         src_pocket=src_pocket,
+                         series=series,
+                         distro=dest_archive.distribution.name))
         distro = launchpadmanager.get_resource_from_token(dest_link)
         distro_pocket = 'Proposed'
         src_ppa_pocket = src_pocket
         if is_sru:
-            logging.info("This upload is part of a SRU. Please do not free the silo until the package lands in the archive!")
+            logging.info(
+                "This upload is part of a SRU. Please do not free the silo "
+                "until the package lands in the archive!")
 
     manual_publish_cause_list = []
 
     all_packages_uploaded = packageinppamanager.get_all_packages_uploaded()
 
     # Generate global packaging change status
-    manual_publish_cause_list.extend(get_stack_packaging_change_status(all_packages_uploaded))
+    manual_publish_cause_list.extend(
+        get_stack_packaging_change_status(all_packages_uploaded))
 
     # we only go on manual publishing if we have something to publish
-    if not args.ackpackaging and all_packages_uploaded and manual_publish_cause_list:
+    if (not args.ackpackaging and
+            all_packages_uploaded and
+            manual_publish_cause_list):
         logging.info("Don't upload the silo automatically.")
-        generate_xml_artefacts("Publisher", manual_publish_cause_list, PUBLISHER_ARTEFACTS_FILENAME)
-        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication needs action: some packaging changes needs manual acking. See them at {}".format(os.getenv('BUILD_URL')), add_url=False)
+        generate_xml_artefacts(
+            "Publisher",
+            manual_publish_cause_list,
+            PUBLISHER_ARTEFACTS_FILENAME)
+        silomanager.set_config_status(
+            silo_config,
+            silomanager.SILO_STATE_PUBLISH_FAILED,
+            "Publication needs action: some packaging changes needs manual "
+            "acking. See them at {}".format(os.getenv('BUILD_URL')),
+            add_url=False)
         sys.exit(0)
 
     packagelist_to_copy = []
@@ -146,7 +246,9 @@ if __name__ == '__main__':
     published_packagelist = {}
 
     # check and generate metadata
-    # TODO: we loop on all_packages_uploaded which is based on .project files. We should loop first on the config content (but still have a warning if we have more .project files)
+    # TODO: we loop on all_packages_uploaded which is based on .project files.
+    # We should loop first on the config content (but still have a warning if
+    # we have more .project files)
     for (source, version, tip_rev, branch) in all_packages_uploaded:
         logging.info("Checking {} ({})".format(source, version))
         try:
@@ -154,51 +256,94 @@ if __name__ == '__main__':
                 all_silo_projects.remove(source)
         except ValueError:
             # TODO: make that check first in its own loop
-            # TODO2: add an option to say "it's ok, please remove from file system everything that's not mentionned in the config file"
-            message = "{} wasn't in the initiale configuration.\nUnknown state. Please reconfigure and reprepare the whole silo.".format(source)
+            # TODO2: add an option to say "it's ok, please remove from file
+            # system everything that's not mentionned in the config file"
+            message = ("{} wasn't in the initiale configuration.\nUnknown "
+                       "state. Please reconfigure and reprepare the whole "
+                       "silo.".format(source))
             logging.error(message)
-            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: " + message)
+            silomanager.set_config_status(
+                silo_config,
+                silomanager.SILO_STATE_PUBLISH_FAILED,
+                "Can't publish: " + message)
             sys.exit(1)
         supposed_dest_version = get_previous_distro_version_from_config(source)
 
         # check source version
-        version_in_src = packagemanager.get_current_version_for_series(source, series, dest=src_ppa)
+        version_in_src = packagemanager.get_current_version_for_series(
+            source, series, dest=src_ppa)
         if version_in_src != version:
-            logging.error("Version in {}/{} ({}) is not the last one prepared ({}) (direct upload?).".format(src_ppa.owner.name, src_ppa.name, version_in_src, version))
+            logging.error("Version in {}/{} ({}) is not the last one "
+                          "prepared ({}) (direct upload?).".format(
+                              src_ppa.owner.name,
+                              src_ppa.name,
+                              version_in_src,
+                              version))
             src_version_check_fail = True
 
         published_packagelist[source] = version
 
         # check destination version
-        message = "Previous available version ({}) is not the latest version anymore in [] ([]).\nPlease ensure that this version has been merged back in trunk and relaunch prepare or use ignore version destination option.".format(supposed_dest_version)
+        message = ("Previous available version ({}) is not the latest version "
+                   "anymore in [] ([]).\nPlease ensure that this version has "
+                   "been merged back in trunk and relaunch prepare or use "
+                   "ignore version destination "
+                   "option.".format(supposed_dest_version))
         if launchpadmanager.is_dest_distro_archive(dest_link):
             # Check that we don't skip a version unintendly
             archive = launchpadmanager.get_resource_from_token(dest_link)
-            version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=archive)
+            version_in_dest = packagemanager.get_current_version_for_series(
+                source, series, dest=archive)
             if not version_in_dest == supposed_dest_version:
-                logging.error(message.replace('[]', '{}').format("the archive", version_in_dest))
+                logging.error(
+                    message.replace('[]', '{}').format("the archive",
+                                                       version_in_dest))
                 dest_version_check_fail = True
-            packagelist_to_copy.append("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(src_ppa_name, src_ppa_pocket, series, distro_pocket, series, source, version, version_in_dest, publisher_nickname, dest_archive.distribution.name))
+            packagelist_to_copy.append("\t".join((
+                src_ppa_name,
+                src_ppa_pocket,
+                series,
+                distro_pocket,
+                series,
+                source,
+                version,
+                version_in_dest,
+                publisher_nickname,
+                dest_archive.distribution.name)))
 
             if source in silo_config["mps"]:
                 branch_uri = os.path.join(base_path, source)
-                lp_project_name = launchpadmanager.get_resource_from_token(silo_config["mps"][source][0]).target_branch.project.name
-                proposed_branch = PROPOSED_URL.format(lp_project_name, dest_archive.distribution.name, series)
-                logging.info("Pushing {} to {}".format(source, proposed_branch))
-                if not branchhandling.push_to_branch(branch_uri, proposed_branch, overwrite=True):
-                    logging.error("We couldn't push {} to {}".format(source, proposed_branch))
+                lp_project_name = launchpadmanager.get_resource_from_token(
+                    silo_config["mps"][source][0]).target_branch.project.name
+                proposed_branch = PROPOSED_URL.format(
+                    lp_project_name, dest_archive.distribution.name, series)
+                logging.info(
+                    "Pushing {} to {}".format(source, proposed_branch))
+                if not branchhandling.push_to_branch(branch_uri,
+                                                     proposed_branch,
+                                                     overwrite=True):
+                    logging.error(
+                        "We couldn't push {} to {}".format(
+                            source, proposed_branch))
                     error_pushing_branch = True
                     continue
         else:
-            version_in_dest = packagemanager.get_current_version_for_series(source, series, dest=dest_archive)
+            version_in_dest = packagemanager.get_current_version_for_series(
+                source, series, dest=dest_archive)
             if not version_in_dest == supposed_dest_version:
-                logging.warning(message.replace('[]', '{}').format(dest_archive.name, version_in_dest))
+                logging.warning(
+                    message.replace('[]', '{}').format(
+                        dest_archive.name, version_in_dest))
                 dest_version_check_fail = True
 
     if error_pushing_branch:
-        message = "We had some branches that couldn't be pushed to their proposed location."
+        message = ("We had some branches that couldn't be pushed to "
+                   "their proposed location.")
         logging.error(message)
-        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: " + message)
+        silomanager.set_config_status(
+            silo_config,
+            silomanager.SILO_STATE_PUBLISH_FAILED,
+            "Can't publish: " + message)
         sys.exit(1)
 
     # remove eventual already published projects:
@@ -207,39 +352,68 @@ if __name__ == '__main__':
             all_silo_projects.remove(source)
 
     if all_silo_projects:
-        message = "Some projects ({}) that were in the silo configuration list were not built. ".format(", ".join(all_silo_projects))
+        message = ("Some projects ({}) that were in the silo configuration "
+                   "list were not built. ".format(
+                       ", ".join(all_silo_projects)))
         if args.ignoremissingprojects:
             logging.info(message + "The ignore missing projects flag was set.")
         else:
-            logging.error(message + "Prepare either prepare the latest missing projects or use the ignore missing projects flag which will release the lock on them.")
-            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: " + message)
+            logging.error(
+                message + "Prepare either prepare the latest missing "
+                "projects or use the ignore missing projects flag "
+                "which will release the lock on them.")
+            silomanager.set_config_status(
+                silo_config,
+                silomanager.SILO_STATE_PUBLISH_FAILED,
+                "Can't publish: " + message)
             sys.exit(1)
 
     if src_version_check_fail:
-        message = "Some packages in the ppa are not at the latest version. Please rerun the prepare job, eventually only with that project."
+        message = ("Some packages in the ppa are not at the latest version. "
+                   "Please rerun the prepare job, eventually only with that "
+                   "project.")
         logging.error(message)
-        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: " + message)
+        silomanager.set_config_status(
+            silo_config,
+            silomanager.SILO_STATE_PUBLISH_FAILED,
+            "Can't publish: " + message)
         sys.exit(1)
 
     if dest_version_check_fail:
         if args.ignoreversiondestination:
-            logging.info("Some version destination don't match the latest available in dest, but ignore flag was set.")
+            logging.info(
+                "Some version destination don't match the latest "
+                "available in dest, but ignore flag was set.")
         else:
-            message = "Not all versions when starting prepare are the latest at destination. Read above and either use ignore version destination option or rerun prepare"
+            message = ("Not all versions when starting prepare are the "
+                       "latest at destination. Read above and either use "
+                       "ignore version destination option or rerun prepare")
             logging.error(message)
-            silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Can't publish: " + message)
+            silomanager.set_config_status(
+                silo_config,
+                silomanager.SILO_STATE_PUBLISH_FAILED,
+                "Can't publish: " + message)
             sys.exit(1)
 
     #  now ack the changes (if copy is needed)
     if not launchpadmanager.is_dest_distro_archive(dest_link):
         for (source, version, tip_rev, branch) in all_packages_uploaded:
-            dest_archive.copyPackage(from_archive=src_ppa, from_pocket=src_pocket, from_series=series,
-                                     include_binaries=True, to_pocket=dest_pocket, to_series=series,
-                                     source_name=source, version=version)
+            dest_archive.copyPackage(
+                from_archive=src_ppa,
+                from_pocket=src_pocket,
+                from_series=series,
+                include_binaries=True,
+                to_pocket=dest_pocket,
+                to_series=series,
+                source_name=source,
+                version=version)
     # generate a file for distro that will be rsynced from another place
     if packagelist_to_copy:
-        package_list_rsync_file = PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(os.path.abspath('').split(os.path.sep)[-1], series)
-        logging.info("Writing {} for being able to rsync from main machine".format(package_list_rsync_file))
+        package_list_rsync_file = PACKAGE_LIST_RSYNC_FILENAME_FORMAT.format(
+            os.path.abspath('').split(os.path.sep)[-1], series)
+        logging.info(
+            "Writing {} for being able to rsync from main machine".format(
+                package_list_rsync_file))
         with open(package_list_rsync_file, 'w') as f:
             f.write("\n".join(packagelist_to_copy))
 
@@ -250,8 +424,16 @@ if __name__ == '__main__':
     if not silomanager.set_config_step(silo_config, SILO_PUBLISHED):
         message = "Couldn't save the step in the configuration file."
         logging.error(message)
-        silomanager.set_config_status(silo_config, silomanager.SILO_STATE_PUBLISH_FAILED, "Publication failed: " + message)
+        silomanager.set_config_status(
+            silo_config,
+            silomanager.SILO_STATE_PUBLISH_FAILED,
+            "Publication failed: " + message)
         sys.exit(1)
 
     silomanager.set_config_pkgversionlist(silo_config, published_packagelist)
-    silomanager.set_config_status(silo_config, silomanager.SILO_STATE_MIGRATING, "Packages migrating to destination. Wait a couple of hours and click merge & clean", add_url=False)
+    silomanager.set_config_status(
+        silo_config,
+        silomanager.SILO_STATE_MIGRATING,
+        "Packages migrating to destination. Wait a couple of hours and click "
+        "merge & clean",
+        add_url=False)
