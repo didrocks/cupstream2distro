@@ -182,7 +182,7 @@ def _extract_authors(string):
     return authors
 
 
-def return_log_diff(starting_rev):
+def log_diff(starting_rev):
     '''Return the relevant part of the cvs log since starting_rev'''
 
     instance = subprocess.Popen(["bzr", "log", "-r", "{}..".format(starting_rev), "--show-diff", "--forward"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -192,7 +192,7 @@ def return_log_diff(starting_rev):
     return stdout
 
 
-def return_log_diff_from_tag(tag):
+def log_diff_from_tag(tag):
     '''Return the relevant part of the cvs log since tag'''
     instance = subprocess.Popen(["bzr", "log", "-r", "tag:{}..".format(tag), "--show-diff", "--forward"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = instance.communicate()
@@ -204,7 +204,7 @@ def return_log_diff_from_tag(tag):
     return sep + sep.join(stdout.split("tags: {}".format(tag))[1].split(sep)[1:])
 
 
-def return_log_diff_since_last_release(content_to_parse):
+def log_diff_since_last_release(content_to_parse):
     '''From a bzr log content, return only the log diff since the latest release'''
     after_release = content_to_parse.split(SILO_PACKAGING_RELEASE_COMMIT_MESSAGE.format(''))[-1]
     sep_index = after_release.find('-' * 60)

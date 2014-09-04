@@ -44,23 +44,23 @@ class BranchHandlingTests(BaseUnitTestCase):
         os.chdir(self.get_data_branch('basic'))
         self.assertEqual(branchhandling.get_tip_bzr_revision(), 6)
 
-    def test_return_log_diff_simple(self):
+    def test_log_diff_simple(self):
         '''Ensure we return the right log diff since a dedicated revision (simple branch)'''
         self.get_data_branch('simple')
         expected_content = open(os.path.join(self.data_dir, "results", "bzr_log_simple")).read()
-        self.assertEquals(branchhandling.return_log_diff(3).strip(), expected_content.strip())
+        self.assertEquals(branchhandling.log_diff(3).strip(), expected_content.strip())
 
-    def test_return_log_diff_nested(self):
+    def test_log_diff_nested(self):
         '''Ensure we return the right log diff since a dedicated revision (with nested elements)'''
         self.get_data_branch('onenested')
         expected_content = open(os.path.join(self.data_dir, "results", "bzr_log_nested")).read()
-        self.assertEquals(branchhandling.return_log_diff(1).strip(), expected_content.strip())
+        self.assertEquals(branchhandling.log_diff(1).strip(), expected_content.strip())
 
-    def test_return_log_diff_with_remerge_trunk(self):
+    def test_log_diff_with_remerge_trunk(self):
         '''Ensure we return the right log diff but containing some remerge to trunk dating before the previous release'''
         self.get_data_branch('remergetrunk')
         expected_content = open(os.path.join(self.data_dir, "results", "bzr_log_remerge_trunk")).read()
-        self.assertEquals(branchhandling.return_log_diff(12).strip(), expected_content.strip())
+        self.assertEquals(branchhandling.log_diff(12).strip(), expected_content.strip())
 
     def test_extract_authors_simple(self):
         '''Extract a single line containing an author'''

@@ -459,7 +459,7 @@ class PackageManagerTests(BaseUnitTestCase):
             if not os.path.isdir(file):
                 shutil.copy2(file, '.')
         dest_version_source = self.get_ubuntu_source_content_path('ubuntu_foo_package_with_one_less_release')
-        self.assertFalse(packagemanager.is_relevant_source_diff_from_previous_dest_version("foo_42.0daily83.09.13.2-0ubuntu1.dsc", dest_version_source))
+        self.assertFalse(packagemanager.is_relevant("foo_42.0daily83.09.13.2-0ubuntu1.dsc", dest_version_source))
 
     def test_package_rightly_diffing(self):
         '''We detect if a package has relevant changes justifying the daily release'''
@@ -467,7 +467,7 @@ class PackageManagerTests(BaseUnitTestCase):
             if not os.path.isdir(file):
                 shutil.copy2(file, '.')
         dest_version_source = self.get_ubuntu_source_content_path('ubuntu_foo_package_with_two_less_release')
-        self.assertTrue(packagemanager.is_relevant_source_diff_from_previous_dest_version("foo_42.0daily83.09.13.2-0ubuntu1.dsc", dest_version_source))
+        self.assertTrue(packagemanager.is_relevant("foo_42.0daily83.09.13.2-0ubuntu1.dsc", dest_version_source))
 
     def test_detect_packaging_changes_since_last_release(self):
         '''We detect packaging changes since last release'''
@@ -734,48 +734,48 @@ class PackageManagerTests(BaseUnitTestCase):
         self.get_data_branch('onemanualupload')
         self.assertEqual("foo", packagemanager.get_packaging_sourcename())
 
-    def test_collect_bugs_in_changelog_until_latest_snapshot_simple(self):
+    def test_collect_bugs_simple(self):
         '''We collect bugs in the changelog file until latest snapshot. Simple case: some bugs in an unreleased changelog'''
         source_branch = self.get_origin_branch_path("simple")
         with open(os.path.join(source_branch, 'debian', 'changelog')) as f:
-            self.assertEquals(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['56789', '67890', '34567', '12345']))
+            self.assertEquals(packagemanager.collect_bugs(f, "foo"), set(['56789', '67890', '34567', '12345']))
 
-    def test_collect_bugs_in_changelog_until_latest_snapshot_extras(self):
+    def test_collect_bugs_extras(self):
         '''We collect bugs in the changelog file until latest snapshot. Extras syntax cases: some bugs in an unreleased changelog'''
         with open(os.path.join(self.changelogs_file_dir, 'different_bugs_pattern')) as f:
-            self.assertEquals(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['56789', '67890', '34567', '12345',
+            self.assertEquals(packagemanager.collect_bugs(f, "foo"), set(['56789', '67890', '34567', '12345',
                                                                                                              '567890', '678901', '123456', '1234567']))
 
-    def test_collect_bugs_in_changelog_until_latest_snapshot_no_bugs(self):
+    def test_collect_bugs_no_bugs(self):
         '''We collect bugs in the changelog file until latest snapshot. No bugs, but an unreleased changelog'''
         source_branch = self.get_origin_branch_path("basic")
         with open(os.path.join(source_branch, 'debian', 'changelog')) as f:
-            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set())
+            self.assertEqual(packagemanager.collect_bugs(f, "foo"), set())
 
-    def test_collect_bugs_in_changelog_until_latest_snapshot_no_unrelease_no_manual(self):
+    def test_collect_bugs_no_unrelease_no_manual(self):
         '''We collect bugs in the changelog file until latest snapshot. No manual upload, no unreleased changelog'''
         with open(os.path.join(self.changelogs_file_dir, 'no_unrelease_no_manual')) as f:
-            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set())
+            self.assertEqual(packagemanager.collect_bugs(f, "foo"), set())
 
-    def test_collect_bugs_in_changelog_until_latest_snapshot_multiple_unrelease(self):
+    def test_collect_bugs_multiple_unrelease(self):
         '''We collect bugs in the changelog file until latest snapshot, but no bug from it the first snapshot. Only multiple unreleased changelog content'''
         with open(os.path.join(self.changelogs_file_dir, 'multiple_unrelease')) as f:
-            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['34567', '12345', '23456']))
+            self.assertEqual(packagemanager.collect_bugs(f, "foo"), set(['34567', '12345', '23456']))
 
-    def test_collect_bugs_in_changelog_until_latest_snapshot_multiple_unrelease_manual_upload(self):
+    def test_collect_bugs_multiple_unrelease_manual_upload(self):
         '''Test that we collect bugs in the changelog file until latest snapshot. We only collect bugs until the last manual upload'''
         with open(os.path.join(self.changelogs_file_dir, 'multiple_unrelease_with_release')) as f:
-            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['23456']))
+            self.assertEqual(packagemanager.collect_bugs(f, "foo"), set(['23456']))
 
-    def test_collect_bugs_in_changelog_until_latest_snapshot_only_one_unreleased_changelog(self):
+    def test_collect_bugs_only_one_unreleased_changelog(self):
         '''Test that we collect bugs in the changelog file until latest snapshot. We collect the bugs from the one unreleased changelog'''
         with open(os.path.join(self.changelogs_file_dir, 'one_unreleased')) as f:
-            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set(['12345']))
+            self.assertEqual(packagemanager.collect_bugs(f, "foo"), set(['12345']))
 
-    def test_collect_bugs_in_changelog_until_latest_snapshot_only_one_unreleased_changelog_no_bug(self):
+    def test_collect_bugs_only_one_unreleased_changelog_no_bug(self):
         '''Test that we collect bugs in the changelog file until latest snapshot. We have no bug from the only one unreleased changelog'''
         with open(os.path.join(self.changelogs_file_dir, 'one_unreleased_no_bug')) as f:
-            self.assertEqual(packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, "foo"), set())
+            self.assertEqual(packagemanager.collect_bugs(f, "foo"), set())
 
     def test_update_changelog_simple(self):
         '''Update a changelog from a list of one author with a known bug and bzr rev'''

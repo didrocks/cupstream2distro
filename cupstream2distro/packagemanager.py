@@ -257,7 +257,7 @@ def is_new_content_relevant_since_old_published_source(dest_version_source):
     return (relevant_changes != '')
 
 
-def is_relevant_source_diff_from_previous_dest_version(newdsc_path, dest_version_source):
+def is_relevant(newdsc_path, dest_version_source):
     '''Extract and check if the generated source diff different from previous one'''
 
     with ignored(OSError):
@@ -450,7 +450,7 @@ def get_packaging_sourcename():
     raise Exception("Didn't find any source name in the package: {}".format(stdout))
 
 
-def collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name):
+def collect_bugs(f, source_package_name):
     '''Collect all bugs in the changelog until latest snapshot'''
     bugs = set()
     # matching only bug format that launchpad accepts
