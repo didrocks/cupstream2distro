@@ -33,7 +33,7 @@ from cupstream2distro.settings import (
     SILO_NAME_LIST,
     SILO_PUBLISHED,
     SILO_CONFIG_FILENAME,
-    SETTINGS,
+    CITRAIN_SETTINGS,
 )
 
 if __name__ == '__main__':
