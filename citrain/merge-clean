@@ -223,7 +223,7 @@ if __name__ == '__main__':
             packages_in_dest[source] = version
 
     # check that all packages have reached their destination
-    result = = packagemanager.check_package_reached_destination(
+    result = packagemanager.check_package_reached_destination(
         silo_config,
         packages_in_dest,
         args.ignoremissingprojects,
