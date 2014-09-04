@@ -176,10 +176,10 @@ if __name__ == '__main__':
 
     # Prepare changelog
     logging.info("Prepare changelog content")
-    log_content = branchhandling.return_log_diff(last_upstream_rev + 1)
+    log_content = branchhandling.log_diff(last_upstream_rev + 1)
     alreadyfixed_bugs = set()
     with open("debian/changelog") as f:
-        alreadyfixed_bugs = packagemanager.collect_bugs_in_changelog_until_latest_snapshot(f, source_package_name)
+        alreadyfixed_bugs = packagemanager.collect_bugs(f, source_package_name)
     (authors_commits, bugs_set) = branchhandling.collect_author_commits(log_content, alreadyfixed_bugs)
     if force_rebuild:
         authors_commits[BOT_DEBFULLNAME] = ["New rebuild forced"]
@@ -197,7 +197,7 @@ if __name__ == '__main__':
     # second diff step: in case the source package was created from nothing (like a diff between trunk and the source package, but none after newly .dsc created extraction)
     if not force_rebuild and dest_source_package:
         logging.info("Check that the newly created source package has relevant diff")
-        if not packagemanager.is_relevant_source_diff_from_previous_dest_version(newdsc_path, dest_source_package):
+        if not packagemanager.is_relevant(newdsc_path, dest_source_package):
             message = ("There was a diff between trunk and the source package in ubuntu triggering a source package build. However, after that one was created, we diffed again "
                        "between that source in ubuntu and the newly created source extracted and found nothing relevant. Not upload that one then. Please check that the relevant "
                        "diff in the package creation is justified by diffing manually trunk and the source in ubuntu.")

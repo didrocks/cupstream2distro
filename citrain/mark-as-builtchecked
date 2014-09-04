@@ -21,5 +21,13 @@
 from cupstream2distro import silomanager, settings
 
 silo_config = silomanager.load_config()
-silomanager.set_config_step(silo_config, settings.SILO_BUILTCHECKED)
-silomanager.set_config_status(silo_config, silomanager.SILO_STATE_BUILD_SUCCESSFUL, "Packages built", add_url=False)
+
+silomanager.set_config_step(
+    silo_config,
+    settings.SILO_BUILTCHECKED)
+
+silomanager.set_config_status(
+    silo_config,
+    silomanager.SILO_STATE_BUILD_SUCCESSFUL,
+    "Packages built",
+    add_url=False)

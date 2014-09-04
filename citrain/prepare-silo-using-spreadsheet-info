@@ -37,22 +37,50 @@ class COL:
 
 
 if __name__ == '__main__':
-
     logging.basicConfig(level=logging.INFO)
 
-    parser = argparse.ArgumentParser(description="Prepare or configure a silo from a request id using the spreadsheet infos")
+    parser = argparse.ArgumentParser(
+        description="Prepare or configure a silo from a request id "
+                    "using the spreadsheet infos")
 
-    parser.add_argument("--request-id", help="Update/Configure this request id")
-    parser.add_argument("--reconfigure-for-silo", help="Update/Configure this silo name")
-
-    parser.add_argument("--series", help="Series used to build the package")
-    parser.add_argument("--destppa", help="Consider this destppa instead of {series}-proposed")
-    parser.add_argument("--reconfiguresilo", action='store_true', help="Reconfigure an existing silo")
-    parser.add_argument("--restricted", action='store_true', help="Restrict to only add MP for already locked components when reconfiguring an existing silo")
-    parser.add_argument("--ignore-conflicts", action='store_true', help="Ignore conflicting components in multiple silos. This should only be used in very rare and identified case. Both silos owners need to be aware about it as the second one will have to rebuild and retest.")
-    parser.add_argument("--use-preprod-silo", action='store_true', help="Assign a silo with preproduction CI Train code")
-    parser.add_argument('-d', '--debug', action='store_true', default=False, help="Enable debug infos")
-
+    parser.add_argument(
+        "--request-id",
+        help="Update/Configure this request id")
+    parser.add_argument(
+        "--reconfigure-for-silo",
+        help="Update/Configure this silo name")
+    parser.add_argument(
+        "--series",
+        help="Series used to build the package")
+    parser.add_argument(
+        "--destppa",
+        help="Consider this destppa instead of {series}-proposed")
+    parser.add_argument(
+        "--reconfiguresilo",
+        action='store_true',
+        help="Reconfigure an existing silo")
+    parser.add_argument(
+        "--restricted",
+        action='store_true',
+        help="Restrict to only add MP for already locked components when "
+             "reconfiguring an existing silo")
+    parser.add_argument(
+        "--ignore-conflicts",
+        action='store_true',
+        help="Ignore conflicting components in multiple silos. This "
+             "should only be used in very rare and identified case. "
+             "Both silos owners need to be aware about it as the second one "
+             "will have to rebuild and retest.")
+    parser.add_argument(
+        "--use-preprod-silo",
+        action='store_true',
+        help="Assign a silo with preproduction CI Train code")
+    parser.add_argument(
+        '-d',
+        '--debug',
+        action='store_true',
+        default=False,
+        help="Enable debug infos")
 
     args = parser.parse_args()
 
@@ -62,19 +90,25 @@ if __name__ == '__main__':
         logging.debug("Debug mode enabled")
 
     if args.reconfigure_for_silo:
-        logging.info("Reconfiguration of silo requested for {}".format(args.reconfigure_for_silo))
+        logging.info("Reconfiguration of silo requested for {}".format(
+            args.reconfigure_for_silo))
     else:
         if not args.request_id:
             logging.error("Request id is mandatory")
             sys.exit(1)
 
+    logging.info(
+        "Getting data from the spreadsheet for request "
+        "{}".format(args.request_id))
 
-    logging.info("Getting data from the spreadsheet for request {}".format(args.request_id))
-
-    # proceed and download the csv version of the spreadsheet (only way to get data anonymously)
+    # proceed and download the csv version of the spreadsheet (only way to get
+    # data anonymously)
     response = requests.get(SPREADSHEET_CSV_URL)
     if response.status_code != 200:
-        logging.error("Couldn't fetch {} and so, couldn't proceed your question. Can be due to an temporary network hiccup, please retry later.".format(SPREADSHEET_CSV_URL))
+        logging.error(
+            "Couldn't fetch {} and so, couldn't proceed your question. Can "
+            "be due to an temporary network hiccup, please retry "
+            "later.".format(SPREADSHEET_CSV_URL))
         sys.exit(1)
 
     # store the answer in a temp file
@@ -83,7 +117,8 @@ if __name__ == '__main__':
         f.write(response.content.encode('utf8'))
 
     request_found = False
-    # use to ensure the unicity of silo name (shouldn't happen apart from a bad sync on the spreadsheet)
+    # use to ensure the unicity of silo name (shouldn't happen apart from a bad
+    # sync on the spreadsheet)
     unique_silo_name = True
     with open(filename, 'rb') as f:
         content = csv.reader(f)
@@ -101,7 +136,11 @@ if __name__ == '__main__':
                 if row[COL.assigned] == args.reconfigure_for_silo:
                     # second matching
                     if request_found:
-                        logging.error("{} is available more than once in the spreadsheet. Please request to fix some wrong metadata due to a bad automated sync.".format(args.reconfigure_for_silo))
+                        logging.error(
+                            "{} is available more than once in the "
+                            "spreadsheet. Please request to fix some wrong "
+                            "metadata due to a bad automated sync.".format(
+                                args.reconfigure_for_silo))
                         unique_silo_name = False
                     args.request_id = row[COL.request]
                     raw_mps = row[COL.merge]
@@ -124,14 +163,19 @@ if __name__ == '__main__':
 
     # ensure we found anything
     if not request_found:
-        logging.error("We couldn't find any request in the spreadsheet matching your demand. Ensure with the landing team there is a matching request in.")
+        logging.error(
+            "We couldn't find any request in the spreadsheet matching your "
+            "demand. Ensure with the landing team there is a matching "
+            "request in.")
         sys.exit(1)
 
     mps = parse_and_clean_entry(raw_mps)
     sources = parse_and_clean_entry(raw_sources, comma_as_sep=False)
     landers = parse_and_clean_entry(raw_landers, slash_as_sep=True)
 
-    prepare_silo_cmd = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'prepare-silo')
+    prepare_silo_cmd = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        'prepare-silo')
 
     cmd = [prepare_silo_cmd, '--request-id', args.request_id]
     series = ''
@@ -140,7 +184,8 @@ if __name__ == '__main__':
         cmd.extend(mps)
     if sources:
         if sources[0].startswith("sync:"):
-            # in case we have a sync request, remove it from the sources list and mark the silo properly
+            # in case we have a sync request, remove it from the sources list
+            # and mark the silo properly
             sync = sources[0][5:]
             cmd.extend(['--sync-request', sync])
             sources = sources[1:]
