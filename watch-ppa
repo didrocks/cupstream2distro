@@ -149,7 +149,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
         # exit if all is fine
-        if not (packages_not_in_ppa and packages_building and packages_failed):
+        if not (packages_not_in_ppa or packages_building or packages_failed):
             break
 
         time.sleep(TIME_BETWEEN_PPA_CHECKS)
